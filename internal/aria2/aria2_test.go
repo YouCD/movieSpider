@@ -86,21 +86,31 @@ func Test_aria2_DownloadList(t *testing.T) {
 }
 
 func Test_aria2_CompletedFiles(t *testing.T) {
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpider/bin/movieSpider/config.yaml")
 
 	newAria2, err := NewAria2(config.Downloader.Aria2Label)
 	if err != nil {
 		t.Error(err)
 	}
 	files := newAria2.CompletedFiles()
-	var s string
-	var bs string
+	//var s string
+	//var bs string
+	//for _, file := range files {
+	//	if utf8.RuneCountInString(file.FileName) > 40 {
+	//		nameRune := []rune(file.FileName)
+	//		bs += fmt.Sprintf("%-40s | %s\n", string(nameRune[0:40]), file.Completed)
+	//	} else {
+	//		bs += fmt.Sprintf("%-40s | %s\n", file.FileName, file.Completed)
+	//	}
+	//}
+
+	var msg string
 	for _, file := range files {
-		s += fmt.Sprintf("\nGID:%s, 大小:%s, 已完成:%s, 文件名:%s", file.GID, file.Size, file.Completed, file.FileName)
-		fmt.Println(len(file.FileName))
-		bs += fmt.Sprintf("%-50s | %s\n", file.FileName[0:50], file.Completed)
+		msg += fmt.Sprintf("\nGID:%s, 大小:%s, 已完成:%s, 文件名:%s", file.GID, file.Size, file.Completed, file.FileName)
+		// todo 下载完后的向TG通知
 	}
-	log.Infof("Report: 下载统计: %s", s)
-	fmt.Println(bs)
+
+	log.Infof("Report: 下载统计: %s", msg)
+	//fmt.Println(bs)
 
 }

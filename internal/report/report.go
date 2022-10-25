@@ -49,7 +49,7 @@ func (r *Report) Run() {
 		files := aria2Client.CompletedFiles()
 		var msg string
 		for _, file := range files {
-			s += fmt.Sprintf("\nGID:%s, 大小:%s, 已完成:%s, 文件名:%s", file.GID, file.Size, file.Completed, file.FileName)
+			msg += fmt.Sprintf("\nGID:%s, 大小:%s, 已完成:%s, 文件名:%s", file.GID, file.Size, file.Completed, file.FileName)
 			// todo 下载完后的向TG通知
 		}
 		log.Infof("Report: 下载统计: %s", msg)
