@@ -48,4 +48,4 @@ services:
     depends_on:
       - moviespider_mysql
     volumes:
-      - ${MovieSpider_Dir}/config.yaml:/movieSpider/config.yaml
+      - ${MovieSpider_Dir}/config.yaml:/movieSpiderCore/config.yaml

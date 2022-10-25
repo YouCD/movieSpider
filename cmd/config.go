@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"io/ioutil"
-	"movieSpider/pkg/config"
-	"movieSpider/pkg/log"
-	"movieSpider/pkg/model"
+	"movieSpider/internal/config"
+	"movieSpider/internal/log"
+	"movieSpider/internal/model"
 	"os"
 )
 
@@ -40,7 +40,11 @@ Feed:
       ResourceType: movie
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-
+  TORLOCK:
+    - Scheduling: "*/3 * * * *"
+      ResourceType: movie
+    - Scheduling: "*/2 * * * *"
+      ResourceType: tv
 Global:
   LogLevel: debug
   Report: true

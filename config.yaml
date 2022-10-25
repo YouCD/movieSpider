@@ -28,7 +28,11 @@ Feed:
       ResourceType: movie
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-
+  TORLOCK:
+    - Scheduling: "*/3 * * * *"
+      ResourceType: movie
+    - Scheduling: "*/2 * * * *"
+      ResourceType: tv
 Global:
   LogLevel: info
   Report: true

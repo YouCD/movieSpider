@@ -10,6 +10,7 @@
 * knaben
 * rarbg
 * TGx
+* torlock
 
 如果要使用 TG bot， 请添加如下指令
 
@@ -76,8 +77,8 @@ docker run -d --name proxy_pool --env DB_CONN=redis://${Redis_Host}/0 -p 5010:50
 * 一把梭
 在一把梭之前请准备好配置文件
 ```shell
-mkdir $PWD/movieSpider
-cp config.yaml $PWD/movieSpider
+mkdir $PWD/movieSpiderCore
+cp config.yaml $PWD/movieSpiderCore
 ```
 
 
@@ -87,12 +88,12 @@ export Mysql_Password=P@ssw0rd
 export Mysql_Port=3307
 export Mysql_Database=movie
 export Aria2_Password=P@ssw0rd
-export Aria2_ConfigDir=$PWD/movieSpider/aria2/config
-export Aria2_DataDir=$PWD/movieSpider/aria2/data
+export Aria2_ConfigDir=$PWD/movieSpiderCore/aria2/config
+export Aria2_DataDir=$PWD/movieSpiderCore/aria2/data
 export Aria2_Port=6801
 export UID=$UID
 export GID=$GID
-export MovieSpider_Dir=$PWD/movieSpider/
+export MovieSpider_Dir=$PWD/movieSpiderCore/
 docker-compose up -d 
 
 ```
@@ -113,7 +114,7 @@ docker-compose up -d
 * 生成配置
 
 ```sh
-# movieSpider config 
+# movieSpiderCore config 
 MySQL:
   Host: 127.0.0.1
   Port: 3306
@@ -130,7 +131,7 @@ TG:
 
 请提前配置好数据库连接信息，见配置文件
 ```shell
-# movieSpider -f config.yaml config --init.db 
+# movieSpiderCore -f config.yaml config --init.db 
 config file is config.yaml.
 2022-10-16T20:49:40.494+0800    INFO    cmd/config.go:94        db: movie 数据库初始化完毕. 
 ```
@@ -138,13 +139,13 @@ config file is config.yaml.
 * 仅运行爬虫
 
 ```shell
-# movieSpider-linux -f config.yaml
+# movieSpiderCore-linux -f config.yaml
 ```
 
 * 同时运行TG机器人
 需提前配置好 TG，见配置文件
 ```shell
-# movieSpider-linux -f config.yaml --run.bot
+# movieSpiderCore-linux -f config.yaml --run.bot
 ```
 
 # 自行编译
@@ -160,12 +161,12 @@ git clone https://github.com/YouCD/movieSpider.git
 * 编译
 
 ```shell
-# cd movieSpider
+# cd movieSpiderCore
 # make build 
 ```
 # systemd
 ```shell
-name=movieSpider
+name=movieSpiderCore
 WorkDir="/home/ycd/btspidery_data/movieSpider"
 cat >/etc/systemd/system/${name}.service<<EOF
 

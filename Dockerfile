@@ -2,12 +2,12 @@ FROM golang:1.18.2-bullseye as builder
 WORKDIR /movieSpider
 ENV GOPROXY https://goproxy.cn,direct
 COPY . .
-RUN CGO_ENABLED=0 go build -o movieSpider
+RUN CGO_ENABLED=0 go build -o movieSpiderCore
 
 FROM  hairyhenderson/upx as upx
 WORKDIR /movieSpider
 COPY --from=builder /movieSpider/movieSpider .
-RUN upx movieSpider
+RUN upx movieSpiderCore
 
 FROM frolvlad/alpine-glibc
 MAINTAINER YCD "ycd@daddylab.com"
