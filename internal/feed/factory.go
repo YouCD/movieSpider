@@ -130,3 +130,25 @@ func (f *FactoryTORLOCK) CreateFeeder(args ...interface{}) Feeder {
 	}
 
 }
+
+type FactoryMAGNETDL struct{}
+
+func (f *FactoryMAGNETDL) CreateFeeder(args ...interface{}) Feeder {
+	scheduling := args[0].(string)
+	resourceType := args[1].(types2.Resource)
+
+	if resourceType == types2.ResourceMovie {
+		return &torlock{
+			resourceType,
+			"magnetdl",
+			scheduling,
+		}
+	} else {
+		return &torlock{
+			resourceType,
+			"magnetdl",
+			scheduling,
+		}
+	}
+
+}

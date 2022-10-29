@@ -45,13 +45,18 @@ Feed:
       ResourceType: movie
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
+  MAGNETDL:
+    - Scheduling: "*/3 * * * *"
+      ResourceType: movie
+    - Scheduling: "*/2 * * * *"
+      ResourceType: tv
 Global:
   LogLevel: debug
   Report: true
 
 # Downloader 下载
 Downloader:
-  Scheduling: "*/1 * * * *"
+  Scheduling: "*/60 * * * *"
   # 使用哪个 Aria2 下载
   Aria2Label: "home"
 

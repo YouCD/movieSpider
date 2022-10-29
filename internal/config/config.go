@@ -35,6 +35,11 @@ type rarbg struct {
 	ResourceType string `json:"ResourceType"`
 	Typ          types.Resource
 }
+type magnetdl struct {
+	Scheduling   string `json:"Scheduling"`
+	ResourceType string `json:"ResourceType"`
+	Typ          types.Resource
+}
 
 type downloader struct {
 	Scheduling string `json:"Scheduling"`
@@ -53,6 +58,7 @@ var (
 	TGX        = new(tgx)
 	TORLOCK    []*torlock
 	RARBG      []*rarbg
+	MAGNETDL   []*magnetdl
 	Downloader *downloader
 	ProxyPool  string
 )
@@ -225,6 +231,24 @@ func InitConfig(config string) {
 		os.Exit(-1)
 	}
 	for _, v := range TORLOCK {
+		switch v.ResourceType {
+		case "movie":
+			v.Typ = types.ResourceMovie
+		case "tv":
+			v.Typ = types.ResourceTV
+		default:
+			v.Typ = types.ResourceTV
+		}
+	}
+	if err = v.UnmarshalKey("Feed.MAGNETDL", &MAGNETDL); err != nil {
+		fmt.Println("读取MAGNETDL配置错误")
+		os.Exit(-1)
+	}
+	if MAGNETDL == nil {
+		fmt.Println("配置 MAGNETDL is nil")
+		os.Exit(-1)
+	}
+	for _, v := range MAGNETDL {
 		switch v.ResourceType {
 		case "movie":
 			v.Typ = types.ResourceMovie

@@ -79,7 +79,10 @@ func (r *rarbg) Crawler() (Videos []*types2.FeedVideo, err error) {
 		}
 	}
 	if r.typ == types2.ResourceTV {
-		fd, _ := fp.ParseURL(urlRarbgTV)
+		fd, err := fp.ParseURL(urlRarbgTV)
+		if err != nil {
+			log.Error("RARBG.tv:", err)
+		}
 		if fd == nil {
 			return nil, errors.New("RARBG.tv: 没有feed数据")
 		}

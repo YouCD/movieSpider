@@ -3,14 +3,15 @@
  自动化下载电影的爬虫工具
 
 支持的`Torrent`站点
-* bt4g
-* btbt
-* eztv
-* glodls
-* knaben
-* rarbg
-* TGx
-* torlock
+* [bt4g](https://bt4g.org)
+* [btbt](https://www.btbtt12.com/)
+* [eztv](https://eztv.re)
+* [glodls](https://glodls.to)
+* [knaben](https://rss.knaben.eu)
+* [rarbg](http://rarbg.to/)
+* [TGx](https://tgx.rs)
+* [torlock](https://www.torlock.com)
+* [magnetdl](https://www.magnetdl.com)
 
 如果要使用 TG bot， 请添加如下指令
 
