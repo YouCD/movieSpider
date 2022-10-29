@@ -112,7 +112,10 @@ func (m *movieDB) CreatFeedVideo(video *types2.FeedVideo) (err error) {
 func (m *movieDB) CreatDouBanVideo(video *types2.DouBanVideo) (err error) {
 	v, err := m.FetchOneDouBanVideoByDouBanID(video.DoubanID)
 	if err != nil {
-		log.Warn(err)
+		// 忽略 错误信息： sql: no rows in result set
+		if !errors.Is(sql.ErrNoRows, err) {
+			log.Error("video.DoubanID : %s,err: %s", video.DoubanID, err)
+		}
 	}
 	if v != nil {
 		log.Debugf("CreatDouBanVideo已存在 %#v", v)
@@ -185,10 +188,7 @@ func (m *movieDB) FetchOneDouBanVideoByDouBanID(DouBanID string) (video *types2.
 
 	err = row.Scan(&video.ID, &video.Names, &video.DoubanID, &video.Playable)
 	if err != nil {
-		if strings.Contains(err.Error(), "no rows in result set") {
-			return nil, errors.WithMessagef(err, "FetchOneDouBanVideoByDouBanID DouBanID: %s", DouBanID)
-		}
-		return nil, errors.WithMessagef(err, "DouBanID: %s", DouBanID)
+		return nil, err
 	}
 	log.Debugf("FetchOneDouBanVideoByDouBanID video: %#v", video)
 	return

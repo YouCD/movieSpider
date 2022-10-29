@@ -41,7 +41,7 @@ func TestDouBan_Crawler(t *testing.T) {
 	content := doc.Find("script[type='application/ld+json']").Text()
 	content = strings.ReplaceAll(content, "\n", "")
 
-	var d data
+	var d rowData
 	err = json.Unmarshal([]byte(content), &d)
 	if err != nil {
 		//return nil, errors.WithMessage(err, "getMovies goquery")

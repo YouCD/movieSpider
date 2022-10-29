@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -24,22 +25,22 @@ type DouBan struct {
 	doubanUrl  string
 	scheduling string
 }
-type data struct {
+type rowData struct {
 	Name     string `json:"name"`
 	Url      string `json:"url"`
 	Image    string `json:"image"`
 	Director []struct {
-		Type string `json:"@type"`
+		Type string `json:"type"`
 		Url  string `json:"url"`
 		Name string `json:"name"`
 	} `json:"director"`
 	Author []struct {
-		Type string `json:"@type"`
+		Type string `json:"type"`
 		Url  string `json:"url"`
 		Name string `json:"name"`
 	} `json:"author"`
 	Actor []struct {
-		Type string `json:"@type"`
+		Type string `json:"type"`
 		Url  string `json:"url"`
 		Name string `json:"name"`
 	} `json:"actor"`
@@ -47,9 +48,9 @@ type data struct {
 	Genre           []string `json:"genre"`
 	Duration        string   `json:"duration"`
 	Description     string   `json:"description"`
-	Type            string   `json:"@type"`
+	Type            string   `json:"type"`
 	AggregateRating struct {
-		Type        string `json:"@type"`
+		Type        string `json:"type"`
 		RatingCount string `json:"ratingCount"`
 		BestRating  string `json:"bestRating"`
 		WorstRating string `json:"worstRating"`
@@ -109,16 +110,26 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		// 获取电影原始数据
 		content := doc.Find("script[type='application/ld+json']").Text()
 		content = strings.ReplaceAll(content, "\n", "")
-
-		var d data
-		err = json.Unmarshal([]byte(content), &d)
+		content = strings.ReplaceAll(content, "@type", "type")
+		var data rowData
+		err = json.Unmarshal([]byte(content), &data)
 		if err != nil {
 			wg.Done()
 			log.Error(err)
 			return
 		}
 
-		marshal, err := json.Marshal(d)
+		// 处理 Genre
+		var genre []string
+		for _, g := range data.Genre {
+			unicode, err := d.zhToUnicode([]byte(g))
+			if err != nil {
+				return nil
+			}
+			genre = append(genre, string(unicode))
+		}
+		data.Genre = genre
+		marshal, err := json.Marshal(data)
 		if err != nil {
 			return nil
 		}
@@ -126,7 +137,7 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		video.RowData = string(marshal)
 
 		// 处理类型
-		video.Type = video.FormatType(d.Type)
+		video.Type = video.FormatType(data.Type)
 		// 处理 名称
 		video.Names = video.FormatName(video.Names)
 
@@ -182,7 +193,13 @@ func (d *DouBan) newRequest(url string) (document *goquery.Document, err error) 
 	}
 	return
 }
-
+func (d *DouBan) zhToUnicode(raw []byte) ([]byte, error) {
+	str, err := strconv.Unquote(strings.Replace(strconv.Quote(string(raw)), `\\u`, `\u`, -1))
+	if err != nil {
+		return nil, err
+	}
+	return []byte(str), nil
+}
 func (d *DouBan) Run() {
 	if d.scheduling == "" {
 		log.Error("DouBan Scheduling is null")
