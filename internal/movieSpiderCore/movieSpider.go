@@ -10,7 +10,6 @@ import (
 	"movieSpider/internal/report"
 	"movieSpider/internal/spider"
 	"movieSpider/internal/spider/douban"
-	"movieSpider/internal/spider/wmdb"
 	"movieSpider/internal/types"
 )
 
@@ -161,7 +160,6 @@ func (m *movieSpider) RunWithTGBot() {
 func (m *movieSpider) RunWithSpider() {
 	// Spider
 	m.spiders = append(m.spiders, douban.NewSpiderDouBan(config.DouBan.DoubanUrl, config.DouBan.Scheduling))
-	m.spiders = append(m.spiders, wmdb.NewSpiderWmdb(config.DouBan.Scheduling))
 	for _, s := range m.spiders {
 		go func(spider spider.Spider) {
 			spider.Run()

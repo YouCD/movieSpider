@@ -46,3 +46,19 @@ func Test_download_downloadTvTask(t *testing.T) {
 	}
 
 }
+
+func TestDownload_downloadMovieTask(t *testing.T) {
+	//config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpider/bin/movieSpider/config.yaml")
+
+	model.NewMovieDB()
+
+	d := &Download{
+		scheduling: "tt.fields.scheduling",
+	}
+	err := d.downloadMovieTask()
+	if err != nil {
+		t.Error(err)
+	}
+
+}

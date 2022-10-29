@@ -2,8 +2,11 @@ package douban
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/robfig/cron/v3"
+	"movieSpider/internal/config"
 	httpClient2 "movieSpider/internal/httpClient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
@@ -12,11 +15,46 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 )
+
+const movieUrlPrefix = "https://movie.douban.com/subject/"
 
 type DouBan struct {
 	doubanUrl  string
 	scheduling string
+}
+type data struct {
+	Name     string `json:"name"`
+	Url      string `json:"url"`
+	Image    string `json:"image"`
+	Director []struct {
+		Type string `json:"@type"`
+		Url  string `json:"url"`
+		Name string `json:"name"`
+	} `json:"director"`
+	Author []struct {
+		Type string `json:"@type"`
+		Url  string `json:"url"`
+		Name string `json:"name"`
+	} `json:"author"`
+	Actor []struct {
+		Type string `json:"@type"`
+		Url  string `json:"url"`
+		Name string `json:"name"`
+	} `json:"actor"`
+	DatePublished   string   `json:"datePublished"`
+	Genre           []string `json:"genre"`
+	Duration        string   `json:"duration"`
+	Description     string   `json:"description"`
+	Type            string   `json:"@type"`
+	AggregateRating struct {
+		Type        string `json:"@type"`
+		RatingCount string `json:"ratingCount"`
+		BestRating  string `json:"bestRating"`
+		WorstRating string `json:"worstRating"`
+		RatingValue string `json:"ratingValue"`
+	} `json:"aggregateRating"`
 }
 
 func NewSpiderDouBan(doubanUrl, scheduling string) *DouBan {
@@ -26,68 +64,20 @@ func NewSpiderDouBan(doubanUrl, scheduling string) *DouBan {
 	}
 }
 
-func (d *DouBan) Crawler() {
+func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 
-	request, err := http.NewRequest(http.MethodGet, d.doubanUrl, nil)
+	doc, err := d.newRequest(d.doubanUrl)
 	if err != nil {
 		log.Error(err)
 		return
 	}
-
-	request.Header.Set("User-Agent", "go")
-
-	client := httpClient2.NewHttpClient()
-	resp, err := client.Do(request)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	if resp == nil {
-		log.Warn("未能正常获取豆瓣数据")
-		return
-	}
-
-	defer resp.Body.Close()
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		//return nil, errors.WithMessage(err, "getMovies goquery")
-		log.Error(err)
-		return
-	}
-	//fmt.Println(doc.Text())
+	var videos1 []*types.DouBanVideo
 	doc.Find("#content > div.grid-16-8.clearfix > div.article > div.grid-view> div").Each(func(i int, s *goquery.Selection) {
-
 		s.Each(func(i int, selection *goquery.Selection) {
 			doubanVideo := new(types.DouBanVideo)
-
 			// 片名
 			nameStr := selection.Find("div.info> ul > li.title > a > em ").Text()
-
-			var strList []string
-			if strings.Contains(nameStr, "/") {
-				for _, v := range strings.Split(nameStr, "/") {
-					if strings.Contains(v, " ") {
-						tempName := strings.Trim(v, " ")
-						nedName := strings.ReplaceAll(tempName, " ", ".")
-						strList = append(strList, nedName)
-					}
-
-				}
-			} else {
-				if strings.Contains(nameStr, " ") {
-					tempName := strings.Trim(nameStr, " ")
-					nedName := strings.ReplaceAll(tempName, " ", ".")
-					strList = append(strList, nedName)
-				} else {
-					tempName := strings.Trim(nameStr, " ")
-					strList = append(strList, tempName)
-				}
-			}
-
-			by, _ := json.Marshal(strList)
-			doubanVideo.Names = string(by)
-
+			doubanVideo.Names = nameStr
 			//#content > div.grid-16-8.clearfix > div.article > div.grid-view > div:nth-child(1) > div.info > ul > li.title > a
 			val, _ := selection.Find("div.info>ul > li.title > a").Attr("href")
 
@@ -99,16 +89,97 @@ func (d *DouBan) Crawler() {
 			Playable = strings.ReplaceAll(Playable, "[", "")
 			Playable = strings.ReplaceAll(Playable, "]", "")
 			doubanVideo.Playable = Playable
-			err = model.NewMovieDB().CreatDouBanVideo(doubanVideo)
-			if err != nil {
-				log.Error(err)
-				return
-			}
-			log.Warnf("DouBan %s 已保存", doubanVideo.Names)
+
+			videos1 = append(videos1, doubanVideo)
 		})
 
 	})
 
+	var videos2 []*types.DouBanVideo
+	var wg sync.WaitGroup
+	for _, video := range videos1 {
+		wg.Add(1)
+		// 访问 豆瓣 具体的电影首页
+		doc, err := d.newRequest(fmt.Sprintf("%s%s", movieUrlPrefix, video.DoubanID))
+		if err != nil {
+			wg.Done()
+			log.Error(err)
+			return
+		}
+		// 获取电影原始数据
+		content := doc.Find("script[type='application/ld+json']").Text()
+		content = strings.ReplaceAll(content, "\n", "")
+
+		var d data
+		err = json.Unmarshal([]byte(content), &d)
+		if err != nil {
+			wg.Done()
+			log.Error(err)
+			return
+		}
+
+		marshal, err := json.Marshal(d)
+		if err != nil {
+			return nil
+		}
+		// 赋值 原始数据
+		video.RowData = string(marshal)
+
+		// 处理类型
+		video.Type = video.FormatType(d.Type)
+		// 处理 名称
+		video.Names = video.FormatName(video.Names)
+
+		html, err := doc.Html()
+		if err != nil {
+			return nil
+		}
+
+		compileRegex := regexp.MustCompile("tt\\d+")
+		matchArr := compileRegex.FindStringSubmatch(html)
+		video.ImdbID = matchArr[0]
+
+		videos2 = append(videos2, video)
+		wg.Done()
+	}
+	wg.Wait()
+
+	for _, video := range videos2 {
+		err = model.NewMovieDB().CreatDouBanVideo(video)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		log.Infof("DouBan %s 已保存", video.Names)
+	}
+
+	return
+}
+
+func (d *DouBan) newRequest(url string) (document *goquery.Document, err error) {
+
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36")
+	if config.DouBan.Cookie != "" {
+		request.Header.Set("Cookie", config.DouBan.Cookie)
+	}
+	client := httpClient2.NewHttpClient()
+	resp, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, errors.New("未能正常获取豆瓣数据")
+	}
+	defer resp.Body.Close()
+
+	document, err = goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 

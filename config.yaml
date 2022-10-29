@@ -10,8 +10,8 @@ Douban:
   # 豆瓣电影想看清单
   DoubanUrl: "https://movie.douban.com/people/251312920/wish"
   Scheduling: "*/10 * * * *"
-  # 豆瓣电影 公共API
-  WMDBPrefix: "https://api.wmdb.tv/movie/api?id="
+  # 豆瓣 Cookie
+  # Cookie: ''
 Feed:
   # 代理池 这里使用 https://github.com/jhao104/proxy_pool
   ProxyPool: "http://127.0.0.1:5010"

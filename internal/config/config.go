@@ -93,6 +93,7 @@ type mysql struct {
 type douban struct {
 	DoubanUrl  string
 	Scheduling string
+	Cookie     string
 }
 
 func InitConfig(config string) {

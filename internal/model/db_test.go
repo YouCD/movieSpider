@@ -12,10 +12,12 @@ import (
 )
 
 func Test_movieDB_FetchMagnetByName(t *testing.T) {
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+	//config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpider/bin/movieSpider/config.yaml")
+
 	NewMovieDB()
 
-	var names = []string{"Black.Adam"}
+	var names = []string{"Im.Westen.nichts.Neues"}
 	videos, err := movieDatabase.FetchMovieMagnetByName(names)
 	if err != nil {
 		t.Error(err)
@@ -127,10 +129,11 @@ func sotByResolution(videos []*types2.FeedVideo) (downloadIs1 []*types2.FeedVide
 }
 
 func Test_movieDB_FetchDouBanVideoByType(t *testing.T) {
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+	//config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpider/bin/movieSpider/config.yaml")
 	NewMovieDB()
 
-	Videos, err := movieDatabase.FetchDouBanVideoByType(types2.ResourceTV)
+	Videos, err := movieDatabase.FetchDouBanVideoByType(types2.ResourceMovie)
 	if err != nil {
 		t.Error(err)
 	}
