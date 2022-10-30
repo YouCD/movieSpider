@@ -100,6 +100,8 @@ func WithFeeds(feeds ...feed.Feeder) Option {
 			log.Debug(r)
 		}
 	}
+	facFeedTPBPIRATEPROXY := new(feed.FactoryTPBPIRATEPROXY)
+	feedTPBPIRATEPROXY := facFeedTPBPIRATEPROXY.CreateFeeder(config.TPBPIRATEPROXY.Scheduling)
 
 	return optionFunc(func(ms *movieSpider) {
 		ms.feeds = append(ms.feeds,
@@ -113,6 +115,7 @@ func WithFeeds(feeds ...feed.Feeder) Option {
 			feedTorlockTV,
 			feedMagnetdlMovie,
 			feedMagnetdlTV,
+			feedTPBPIRATEPROXY,
 		)
 		ms.feeds = append(ms.feeds, feeds...)
 	})

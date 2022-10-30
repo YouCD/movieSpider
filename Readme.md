@@ -12,6 +12,7 @@
 * [TGx](https://tgx.rs)
 * [torlock](https://www.torlock.com)
 * [magnetdl](https://www.magnetdl.com)
+* [TpbpirateProxy](https://thepiratebay.party/rss//top100/200)
 
 如果要使用 TG bot， 请添加如下指令
 

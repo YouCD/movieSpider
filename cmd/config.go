@@ -50,6 +50,8 @@ Feed:
       ResourceType: movie
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
+  TPBPIRATEPROXY:
+    Scheduling: "*/3 * * * *"
 Global:
   LogLevel: debug
   Report: true

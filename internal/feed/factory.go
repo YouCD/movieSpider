@@ -152,3 +152,13 @@ func (f *FactoryMAGNETDL) CreateFeeder(args ...interface{}) Feeder {
 	}
 
 }
+
+type FactoryTPBPIRATEPROXY struct{}
+
+func (f *FactoryTPBPIRATEPROXY) CreateFeeder(args ...interface{}) Feeder {
+	scheduling := args[0].(string)
+	return &tpbpirateproxy{
+		scheduling,
+		"tpbpirateproxy",
+	}
+}

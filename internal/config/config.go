@@ -29,6 +29,9 @@ type eztv struct {
 type glodls struct {
 	Scheduling string `json:"Scheduling"`
 }
+type tpbpirateproxy struct {
+	Scheduling string `json:"Scheduling"`
+}
 
 type rarbg struct {
 	Scheduling   string `json:"Scheduling"`
@@ -47,20 +50,21 @@ type downloader struct {
 }
 
 var (
-	Global     = new(global)
-	Aria2cList []aria2
-	TG         = new(tg)
-	MySQL      = new(mysql)
-	DouBan     = new(douban)
-	BTBT       = new(btbt)
-	EZTV       = new(eztv)
-	GLODLS     = new(glodls)
-	TGX        = new(tgx)
-	TORLOCK    []*torlock
-	RARBG      []*rarbg
-	MAGNETDL   []*magnetdl
-	Downloader *downloader
-	ProxyPool  string
+	Global         = new(global)
+	Aria2cList     []aria2
+	TG             = new(tg)
+	MySQL          = new(mysql)
+	DouBan         = new(douban)
+	BTBT           = new(btbt)
+	EZTV           = new(eztv)
+	GLODLS         = new(glodls)
+	TPBPIRATEPROXY = new(tpbpirateproxy)
+	TGX            = new(tgx)
+	TORLOCK        []*torlock
+	RARBG          []*rarbg
+	MAGNETDL       []*magnetdl
+	Downloader     *downloader
+	ProxyPool      string
 )
 
 type global struct {
@@ -188,6 +192,14 @@ func InitConfig(config string) {
 		fmt.Println("配置 EZTV is nil")
 		os.Exit(-1)
 	}
+	if err = v.UnmarshalKey("Feed.TPBPIRATEPROXY", &TPBPIRATEPROXY); err != nil {
+		fmt.Println("读取TPBPIRATEPROXY配置错误")
+		os.Exit(-1)
+	}
+	if TPBPIRATEPROXY == nil {
+		fmt.Println("配置 TPBPIRATEPROXY is nil")
+		os.Exit(-1)
+	}
 	if err = v.UnmarshalKey("Feed.GLODLS", &GLODLS); err != nil {
 		fmt.Println("读取GLODLS配置错误")
 		os.Exit(-1)
@@ -196,6 +208,7 @@ func InitConfig(config string) {
 		fmt.Println("配置 GLODLS is nil")
 		os.Exit(-1)
 	}
+
 	if err = v.UnmarshalKey("Feed.TGX", &TGX); err != nil {
 		fmt.Println("读取TGX配置错误")
 		os.Exit(-1)
