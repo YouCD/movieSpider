@@ -2,7 +2,7 @@ GOCMD			:=$(shell which go)
 GOBUILD			:=$(GOCMD) build
 
 
-IMPORT_PATH		:=btspyder/cmd
+IMPORT_PATH		:=movieSpider/cmd
 BUILD_TIME		:=$(shell date "+%F %T")
 COMMIT_ID       :=$(shell git rev-parse HEAD)
 GO_VERSION      :=$(shell $(GOCMD) version)
@@ -10,7 +10,7 @@ VERSION			:=$(shell git describe --tags)
 BUILD_USER		:=$(shell whoami)
 FLAG			:="-X '${IMPORT_PATH}.buildTime=${BUILD_TIME}' -X '${IMPORT_PATH}.commitID=${COMMIT_ID}' -X '${IMPORT_PATH}.goVersion=${GO_VERSION}' -X '${IMPORT_PATH}.goVersion=${GO_VERSION}' -X '${IMPORT_PATH}.Version=${VERSION}' -X '${IMPORT_PATH}.buildUser=${BUILD_USER}'"
 
-BINARY_DIR=bin/movieSpider
+BINARY_DIR=bin
 BINARY_NAME:=movieSpider
 
 
