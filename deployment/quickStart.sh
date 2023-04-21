@@ -13,6 +13,6 @@ wget -q https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/IpPr
 wget -q https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/movieSpider/config.yaml -O movieSpider/config.yaml
 
 
-echo "启动 movieSpider"
+echo "启动 moviespider"
 
-docker-compose -p movieSpider up -d
+docker-compose -p moviespider up -d
