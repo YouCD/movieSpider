@@ -1,0 +1,7 @@
+.idea
+bin
+.DS_Store
+movieSpider
+!deployment/movieSpider
+!deployment/movieSpider.egg-info
+config.local.yaml

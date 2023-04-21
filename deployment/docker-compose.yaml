@@ -1,0 +1,57 @@
+version: '3.1'
+services:
+  moviespider_proxy:
+    build:
+      dockerfile: IpProxyPool_Dockerfile
+      context: ..
+    image: moviespider_proxy_image
+    ports:
+      - "5010:5010"
+    restart: always
+    volumes:
+      - "./IpProxyPool/config.yaml:/app/conf/config.yaml"
+      - "./IpProxyPool/logs:/app/logs"
+    depends_on:
+      - moviespider_mysql
+  moviespider_mysql:
+    image: mysql:5.7.18
+    ports:
+      - ${Mysql_Port}:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=${Mysql_Password}
+    restart: always
+  moviespider_aria2:
+    image: p3terx/aria2-pro
+    environment:
+      - PUID=$UID
+      - PGID=$GID
+      - RPC_SECRET=${Aria2_Password}
+      - UMASK_SET=022
+      - IPV6_MODE=false
+      - RPC_PORT=6800
+      - LISTEN_PORT=6888
+      - CUSTOM_TRACKER_URL=https://trackerslist.com/all_aria2.txt
+      - TZ=Asia/Shanghai
+    restart: always
+    volumes:
+      - "${Aria2_ConfigDir}:/config"
+      - "${Aria2_DataDir}:/downloads"
+    # network_mode: bridge
+    ports:
+      - ${Aria2_Port}:6800
+      - 6888:6888
+      - 6888:6888/udp
+
+  moviespider_core:
+    build:
+      dockerfile: moviespider_Dockerfile
+      context: ..
+    restart: always
+    links:
+      - moviespider_mysql
+      - moviespider_aria2
+      - moviespider_proxy
+    depends_on:
+      - moviespider_mysql
+    volumes:
+      - "${MovieSpider_Dir}/config.yaml:/app/config.yaml"

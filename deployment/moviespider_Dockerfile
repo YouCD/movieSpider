@@ -1,0 +1,18 @@
+FROM  curlimages/curl as curl
+RUN export download_url=`curl  -s https://api.github.com/repos/youcd/movieSpider/releases/latest|grep browser_download_url|grep linux|awk -F"\"" '{print $4}'`  &&\
+    echo ${download_url} &&\
+    wget ${download_url} -O /tmp/movieSpider
+
+FROM alpine
+MAINTAINER YCD "hnyoucd@gmail.com"
+WORKDIR /app
+ENV PATH=/app:$PATH
+ENV TZ Asia/Shanghai
+COPY --from=Curl /tmp/movieSpider /app/movieSpider
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories &&\
+    chmod a+x /app/movieSpider &&\
+    apk add -U tzdata --no-cache &&\
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&\
+    echo $TZ > /etc/timezone
+ENTRYPOINT ["movieSpider"]
+CMD ["-f","config.yaml"]

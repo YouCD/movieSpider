@@ -1,0 +1,37 @@
+@startuml
+title btspider
+
+participant Spider_DouBan
+participant Web_DouBan
+participant DataBase
+participant Spider_Wmdb
+participant Web_Wmdb
+participant Feed_Interface
+participant downloader
+participant Aria2
+
+Spider_DouBan -> Web_DouBan: 获取想看的电影数据
+Web_DouBan --> Spider_DouBan: 电影清单
+Spider_DouBan -> Spider_DouBan: 解析电影数据
+Spider_DouBan -> DataBase: 存储数据
+Spider_Wmdb -> DataBase: 定时查询一条没有IMDB_ID的记录
+Spider_Wmdb -> Web_Wmdb: 通过豆瓣的电影ID请求Wmdb数据库
+Web_Wmdb --> Spider_Wmdb: 电影的原始信息
+Spider_Wmdb -> Spider_Wmdb: 更新该记录相关基础数据
+Feed_Interface -> Web_Feed: 定时获取各大Feed的数据
+Web_Feed -> Feed_Interface: 返回电影或电视剧数据
+Feed_Interface --> DataBase: 存储数据
+group#Gold #LightBlue 通过电影名查询，如果feed数据中有DataBase[想看清单]中的条目
+    downloader -> DataBase: 通过电影名查询feed数据中有DataBase[想看清单]中的条目;
+    DataBase-->downloader: 返回 feed数据 电影或电视剧数据
+    downloader -> Aria2: 推送种子数据;
+    downloader -> DataBase: 将[电影]标记为已下载
+    Aria2 -> Aria2: 通过Magnet链接下载
+end
+
+
+
+
+
+
+@enduml

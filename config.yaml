@@ -1,0 +1,68 @@
+MySQL:
+  # 这个地址是docker里面的地址
+  Host: moviespider_mysql
+  Port: 3306
+  Database: movie
+  User: root
+  Password: P@ssw0rd
+
+Douban:
+  # 豆瓣电影想看清单
+  DoubanUrl: "https://movie.douban.com/people/251312920/wish"
+  Scheduling: "*/10 * * * *"
+  # 豆瓣 Cookie
+  # Cookie: ''
+Feed:
+  # 代理池 https://github.com/YouCD/IpProxyPool
+  ProxyPool: "http://127.0.0.1:5010"
+  BTBT:
+    Scheduling: "*/5 * * * *"
+  EZTV:
+    Scheduling: "*/5 * * * *"
+  GLODLS:
+    Scheduling: "*/3 * * * *"
+  TGX:
+    Scheduling: "*/3 * * * *"
+  RARBG:
+    - Scheduling: "*/3 * * * *"
+      ResourceType: movie
+    - Scheduling: "*/2 * * * *"
+      ResourceType: tv
+  TORLOCK:
+    - Scheduling: "*/3 * * * *"
+      ResourceType: movie
+    - Scheduling: "*/2 * * * *"
+      ResourceType: tv
+  MAGNETDL:
+    - Scheduling: "*/3 * * * *"
+      ResourceType: movie
+    - Scheduling: "*/2 * * * *"
+      ResourceType: tv
+  TPBPIRATEPROXY:
+    Scheduling: "*/3 * * * *"
+Global:
+  LogLevel: info
+  Report: true
+
+# Downloader 下载
+Downloader:
+  Scheduling: "*/60 * * * *"
+  # 使用哪个 Aria2 下载
+  Aria2Label: "home"
+
+# Aria2 下载服务器
+Aria2cList:
+  - Url: "http://127.0.0.1e:6800"
+    Token: P@ssw0rd
+    Label: home
+
+# 如果没有Telegram 就请忽略
+#TG:
+  # Telegram 网络代理
+#  Proxy:
+#    Url: socks5://127.0.0.1:1080
+#    Enable: false
+  # Telegram 机器人 token
+#  BotToken: "TOKEN"
+#   能正常访问机器人的Telegram用户
+#  TgIDs: [ 123456 ]
