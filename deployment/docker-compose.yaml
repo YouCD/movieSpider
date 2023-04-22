@@ -3,8 +3,7 @@ services:
   moviespider_proxy:
     build:
       dockerfile: IpProxyPool_Dockerfile
-      context: ..
-    image: moviespider_proxy_image
+      context: ./
     ports:
       - "5010:5010"
     restart: always
@@ -45,7 +44,7 @@ services:
   moviespider_core:
     build:
       dockerfile: moviespider_Dockerfile
-      context: ..
+      context: .
     restart: always
     links:
       - moviespider_mysql
