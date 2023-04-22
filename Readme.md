@@ -187,7 +187,7 @@ After=network-online.target
 
 [Service]
 WorkingDirectory=${WorkDir}
-ExecStart=${WorkDir}/${name} -f config.yaml --run.bot
+ExecStart=${WorkDir}/${name} -f config.yaml
 Restart=always
 
 [Install]
