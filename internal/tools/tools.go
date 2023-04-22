@@ -1,5 +1,9 @@
 package tools
 
+import (
+	"strings"
+)
+
 //
 // RemoveSpaceItem
 //  @Description: 去除数组中的空格
@@ -15,4 +19,17 @@ func RemoveSpaceItem(a []string) (ret []string) {
 		ret = append(ret, a[i])
 	}
 	return
+}
+
+// ExcludeVideo
+// ExcludeVideo 排除  480p 720p  dvsux  hdr 视频源
+//  @Description:
+//  @param name
+//  @return bool
+func ExcludeVideo(name string) bool {
+	lowerTorrentName := strings.ToLower(name)
+	if strings.Contains(lowerTorrentName, "720p") || strings.Contains(lowerTorrentName, "dvsux") || strings.Contains(lowerTorrentName, "480p") || strings.Contains(lowerTorrentName, "hdr") || strings.Contains(lowerTorrentName, ".DV.") {
+		return true
+	}
+	return false
 }

@@ -1,4 +1,4 @@
-package feed
+package searchSpider
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
-	types2 "movieSpider/internal/types"
+	"movieSpider/internal/types"
 	"net/url"
 	"os"
 	"regexp"
@@ -18,11 +18,11 @@ const urlKnaben = "https://rss.knaben.eu"
 
 type knaben struct {
 	url        string
-	resolution types2.Resolution
+	resolution types.Resolution
 	web        string
 }
 
-func NewFeedKnaben(name string, resolution types2.Resolution) *knaben {
+func NewFeedKnaben(name string, resolution types.Resolution) *knaben {
 	parse, err := url.Parse(urlKnaben)
 	if err != nil {
 		log.Error(err)
@@ -36,7 +36,7 @@ func NewFeedKnaben(name string, resolution types2.Resolution) *knaben {
 	return &knaben{url: kUrl, resolution: resolution, web: "knaben"}
 }
 
-func (k *knaben) Crawler() (videos []*types2.FeedVideo, err error) {
+func (k *knaben) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(k.url)
 	if fd == nil {
@@ -50,12 +50,8 @@ func (k *knaben) Crawler() (videos []*types2.FeedVideo, err error) {
 	for _, v := range fd.Items {
 		// 片名
 		name := strings.ReplaceAll(v.Title, " ", ".")
-		ok := excludeVideo(name)
-		if ok {
-			continue
-		}
 
-		fVideo := new(types2.FeedVideo)
+		fVideo := new(types.FeedVideo)
 		fVideo.Web = k.web
 
 		if len(v.Categories) > 0 {
@@ -77,7 +73,6 @@ func (k *knaben) Crawler() (videos []*types2.FeedVideo, err error) {
 				// 种子名
 				fVideo.TorrentName = fVideo.FormatName(fVideo.Name)
 				videos = append(videos, fVideo)
-
 			}
 		}
 	}
@@ -87,7 +82,7 @@ func (k *knaben) Crawler() (videos []*types2.FeedVideo, err error) {
 	for _, v := range videos {
 		wg.Add(1)
 		// 异步保存至 数据库
-		go func(video *types2.FeedVideo) {
+		go func(video *types.FeedVideo) {
 			err := model.NewMovieDB().CreatFeedVideo(video)
 			if err != nil {
 				if errors.Is(err, model.ErrorDataExist) {
@@ -105,7 +100,7 @@ func (k *knaben) Crawler() (videos []*types2.FeedVideo, err error) {
 
 	// 指定清晰度
 	if k.resolution.Res() != "" {
-		var resolutionVideos []*types2.FeedVideo
+		var resolutionVideos []*types.FeedVideo
 		for _, v := range videos {
 			if strings.Contains(v.Name, k.resolution.Res()) {
 				resolutionVideos = append(resolutionVideos, v)

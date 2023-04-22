@@ -1,4 +1,4 @@
-package feed
+package feedSpider
 
 import (
 	"database/sql"
@@ -60,7 +60,6 @@ func (b *btbt) Crawler() (Videos []*types.FeedVideo, err error) {
 			// 年份
 			selection.Find("a:nth-child(2)").Each(func(i int, selection *goquery.Selection) {
 				fVideo.Year = trim(selection.Text())
-
 			})
 
 			fVideo.Type = "movie"
@@ -119,7 +118,7 @@ func (b *btbt) Crawler() (Videos []*types.FeedVideo, err error) {
 
 }
 
-func (b *btbt) Run() {
+func (b *btbt) Run(ch chan *types.FeedVideo) {
 	if b.scheduling == "" {
 		log.Error("BTBT: Scheduling is null")
 		os.Exit(1)
@@ -132,8 +131,9 @@ func (b *btbt) Run() {
 			log.Error(err)
 			return
 		}
-
-		proxySaveVideo2DB(videos...)
+		for _, video := range videos {
+			ch <- video
+		}
 	})
 	c.Start()
 

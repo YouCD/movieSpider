@@ -1,4 +1,4 @@
-package feed
+package feedSpider
 
 import (
 	"database/sql"
@@ -34,14 +34,7 @@ func (f *eztv) Crawler() (videos []*types.FeedVideo, err error) {
 	}
 	for _, v := range fd.Items {
 		torrentName := strings.ReplaceAll(v.Title, " ", ".")
-
-		ok := excludeVideo(torrentName)
-		if ok {
-			continue
-		}
-
 		var name, year string
-
 		compileRegex := regexp.MustCompile("(.*)\\.(\\d{4})\\.")
 		matchArr := compileRegex.FindStringSubmatch(torrentName)
 		if len(matchArr) == 0 {
@@ -77,7 +70,7 @@ func (f *eztv) Crawler() (videos []*types.FeedVideo, err error) {
 	}
 	return
 }
-func (f *eztv) Run() {
+func (f *eztv) Run(ch chan *types.FeedVideo) {
 	if f.scheduling == "" {
 		log.Error("EZTV Scheduling is null")
 		os.Exit(1)
@@ -90,7 +83,10 @@ func (f *eztv) Run() {
 			log.Error(err)
 			return
 		}
-		proxySaveVideo2DB(videos...)
+		for _, video := range videos {
+			ch <- video
+		}
+		//model.ProxySaveVideo2DB(videos...)
 	})
 	c.Start()
 }

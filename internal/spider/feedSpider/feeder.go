@@ -1,4 +1,4 @@
-package feed
+package feedSpider
 
 import (
 	"movieSpider/internal/types"
@@ -6,7 +6,7 @@ import (
 
 type Feeder interface {
 	Crawler() ([]*types.FeedVideo, error)
-	Run()
+	Run(chan *types.FeedVideo)
 }
 
 type FeederAbstractFactory interface {

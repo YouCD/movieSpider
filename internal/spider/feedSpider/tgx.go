@@ -1,4 +1,4 @@
-package feed
+package feedSpider
 
 import (
 	"database/sql"
@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 	"movieSpider/internal/log"
+	"movieSpider/internal/magnetConvert"
 	"movieSpider/internal/types"
 	"os"
 	"regexp"
@@ -38,11 +39,6 @@ func (t *tgx) Crawler() (videos []*types.FeedVideo, err error) {
 	for _, v := range fd.Items {
 
 		torrentName := strings.ReplaceAll(v.Title, " ", ".")
-		ok := excludeVideo(torrentName)
-		if ok {
-			continue
-		}
-
 		var name, year, typ string
 
 		compileRegex := regexp.MustCompile("(.*)\\.(\\d{4})\\.")
@@ -88,7 +84,7 @@ func (t *tgx) Crawler() (videos []*types.FeedVideo, err error) {
 	var wg sync.WaitGroup
 	for _, video := range videos1 {
 		wg.Add(1)
-		magnet, err := fetchMagnet(video.TorrentUrl)
+		magnet, err := magnetConvert.FetchMagnet(video.TorrentUrl)
 		if err != nil {
 			wg.Done()
 			return nil, err
@@ -101,7 +97,7 @@ func (t *tgx) Crawler() (videos []*types.FeedVideo, err error) {
 	return
 }
 
-func (t *tgx) Run() {
+func (t *tgx) Run(ch chan *types.FeedVideo) {
 
 	if t.scheduling == "" {
 		log.Error("TGx Scheduling is null")
@@ -115,7 +111,10 @@ func (t *tgx) Run() {
 			log.Error(err)
 			return
 		}
-		proxySaveVideo2DB(videos...)
+		//model.ProxySaveVideo2DB(videos...)
+		for _, video := range videos {
+			ch <- video
+		}
 	})
 	c.Start()
 }

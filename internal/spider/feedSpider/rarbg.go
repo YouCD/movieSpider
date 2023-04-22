@@ -1,4 +1,4 @@
-package feed
+package feedSpider
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ import (
 	"github.com/robfig/cron/v3"
 	"movieSpider/internal/ipProxy"
 	"movieSpider/internal/log"
-	types2 "movieSpider/internal/types"
+	"movieSpider/internal/types"
 	"net/http"
 	"net/url"
 	"os"
@@ -24,17 +24,17 @@ const (
 )
 
 type rarbg struct {
-	typ        types2.Resource
+	typ        types.Resource
 	web        string
 	scheduling string
 	httpClient *http.Client
 }
 
-func (r *rarbg) Crawler() (Videos []*types2.FeedVideo, err error) {
+func (r *rarbg) Crawler() (Videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fp.Client = r.httpClient
 	fp.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
-	if r.typ == types2.ResourceMovie {
+	if r.typ == types.ResourceMovie {
 		fd, err := fp.ParseURL(urlRarbgMovie)
 		if err != nil {
 			log.Error(err)
@@ -50,12 +50,8 @@ func (r *rarbg) Crawler() (Videos []*types2.FeedVideo, err error) {
 		for _, v := range fd.Items {
 			// 片名
 			name := strings.ReplaceAll(v.Title, " ", ".")
-			ok := excludeVideo(name)
-			if ok {
-				continue
-			}
 
-			var fVideo types2.FeedVideo
+			var fVideo types.FeedVideo
 			fVideo.Web = r.web
 			fVideo.TorrentName = name
 			fVideo.Magnet = v.Link
@@ -79,7 +75,7 @@ func (r *rarbg) Crawler() (Videos []*types2.FeedVideo, err error) {
 			Videos = append(Videos, &fVideo)
 		}
 	}
-	if r.typ == types2.ResourceTV {
+	if r.typ == types.ResourceTV {
 		fd, err := fp.ParseURL(urlRarbgTV)
 		if err != nil {
 			log.Error("RARBG.tv:", err)
@@ -95,14 +91,10 @@ func (r *rarbg) Crawler() (Videos []*types2.FeedVideo, err error) {
 		for _, v := range fd.Items {
 			// 片名
 			name := strings.ReplaceAll(v.Title, " ", ".")
-			ok := excludeVideo(name)
-			if ok {
-				continue
-			}
 
 			matchArr := compileRegex.FindStringSubmatch(name)
 
-			var fVideo types2.FeedVideo
+			var fVideo types.FeedVideo
 			fVideo.TorrentName = fVideo.FormatName(name)
 			fVideo.Magnet = v.Link
 			fVideo.Type = "tv"
@@ -121,7 +113,7 @@ func (r *rarbg) Crawler() (Videos []*types2.FeedVideo, err error) {
 	}
 	return
 }
-func (r *rarbg) Run() {
+func (r *rarbg) Run(ch chan *types.FeedVideo) {
 	if r.scheduling == "" {
 		log.Errorf("RARBG %s: Scheduling is null", r.typ.Typ())
 		os.Exit(1)
@@ -131,30 +123,21 @@ func (r *rarbg) Run() {
 	c.AddFunc(r.scheduling, func() {
 		videos, err := r.Crawler()
 		if err != nil {
-			//for {
-			//	r.switchClient()
-			//	videos, err = r.Crawler()
-			//	if err != nil {
-			//		log.Error(err)
-			//		return
-			//	}
-			//	if len(videos) == 0 {
-			//		continue
-			//	} else {
-			//		r.proxySaveVideo2DB(videos)
-			//		break
-			//	}
-			//
-			//}
 			r.switchClient()
 			videos, err = r.Crawler()
 			if err != nil {
 				log.Error(err)
 				return
 			}
-			proxySaveVideo2DB(videos...)
+			//model.ProxySaveVideo2DB(videos...)
+			for _, video := range videos {
+				ch <- video
+			}
 		}
-		proxySaveVideo2DB(videos...)
+		//model.ProxySaveVideo2DB(videos...)
+		for _, video := range videos {
+			ch <- video
+		}
 	})
 	c.Start()
 

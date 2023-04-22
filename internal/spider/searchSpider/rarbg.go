@@ -1,4 +1,4 @@
-package rarbg
+package searchSpider
 
 import (
 	"github.com/PuerkitoBio/goquery"

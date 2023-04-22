@@ -1,4 +1,4 @@
-package feed
+package feedSpider
 
 import (
 	"database/sql"
@@ -10,7 +10,8 @@ import (
 	"github.com/robfig/cron/v3"
 	"movieSpider/internal/httpClient"
 	"movieSpider/internal/log"
-	types2 "movieSpider/internal/types"
+	"movieSpider/internal/magnetConvert"
+	"movieSpider/internal/types"
 	"os"
 	"regexp"
 	"strings"
@@ -23,18 +24,18 @@ const (
 )
 
 type torlock struct {
-	typ types2.Resource
+	typ types.Resource
 	//url        string
 	web        string
 	scheduling string
 	//httpClient *http.Client
 }
 
-func (t *torlock) Crawler() (Videos []*types2.FeedVideo, err error) {
+func (t *torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fp.Client = httpClient.NewHttpClient()
 	fp.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
-	if t.typ == types2.ResourceMovie {
+	if t.typ == types.ResourceMovie {
 		fd, err := fp.ParseURL(urlTorlockMovie)
 		if err != nil {
 			log.Error(err)
@@ -47,18 +48,14 @@ func (t *torlock) Crawler() (Videos []*types2.FeedVideo, err error) {
 			return nil, errors.New(fmt.Sprintf("TORLOCK.movie: 没有feed数据."))
 		}
 
-		var videos1 []*types2.FeedVideo
+		var videos1 []*types.FeedVideo
 		nameReg := regexp.MustCompile("(.*)\\.([0-9][0-9][0-9][0-9])\\.")
 		yearReg := regexp.MustCompile("(.*)\\.\\(([0-9][0-9][0-9][0-9])\\)\\.")
 		for _, v := range fd.Items {
 			// 片名
 			name := strings.ReplaceAll(v.Title, " ", ".")
-			ok := excludeVideo(name)
-			if ok {
-				continue
-			}
 
-			var fVideo types2.FeedVideo
+			var fVideo types.FeedVideo
 			fVideo.Web = t.web
 			fVideo.TorrentName = name
 			fVideo.TorrentUrl = v.Link
@@ -96,7 +93,7 @@ func (t *torlock) Crawler() (Videos []*types2.FeedVideo, err error) {
 		return Videos, nil
 
 	}
-	if t.typ == types2.ResourceTV {
+	if t.typ == types.ResourceTV {
 		fd, err := fp.ParseURL(urlTorlockTV)
 		if err != nil {
 			log.Error(err)
@@ -110,17 +107,14 @@ func (t *torlock) Crawler() (Videos []*types2.FeedVideo, err error) {
 		}
 		compileRegex := regexp.MustCompile("(.*)\\.[sS][0-9][0-9]|[Ee][0-9][0-9]?\\.")
 
-		var videos1 []*types2.FeedVideo
+		var videos1 []*types.FeedVideo
 
 		for _, v := range fd.Items {
 			// 片名
 			name := strings.ReplaceAll(v.Title, " ", ".")
-			ok := excludeVideo(name)
-			if ok {
-				continue
-			}
+
 			matchArr := compileRegex.FindStringSubmatch(name)
-			var fVideo types2.FeedVideo
+			var fVideo types.FeedVideo
 			fVideo.TorrentName = fVideo.FormatName(name)
 			fVideo.TorrentUrl = v.Link
 			fVideo.Type = "tv"
@@ -145,11 +139,11 @@ func (t *torlock) Crawler() (Videos []*types2.FeedVideo, err error) {
 	return
 }
 
-func (t *torlock) fetchMagnet(videos []*types2.FeedVideo) (Videos []*types2.FeedVideo) {
+func (t *torlock) fetchMagnet(videos []*types.FeedVideo) (Videos []*types.FeedVideo) {
 	var wg sync.WaitGroup
 	for _, video := range videos {
 		wg.Add(1)
-		magnet, err := fetchMagnet(video.Magnet)
+		magnet, err := magnetConvert.FetchMagnet(video.Magnet)
 		if err != nil {
 			log.Errorf("TORLOCK: get %s magnet download url is %s", video.Name, video.Magnet)
 			wg.Done()
@@ -163,9 +157,9 @@ func (t *torlock) fetchMagnet(videos []*types2.FeedVideo) (Videos []*types2.Feed
 	return Videos
 }
 
-func (t *torlock) fetchMagnetDownLoad(videos []*types2.FeedVideo) []*types2.FeedVideo {
+func (t *torlock) fetchMagnetDownLoad(videos []*types.FeedVideo) []*types.FeedVideo {
 	var wg sync.WaitGroup
-	var videos2 []*types2.FeedVideo
+	var videos2 []*types.FeedVideo
 	for _, video := range videos {
 		wg.Add(1)
 		resp, err := httpClient.NewHttpClient().Get(video.TorrentUrl)
@@ -190,7 +184,7 @@ func (t *torlock) fetchMagnetDownLoad(videos []*types2.FeedVideo) []*types2.Feed
 	wg.Wait()
 	return videos2
 }
-func (t *torlock) Run() {
+func (t *torlock) Run(ch chan *types.FeedVideo) {
 	if t.scheduling == "" {
 		log.Errorf("TORLOCK %s: Scheduling is null", t.typ.Typ())
 		os.Exit(1)
@@ -202,7 +196,10 @@ func (t *torlock) Run() {
 		if err != nil {
 			log.Error(err)
 		}
-		proxySaveVideo2DB(videos...)
+		//model.ProxySaveVideo2DB(videos...)
+		for _, video := range videos {
+			ch <- video
+		}
 	})
 	c.Start()
 

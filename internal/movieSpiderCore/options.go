@@ -3,10 +3,10 @@ package movieSpiderCore
 import (
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
-	"movieSpider/internal/feed"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/report"
+	feed2 "movieSpider/internal/spider/feedSpider"
 	"movieSpider/internal/types"
 )
 
@@ -25,20 +25,20 @@ func (f optionFunc) apply(ms *movieSpider) {
 //  @param feeds
 //  @return Option
 //
-func WithFeeds(feeds ...feed.Feeder) Option {
+func WithFeeds(feeds ...feed2.Feeder) Option {
 	// BTBT
-	facFeedBTBT := new(feed.FactoryBTBT)
+	facFeedBTBT := new(feed2.FactoryBTBT)
 	feedBTBT := facFeedBTBT.CreateFeeder(config.BTBT.Scheduling)
 
 	//EZTV
-	facFeedEZTV := new(feed.FactoryEZTV)
+	facFeedEZTV := new(feed2.FactoryEZTV)
 	feedEZTV := facFeedEZTV.CreateFeeder(config.EZTV.Scheduling)
 	//
-	facFeedRarbg := new(feed.FactoryRARBG)
+	facFeedRarbg := new(feed2.FactoryRARBG)
 	// rarbg TV
-	var feedRarbgTV feed.Feeder
+	var feedRarbgTV feed2.Feeder
 	// rarbg Movie
-	var feedRarbgMovie feed.Feeder
+	var feedRarbgMovie feed2.Feeder
 
 	for _, r := range config.RARBG {
 		if r != nil {
@@ -54,17 +54,17 @@ func WithFeeds(feeds ...feed.Feeder) Option {
 	}
 
 	// GLODLS
-	facFeedGLODLS := new(feed.FactoryGLODLS)
+	facFeedGLODLS := new(feed2.FactoryGLODLS)
 	feedGLODLS := facFeedGLODLS.CreateFeeder(config.GLODLS.Scheduling)
 
 	// TGX
-	facFeedTGX := new(feed.FactoryTGX)
+	facFeedTGX := new(feed2.FactoryTGX)
 	feedTGXS := facFeedTGX.CreateFeeder(config.TGX.Scheduling)
 
 	// TORLOCK
-	facFeedTorlock := new(feed.FactoryTORLOCK)
-	var feedTorlockMovie feed.Feeder
-	var feedTorlockTV feed.Feeder
+	facFeedTorlock := new(feed2.FactoryTORLOCK)
+	var feedTorlockMovie feed2.Feeder
+	var feedTorlockTV feed2.Feeder
 	for _, r := range config.TORLOCK {
 		if r != nil {
 			if r.Typ == types.ResourceTV {
@@ -78,9 +78,9 @@ func WithFeeds(feeds ...feed.Feeder) Option {
 		}
 	}
 	// MAGNETDL
-	facFeedMagnetdl := new(feed.FactoryMAGNETDL)
-	var feedMagnetdlMovie feed.Feeder
-	var feedMagnetdlTV feed.Feeder
+	facFeedMagnetdl := new(feed2.FactoryMAGNETDL)
+	var feedMagnetdlMovie feed2.Feeder
+	var feedMagnetdlTV feed2.Feeder
 	for _, r := range config.TORLOCK {
 		if r != nil {
 			if r.Typ == types.ResourceTV {
@@ -93,7 +93,7 @@ func WithFeeds(feeds ...feed.Feeder) Option {
 			log.Debug(r)
 		}
 	}
-	facFeedTPBPIRATEPROXY := new(feed.FactoryTPBPIRATEPROXY)
+	facFeedTPBPIRATEPROXY := new(feed2.FactoryTPBPIRATEPROXY)
 	feedTPBPIRATEPROXY := facFeedTPBPIRATEPROXY.CreateFeeder(config.TPBPIRATEPROXY.Scheduling)
 
 	return optionFunc(func(ms *movieSpider) {

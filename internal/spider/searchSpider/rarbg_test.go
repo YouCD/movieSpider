@@ -1,4 +1,4 @@
-package rarbg
+package searchSpider
 
 import (
 	"fmt"

@@ -7,16 +7,20 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	log1 "log"
+	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/log"
+	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
 
 type movieDB struct {
-	db *gorm.DB
+	db          *gorm.DB
+	feedVideoCh chan *types.FeedVideo
 }
 
 var (
@@ -70,6 +74,38 @@ func NewMovieDB() *movieDB {
 	})
 	return &movieDB{
 		db,
+		bus.FeedVideoChan,
 	}
 
+}
+
+//
+// SaveFeedVideoFromChan
+//  @Description: 从通道中获取 feedVideo 并保存
+//  @receiver m
+//
+func (m *movieDB) SaveFeedVideoFromChan() {
+	go func() {
+		for {
+			feedVideo := <-m.feedVideoCh
+			//  如果是空值，跳过
+			if feedVideo == nil {
+				continue
+			}
+			//  排除 低码率的视频
+			if ok := tools.ExcludeVideo(feedVideo.TorrentName); ok {
+				continue
+			}
+			log.Infof("%s.%s: %s 开始保存.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)
+			if err := NewMovieDB().CreatFeedVideo(feedVideo); err != nil {
+				if errors.Is(err, ErrorDataExist) {
+					log.Debugf("%s.%s err: %s", strings.ToUpper(feedVideo.Web), feedVideo.Type, err)
+					continue
+				}
+				log.Error(err)
+				continue
+			}
+			log.Infof("%s.%s: %s 保存完毕.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)
+		}
+	}()
 }

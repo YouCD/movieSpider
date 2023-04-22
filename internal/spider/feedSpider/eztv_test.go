@@ -1,7 +1,8 @@
-package feed
+package feedSpider
 
 import (
 	"movieSpider/internal/config"
+	"movieSpider/internal/model"
 	"testing"
 )
 
@@ -20,6 +21,6 @@ func Test_eztv_Crawler(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	proxySaveVideo2DB(videos...)
+	model.ProxySaveVideo2DB(videos...)
 	select {}
 }

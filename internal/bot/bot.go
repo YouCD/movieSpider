@@ -7,7 +7,6 @@ import (
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
-	"movieSpider/internal/download"
 	"movieSpider/internal/httpClient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
@@ -154,15 +153,17 @@ func (t *TGBot) StartBot() {
 				if !ok {
 					continue
 				}
+				//todo: 优化
+				log.Error(pars)
+				//downloader := download.NewDownloader(config.Downloader.Scheduling)
 
-				downloader := download.NewDownloader(config.Downloader.Scheduling)
-				downloadMsg := downloader.DownloadByName(pars[1], pars[2])
+				//downloadMsg := downloader.DownloadByName(pars[1], pars[2])
 
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, downloadMsg)
-				msg.ReplyToMessageID = update.Message.MessageID
-				if _, err := t.bot.Send(msg); err != nil {
-					log.Error(err)
-				}
+				//msg := tgbotapi.NewMessage(update.Message.Chat.ID, downloadMsg)
+				//msg.ReplyToMessageID = update.Message.MessageID
+				//if _, err := t.bot.Send(msg); err != nil {
+				//	log.Error(err)
+				//}
 			}
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"movieSpider/internal/log"
+	"movieSpider/internal/model"
 	"movieSpider/internal/movieSpiderCore"
 	"os"
 )
@@ -30,6 +31,8 @@ var rootCmd = &cobra.Command{
 
 		movieSpider.RunWithFeed()
 		movieSpider.RunWithSpider()
+
+		model.NewMovieDB().SaveFeedVideoFromChan()
 		select {}
 	},
 }

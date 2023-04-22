@@ -1,4 +1,4 @@
-package feed
+package searchSpider
 
 import (
 	"database/sql"
@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"github.com/mmcdole/gofeed"
 	"movieSpider/internal/log"
-	types2 "movieSpider/internal/types"
+	"movieSpider/internal/model"
+	"movieSpider/internal/types"
 	"net/url"
 	"os"
 	"strings"
@@ -19,11 +20,11 @@ const (
 
 type bt4g struct {
 	url        string
-	resolution types2.Resolution
+	resolution types.Resolution
 	web        string
 }
 
-func NewFeedBt4g(name string, resolution types2.Resolution) *bt4g {
+func NewFeedBt4g(name string, resolution types.Resolution) *bt4g {
 	parse, err := url.Parse(urlBt4g)
 	if err != nil {
 		log.Error(err)
@@ -34,7 +35,7 @@ func NewFeedBt4g(name string, resolution types2.Resolution) *bt4g {
 	return &bt4g{url: bUrl, resolution: resolution, web: "bt4g"}
 }
 
-func (b *bt4g) Crawler() (videos []*types2.FeedVideo, err error) {
+func (b *bt4g) Crawler() (videos []*types.FeedVideo, err error) {
 	f := gofeed.NewParser()
 	fd, err := f.ParseURL(b.url)
 	if fd == nil {
@@ -48,15 +49,11 @@ func (b *bt4g) Crawler() (videos []*types2.FeedVideo, err error) {
 	for _, v := range fd.Items {
 		// 片名
 		name := strings.ReplaceAll(v.Title, " ", ".")
-		ok := excludeVideo(name)
-		if ok {
-			continue
-		}
 		if v.Link == "" {
 			continue
 		}
 
-		fVideo := new(types2.FeedVideo)
+		fVideo := new(types.FeedVideo)
 		fVideo.Web = b.web
 		fVideo.Name = fVideo.FormatName(name)
 		fVideo.Magnet = v.Link
@@ -70,10 +67,10 @@ func (b *bt4g) Crawler() (videos []*types2.FeedVideo, err error) {
 		videos = append(videos, fVideo)
 	}
 
-	proxySaveVideo2DB(videos...)
+	model.ProxySaveVideo2DB(videos...)
 	// 指定清晰度
-	if b.resolution != types2.ResolutionOther {
-		var resolutionVideos []*types2.FeedVideo
+	if b.resolution != types.ResolutionOther {
+		var resolutionVideos []*types.FeedVideo
 		for _, v := range videos {
 			if strings.Contains(v.Name, b.resolution.Res()) {
 				resolutionVideos = append(resolutionVideos, v)
@@ -82,7 +79,4 @@ func (b *bt4g) Crawler() (videos []*types2.FeedVideo, err error) {
 		return resolutionVideos, nil
 	}
 	return
-}
-func (b *bt4g) Run() {
-
 }

@@ -1,12 +1,8 @@
-package feed
+package feedSpider
 
 import (
-	"fmt"
-	"movieSpider/internal/log"
 	types2 "movieSpider/internal/types"
 	"net/http"
-	"net/url"
-	"os"
 )
 
 type FactoryBTBT struct{}
@@ -17,20 +13,6 @@ func (f *FactoryBTBT) CreateFeeder(args ...interface{}) Feeder {
 		urlBtbt,
 		scheduling,
 	}
-}
-
-type FactoryBt4g struct{}
-
-func (f *FactoryBt4g) CreateFeeder(args ...interface{}) Feeder {
-	name := args[0].(string)
-	resolution := args[1].(types2.Resolution)
-	parse, err := url.Parse(urlBt4g)
-	if err != nil {
-		log.Error(err)
-		os.Exit(1)
-	}
-	bUrl := fmt.Sprintf("%s://%s/search/%s/bysize/1?page=rss", parse.Scheme, parse.Host, name)
-	return &bt4g{url: bUrl, resolution: resolution, web: "bt4g"}
 }
 
 type FactoryEZTV struct{}
@@ -53,24 +35,6 @@ func (f *FactoryGLODLS) CreateFeeder(args ...interface{}) Feeder {
 		scheduling,
 		"glodls",
 	}
-}
-
-type FactoryKNABEN struct{}
-
-func (f *FactoryKNABEN) CreateFeeder(args ...interface{}) Feeder {
-	name := args[0].(string)
-	resolution := args[1].(types2.Resolution)
-	parse, err := url.Parse(urlKnaben)
-	if err != nil {
-		log.Error(err)
-		os.Exit(1)
-	}
-
-	strData := url.QueryEscape(name)
-
-	kUrl := fmt.Sprintf("%s://%s/%s", parse.Scheme, parse.Host, strData)
-
-	return &knaben{url: kUrl, resolution: resolution, web: "knaben"}
 }
 
 type FactoryRARBG struct{}

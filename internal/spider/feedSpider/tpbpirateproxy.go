@@ -1,4 +1,4 @@
-package feed
+package feedSpider
 
 import (
 	"database/sql"
@@ -35,14 +35,8 @@ func (g *tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
 	for _, v := range fd.Items {
 		// 片名
 		torrentName := strings.ReplaceAll(v.Title, " ", ".")
-		ok := excludeVideo(torrentName)
-		if ok {
-			continue
-		}
-
 		// 片名处理
 		var name, year string
-
 		if strings.ToLower(v.Categories[0]) == "tv" {
 			compileRegex := regexp.MustCompile("(.*)(\\.[Ss][0-9][0-9][eE][0-9][0-9])")
 			matchArr := compileRegex.FindStringSubmatch(torrentName)
@@ -60,7 +54,6 @@ func (g *tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
 				name = matchArr[1]
 				year = matchArr[2]
 			}
-
 		} else {
 			name = torrentName
 		}
@@ -119,33 +112,7 @@ func (g *tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
 	return
 }
 
-//func (g *tpbpirateproxy) fetchMagnet(url string) (magnet string, err error) {
-//	request, err := http.NewRequest(http.MethodGet, url, nil)
-//	if err != nil {
-//		return "", errors.WithMessage(err, "tpbpirateproxy: 磁链获取错误")
-//	}
-//	client := httpClient2.NewHttpClient()
-//	resp, err := client.Do(request)
-//	if err != nil {
-//		return "", errors.WithMessage(err, "tpbpirateproxy: 磁链获取错误")
-//	}
-//	if resp == nil {
-//		return "", errors.New("tpbpirateproxy: response is nil")
-//	}
-//	defer resp.Body.Close()
-//
-//	doc, err := goquery.NewDocumentFromReader(resp.Body)
-//	if err != nil {
-//		return "", errors.WithMessage(err, "tpbpirateproxy: 磁链获取错误")
-//	}
-//	selector := "#downloadbox > table > tbody > tr > td:nth-child(1) > a:nth-child(2)"
-//	magnet, exists := doc.Find(selector).Attr("href")
-//	if !exists {
-//		return "", errors.WithMessage(err, "tpbpirateproxy: 磁链获取错误")
-//	}
-//	return magnet, nil
-//}
-func (g *tpbpirateproxy) Run() {
+func (g *tpbpirateproxy) Run(ch chan *types.FeedVideo) {
 
 	if g.scheduling == "" {
 		log.Error("tpbpirateproxy Scheduling is null")
@@ -159,7 +126,10 @@ func (g *tpbpirateproxy) Run() {
 			log.Error(err)
 			return
 		}
-		proxySaveVideo2DB(videos...)
+		//model.ProxySaveVideo2DB(videos...)
+		for _, video := range videos {
+			ch <- video
+		}
 	})
 	c.Start()
 

@@ -2,16 +2,17 @@ package movieSpiderCore
 
 import (
 	"movieSpider/internal/bot"
+	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
-	"movieSpider/internal/feed"
 	"movieSpider/internal/report"
 	"movieSpider/internal/spider"
 	"movieSpider/internal/spider/douban"
+	"movieSpider/internal/spider/feedSpider"
 )
 
 type movieSpider struct {
-	feeds    []feed.Feeder
+	feeds    []feedSpider.Feeder
 	download *download.Download
 	report   *report.Report
 	bot      *bot.TGBot
@@ -40,8 +41,8 @@ func NewMovieSpider(options ...Option) *movieSpider {
 //
 func (m *movieSpider) RunWithFeed() {
 	for _, feeder := range m.feeds {
-		go func(feeder feed.Feeder) {
-			feeder.Run()
+		go func(feeder feedSpider.Feeder) {
+			feeder.Run(bus.FeedVideoChan)
 		}(feeder)
 	}
 }

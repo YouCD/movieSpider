@@ -5,6 +5,8 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/pkg/errors"
 	"io"
+	httpClient2 "movieSpider/internal/httpClient"
+	"net/http"
 )
 
 //
@@ -57,4 +59,34 @@ func IO2Magnet(r io.Reader) (string, error) {
 	}
 
 	return mi.Magnet(&hs, &info).String(), nil
+}
+
+//
+// FetchMagnet
+//  @Description: 获取磁链
+//  @param url
+//  @return magnet
+//  @return err
+//
+func FetchMagnet(url string) (magnet string, err error) {
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", errors.WithMessage(err, "TGx: 磁链获取错误")
+	}
+	client := httpClient2.NewHttpClient()
+	resp, err := client.Do(request)
+	if err != nil {
+		return "", errors.WithMessage(err, "TGx: 磁链获取错误")
+	}
+	if resp == nil {
+		return "", errors.New("TGx: response is nil")
+	}
+	defer resp.Body.Close()
+
+	magnet, err = IO2Magnet(resp.Body)
+	if err != nil {
+		return "", errors.New("TGx: 磁链转换错误")
+	}
+
+	return magnet, nil
 }

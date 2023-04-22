@@ -1,4 +1,4 @@
-package feed
+package feedSpider
 
 import (
 	"database/sql"
@@ -42,10 +42,6 @@ func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 	for _, v := range fd.Items {
 		// 片名
 		torrentName := strings.ReplaceAll(v.Title, " ", ".")
-		ok := excludeVideo(torrentName)
-		if ok {
-			continue
-		}
 
 		// 片名处理
 		var name, year string
@@ -153,7 +149,7 @@ func (g *glodls) fetchMagnet(url string) (magnet string, err error) {
 	}
 	return magnet, nil
 }
-func (g *glodls) Run() {
+func (g *glodls) Run(ch chan *types.FeedVideo) {
 
 	if g.scheduling == "" {
 		log.Error("GLODLS Scheduling is null")
@@ -167,7 +163,10 @@ func (g *glodls) Run() {
 			log.Error(err)
 			return
 		}
-		proxySaveVideo2DB(videos...)
+		for _, video := range videos {
+			ch <- video
+		}
+		//model.ProxySaveVideo2DB(videos...)
 	})
 	c.Start()
 

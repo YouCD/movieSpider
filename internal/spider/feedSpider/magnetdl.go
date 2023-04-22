@@ -1,4 +1,4 @@
-package feed
+package feedSpider
 
 import (
 	"github.com/PuerkitoBio/goquery"
@@ -52,10 +52,6 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 
 			// 片名
 			name := strings.ReplaceAll(s.Text(), " ", ".")
-			ok := excludeVideo(name)
-			if ok {
-				return
-			}
 			// magnet 链接
 			var magnet, torrentUrl string
 			val, exists := s.Find("td>a").Attr("href")
@@ -82,6 +78,7 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 			fVideo.Magnet = magnet
 			fVideo.Web = m.web
 			fVideo.TorrentUrl = torrentUrl
+			fVideo.TorrentName = fVideo.Name
 			Videos = append(Videos, fVideo)
 		})
 	case types.ResourceTV:
@@ -107,10 +104,7 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 
 			// 片名
 			name := strings.ReplaceAll(s.Text(), " ", ".")
-			ok := excludeVideo(name)
-			if ok {
-				return
-			}
+
 			// magnet 链接
 			var magnet string
 			val, exists := s.Find("td>a").Attr("href")
@@ -141,13 +135,14 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 			fVideo.Magnet = magnet
 			fVideo.Web = m.web
 			fVideo.TorrentUrl = torrentUrl
+			fVideo.TorrentName = fVideo.Name
 			Videos = append(Videos, fVideo)
 		})
 	}
 	return
 }
 
-func (m *magnetdl) Run() {
+func (m *magnetdl) Run(ch chan *types.FeedVideo) {
 	if m.scheduling == "" {
 		log.Error("MAGNETDL: Scheduling is null")
 		os.Exit(1)
@@ -160,8 +155,10 @@ func (m *magnetdl) Run() {
 			log.Error(err)
 			return
 		}
-
-		proxySaveVideo2DB(videos...)
+		for _, video := range videos {
+			ch <- video
+		}
+		//model.ProxySaveVideo2DB(videos...)
 	})
 	c.Start()
 

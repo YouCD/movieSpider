@@ -1,4 +1,4 @@
-package feed
+package searchSpider
 
 import (
 	"encoding/json"
