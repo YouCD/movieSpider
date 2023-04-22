@@ -50,16 +50,16 @@ type downloader struct {
 }
 
 var (
-	Global         = new(global)
+	Global         *global
 	Aria2cList     []aria2
 	TG             = new(tg)
-	MySQL          = new(mysql)
-	DouBan         = new(douban)
-	BTBT           = new(btbt)
-	EZTV           = new(eztv)
-	GLODLS         = new(glodls)
-	TPBPIRATEPROXY = new(tpbpirateproxy)
-	TGX            = new(tgx)
+	MySQL          *mysql
+	DouBan         *douban
+	BTBT           *btbt
+	EZTV           *eztv
+	GLODLS         *glodls
+	TPBPIRATEPROXY *tpbpirateproxy
+	TGX            *tgx
 	TORLOCK        []*torlock
 	RARBG          []*rarbg
 	MAGNETDL       []*magnetdl
@@ -85,6 +85,7 @@ type tg struct {
 		Url    string
 		Enable bool
 	}
+	Enable bool
 }
 
 type mysql struct {
@@ -150,9 +151,8 @@ func InitConfig(config string) {
 		fmt.Println("读取TG配置错误")
 		os.Exit(1)
 	}
-	if TG == nil {
-		fmt.Println("配置 TG is nil")
-		os.Exit(1)
+	if TG.BotToken != "" && TG.TgIDs != nil && TG.Proxy.Url != "" {
+		TG.Enable = true
 	}
 
 	err = v.UnmarshalKey("MySQL", &MySQL)

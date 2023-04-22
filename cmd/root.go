@@ -11,7 +11,6 @@ import (
 var (
 	Name       = "movieSpider"
 	configFile string
-	runBotFlag bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -27,10 +26,7 @@ var rootCmd = &cobra.Command{
 			movieSpiderCore.WithReport(),
 		)
 
-		switch {
-		case runBotFlag == true:
-			movieSpider.RunWithTGBot()
-		}
+		movieSpider.RunWithTGBot()
 
 		movieSpider.RunWithFeed()
 		movieSpider.RunWithSpider()
@@ -49,5 +45,4 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config.file", "f", "", "指定配置文件")
-	rootCmd.Flags().BoolVar(&runBotFlag, "run.bot", false, "同时运行Telegram bot")
 }

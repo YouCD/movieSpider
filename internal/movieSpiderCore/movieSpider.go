@@ -52,8 +52,11 @@ func (m *movieSpider) RunWithFeed() {
 //  @receiver m
 //
 func (m *movieSpider) RunWithTGBot() {
-	ms.bot = bot.NewTgBot(config.TG.BotToken, config.TG.TgIDs)
-	go ms.bot.StartBot()
+	if config.TG.Enable {
+		ms.bot = bot.NewTgBot(config.TG.BotToken, config.TG.TgIDs)
+		go ms.bot.StartBot()
+	}
+
 }
 
 //
