@@ -65,9 +65,7 @@ func (m *movieDB) GetFeedVideoTVByName(names ...string) (videos []*types.FeedVid
 		log.Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", n)
 		var likeName string
 		likeName = fmt.Sprintf("%s%%", n)
-		// todo  and download=0 为了测试
-		//rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="tv" and download=0;`, likeName).Rows()
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="tv";`, likeName).Rows()
+		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="tv" and download=0;`, likeName).Rows()
 		if err != nil {
 			return nil, err
 		}
@@ -171,9 +169,7 @@ func (m *movieDB) GetFeedVideoMovieByName(names ...string) (videos []*types.Feed
 		var likeName string
 		likeName = fmt.Sprintf("%s%%", n)
 		// 只查找 没有下载过 && 类型为movie数据
-		// todo and download=0 为了测试方便，暂时不加
-		// rows, err := m.db.Model(&types.FeedVideo{}).Select("id,magnet,name,torrent_name").Where(`name like ? and magnet!="" and  type="movie" and download=0 `, likeName).Rows()
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="movie" `, likeName).Rows()
+		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="movie"  and download=0`, likeName).Rows()
 		if err != nil {
 			return nil, err
 		}
