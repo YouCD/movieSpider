@@ -140,7 +140,6 @@ func (m *movieDB) UpdateDouBanVideo(video *types.DouBanVideo) (err error) {
 //  @return err
 //
 func (m *movieDB) FetchDouBanVideoByType(typ types.Resource) (nameList []string, err error) {
-	log.Infof("FetchDouBanVideoByType 搜索 %s 类型豆瓣资源.", typ.Typ())
 	rows, err := m.db.Model(&types.DouBanVideo{}).Select("names").Where("type = ?", typ.Typ()).Rows()
 	if err != nil {
 		return

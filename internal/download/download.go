@@ -90,7 +90,7 @@ func (d *Download) downloadTvTask() (err error) {
 	}
 	//  如果没有需要下载的视频 则返回
 	if len(needDownloadFeedVideo) == 0 {
-		log.Warn("needDownloadFeedVideo list is null.")
+		log.Warn("此次没有要下载的tv.")
 		return
 	}
 
@@ -122,7 +122,7 @@ func (d *Download) downloadMovieTask() error {
 		return err
 	}
 
-	// 获取 磁力连接
+	// 获取 feedVideo movie
 	log.Info("查找需要下载的movie.")
 	MovieVideos, err := model.NewMovieDB().GetFeedVideoMovieByName(names...)
 	if err != nil {
@@ -143,7 +143,7 @@ func (d *Download) downloadMovieTask() error {
 
 	//  如果没有需要下载的视频 则返回
 	if len(needDownloadMovieList) == 0 {
-		log.Warn("needDownloadFeedVideo list is null.")
+		log.Warn("此次没有要下载的movie.")
 		return nil
 	}
 
