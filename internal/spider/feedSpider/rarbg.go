@@ -7,15 +7,13 @@ import (
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
-	"movieSpider/internal/ipProxy"
+	httpClient2 "movieSpider/internal/httpClient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"net/http"
-	"net/url"
 	"os"
 	"regexp"
 	"strings"
-	"time"
 )
 
 const (
@@ -121,75 +119,24 @@ func (r *rarbg) Run(ch chan *types.FeedVideo) {
 	log.Infof("RARBG %s: Scheduling is: [%s]", r.typ.Typ(), r.scheduling)
 	c := cron.New()
 	c.AddFunc(r.scheduling, func() {
-		videos, err := r.Crawler()
-		if err != nil {
-			r.switchClient()
-			videos, err = r.Crawler()
+		log.Infof("RARBG %s: is working...", r.typ.Typ())
+		for {
+		Start:
+			videos, err := r.Crawler()
 			if err != nil {
 				log.Error(err)
-				return
 			}
-			//model.ProxySaveVideo2DB(videos...)
+			if len(videos) == 0 || videos == nil {
+				r.httpClient = httpClient2.NewProxyHttpClient("http")
+				log.Infof("RARBG %s: crawler agan...", r.typ.Typ())
+				goto Start
+			}
 			for _, video := range videos {
 				ch <- video
 			}
-		}
-		//model.ProxySaveVideo2DB(videos...)
-		for _, video := range videos {
-			ch <- video
+			break
 		}
 	})
 	c.Start()
 
-}
-
-func (r *rarbg) useProxyClient() {
-	proxyStr := ipProxy.FetchProxy("")
-	if proxyStr == "" {
-		log.Error("useProxyClient: proxy is null")
-		return
-	}
-
-	proxyUrl, err := url.Parse(proxyStr)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	if proxyUrl != nil {
-		transport := &http.Transport{
-			Proxy: http.ProxyURL(proxyUrl),
-		}
-		log.Errorf("useProxyClient: use proxy %#v", proxyUrl.String())
-		httpClient := &http.Client{Transport: transport, Timeout: time.Minute * 5}
-
-		r.httpClient = httpClient
-	}
-	return
-}
-func (r *rarbg) switchClient() {
-	if r.httpClient.Transport == nil {
-
-		proxyStr := ipProxy.FetchProxy("")
-		if proxyStr == "" {
-			log.Infof("RARBG.%s: proxy is null.", r.typ.Typ())
-			return
-		}
-		proxyUrl, err := url.Parse(proxyStr)
-		if err != nil {
-			log.Error(err)
-		}
-		if proxyUrl != nil {
-			proxy := http.ProxyURL(proxyUrl)
-			transport := &http.Transport{Proxy: proxy}
-			httpClient := &http.Client{Transport: transport, Timeout: time.Minute * 5}
-			r.httpClient = httpClient
-			log.Infof("RARBG.%s: 添加代理. proxy: %s", r.typ.Typ(), proxyUrl)
-		} else {
-			log.Warnf("RARBG.%s: 请添加Global.Proxy.Url配置", r.typ.Typ())
-		}
-
-	} else {
-		r.httpClient = &http.Client{}
-		log.Infof("RARBG.%s: 删除代理.", r.typ.Typ())
-	}
 }

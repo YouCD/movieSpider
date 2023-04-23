@@ -1,6 +1,7 @@
 package feedSpider
 
 import (
+	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"testing"
 )
@@ -12,5 +13,5 @@ func Test_tgx_Run(t1 *testing.T) {
 		url:        urlTgx,
 		web:        "tgx",
 	}
-	t.Run()
+	t.Run(bus.FeedVideoChan)
 }

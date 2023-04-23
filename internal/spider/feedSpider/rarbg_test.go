@@ -1,8 +1,11 @@
 package feedSpider
 
 import (
+	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
+	"movieSpider/internal/types"
+	"net/http"
 	"testing"
 )
 
@@ -209,20 +212,19 @@ func Test_feed(t *testing.T) {
 	//fmt.Println("matchArr2", matchArr2)
 }
 
-func Test_rarbg_Crawler(t *testing.T) {
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
-	model.NewMovieDB()
-
+func init() {
+	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
+	model.NewMovieDB().SaveFeedVideoFromChan()
 }
 
-func Test_rarbg_switchClient(t *testing.T) {
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+func Test_rarbg_Run(t *testing.T) {
 
-	model.NewMovieDB()
-	//feedRarbg := NewFeedRarbg("https://rarbg.to/rssdd.php?categories=18;19;41", "*/2 * * * *", types.ResourceTV)
-	////feedRarbg.useProxyClient()
-	//feedRarbg.switchClient()
-	//
-	//feedRarbg.switchClient()
-
+	r := &rarbg{
+		typ:        types.ResourceMovie,
+		web:        "rarbg",
+		scheduling: "*/1 * * * *",
+		httpClient: http.DefaultClient,
+	}
+	r.Run(bus.FeedVideoChan)
+	select {}
 }

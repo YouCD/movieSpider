@@ -96,7 +96,7 @@ func (m *movieDB) SaveFeedVideoFromChan() {
 			if ok := tools.ExcludeVideo(feedVideo.TorrentName); ok {
 				continue
 			}
-			log.Infof("%s.%s: %s 开始保存.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)
+			//log.Infof("%s.%s: %s 开始保存.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)
 			if err := NewMovieDB().CreatFeedVideo(feedVideo); err != nil {
 				if errors.Is(err, ErrorDataExist) {
 					log.Debugf("%s.%s err: %s", strings.ToUpper(feedVideo.Web), feedVideo.Type, err)

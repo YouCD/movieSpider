@@ -8,12 +8,10 @@ import (
 	"github.com/tidwall/gjson"
 	"io"
 	"movieSpider/internal/httpClient"
-	"movieSpider/internal/ipProxy"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 )
@@ -124,7 +122,7 @@ func (d *WMDB) Run() {
 		v, err := d.crawler(video.DoubanID)
 		if err != nil {
 			log.Error(err)
-			d.switchClient()
+			client = httpClient.NewProxyHttpClient("https")
 			v, err := d.crawler(video.DoubanID)
 			if err != nil {
 				log.Error(err)
@@ -139,31 +137,6 @@ func (d *WMDB) Run() {
 	c.Start()
 }
 
-func (d *WMDB) switchClient() {
-	if client.Transport == nil {
-		proxyStr := ipProxy.FetchProxy("https")
-		if proxyStr == "" {
-			log.Info("WMDB: proxy is null.")
-			return
-		}
-		proxyUrl, err := url.Parse(proxyStr)
-		if err != nil {
-			log.Error(err)
-		}
-		if proxyUrl != nil {
-			proxy := http.ProxyURL(proxyUrl)
-			transport := &http.Transport{Proxy: proxy}
-			client = &http.Client{Transport: transport}
-			log.Infof("WMDB: 添加代理.%s", proxyStr)
-		} else {
-			log.Warnf("WMDB: 请添加Global.Proxy.Url配置")
-		}
-
-	} else {
-		client = &http.Client{}
-		log.Infof("WMDB: 删除代理.")
-	}
-}
 func (d *WMDB) updateVideo(video *types.DouBanVideo, crawlerVideo *types.DouBanVideo) {
 	video.ImdbID = crawlerVideo.ImdbID
 	video.RowData = crawlerVideo.RowData

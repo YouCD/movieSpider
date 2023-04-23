@@ -36,7 +36,7 @@ func NewFeedKnaben(name string, resolution types.Resolution) *knaben {
 	return &knaben{url: kUrl, resolution: resolution, web: "knaben"}
 }
 
-func (k *knaben) Crawler() (videos []*types.FeedVideo, err error) {
+func (k *knaben) Search() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(k.url)
 	if fd == nil {

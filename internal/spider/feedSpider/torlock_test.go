@@ -24,7 +24,7 @@ func Test_torlock_Crawler(t *testing.T) {
 	//facTORLOCK.CreateFeeder("*/1 * * * *", types.ResourceTV).Run()
 	//select {}
 
-	//videos, err := facTORLOCK.CreateFeeder("*/1 * * * *", types.ResourceMovie).Crawler()
+	//videos, err := facTORLOCK.CreateFeeder("*/1 * * * *", types.ResourceMovie).Search()
 	//if err != nil {
 	//	t.Error(err)
 	//}

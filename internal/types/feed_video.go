@@ -12,7 +12,7 @@ type FeedVideo struct {
 	ID          int32          `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
 	Name        string         `gorm:"uniqueIndex:nt;column:name;type:varchar(255);comment:片名;NOT NULL" json:"name"`
 	TorrentName string         `gorm:"uniqueIndex:nt;column:torrent_name;type:varchar(255);comment:种子名;NOT NULL" json:"torrent_name"`
-	TorrentUrl  string         `gorm:"column:torrent_url;type:varchar(255);comment:种子引用地址;NOT NULL" json:"torrent_url"`
+	TorrentUrl  string         `gorm:"column:torrent_url;type:longtext;comment:种子引用地址;NOT NULL" json:"torrent_url"`
 	Magnet      string         `gorm:"column:magnet;type:longtext;comment:磁力链接;NOT NULL" json:"magnet"`
 	Year        string         `gorm:"column:year;type:varchar(255);comment:年份;NOT NULL" json:"year"`
 	Type        string         `gorm:"column:type;type:varchar(255);comment:tv或movie;NOT NULL" json:"type"`

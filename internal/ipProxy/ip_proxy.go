@@ -8,7 +8,6 @@ import (
 	"movieSpider/internal/config"
 	"movieSpider/internal/log"
 	"net/http"
-	"strings"
 )
 
 type IpProxyPoolDataIP struct {
@@ -26,32 +25,27 @@ type IpProxyPoolDataIP struct {
 //  @param typ
 //  @return string
 //
-func FetchProxy(typ string) string {
+func FetchProxy(typ string) *IpProxyPoolDataIP {
 	if config.ProxyPool == "" {
 		log.Warn("FetchProxy: Global.ProxyPool没有配置.")
-		return ""
+		return nil
 	}
 
-	if typ == "" {
-		typ = "http"
-	}
 	urlStr := fmt.Sprintf("%s/%s", config.ProxyPool, typ)
 	resp, err := http.DefaultClient.Get(urlStr)
 	if err != nil {
 		log.Errorf("Feed.ProxyPool %s,err: %s", config.ProxyPool, err.Error())
-		return ""
+		return nil
 	}
 	defer resp.Body.Close()
 
 	data, err := parseIpProxyPoolData(resp.Body)
 	if err != nil {
 		log.Warnf("FetchProxy: %s.", err.Error())
-		return ""
+		return nil
 	}
-	if data.ProxyHost != "" {
-		return strings.ToLower(fmt.Sprintf("%s://%s:%d", data.ProxyType, data.ProxyHost, data.ProxyPort))
-	}
-	return ""
+
+	return data
 }
 
 func parseIpProxyPoolData(body io.Reader) (*IpProxyPoolDataIP, error) {
@@ -70,6 +64,7 @@ func parseIpProxyPoolData(body io.Reader) (*IpProxyPoolDataIP, error) {
 type proxyTypeCount struct {
 	Http  int64 `json:"http"`
 	Https int64 `json:"https"`
+	Tcp   int64 `json:"tcp"`
 	Other int64 `json:"other"`
 }
 

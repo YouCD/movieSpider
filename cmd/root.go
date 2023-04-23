@@ -30,7 +30,7 @@ var rootCmd = &cobra.Command{
 		movieSpider.RunWithTGBot()
 
 		movieSpider.RunWithFeed()
-		movieSpider.RunWithSpider()
+		movieSpider.RunWithFeedSpider()
 
 		model.NewMovieDB().SaveFeedVideoFromChan()
 		select {}

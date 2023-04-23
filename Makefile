@@ -1,5 +1,6 @@
 GOCMD			:=$(shell which go)
 GOBUILD			:=$(GOCMD) build
+StripGoPath     :=-trimpath
 
 
 IMPORT_PATH		:=movieSpider/cmd
@@ -16,18 +17,18 @@ BINARY_NAME:=movieSpider
 
 
 build:
-	CGO_ENABLED=0 $(GOBUILD) -ldflags $(FLAG) -o $(BINARY_DIR)/$(BINARY_NAME)
+	@CGO_ENABLED=0 $(GOBUILD) $(StripGoPath) -ldflags $(FLAG) -o $(BINARY_DIR)/$(BINARY_NAME)
 # linux
 build-linux:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -ldflags $(FLAG) -o $(BINARY_DIR)/$(BINARY_NAME)-$(VERSION)-linux
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) $(StripGoPath) -ldflags $(FLAG) -o $(BINARY_DIR)/$(BINARY_NAME)-$(VERSION)-linux
 
 #mac
 build-darwin:
-	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 $(GOBUILD)  -ldflags $(FLAG) -o $(BINARY_DIR)/$(BINARY_NAME)-$(VERSION)-darwin
+	@CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 $(GOBUILD) $(StripGoPath)  -ldflags $(FLAG) -o $(BINARY_DIR)/$(BINARY_NAME)-$(VERSION)-darwin
 
 # windows
 build-win:
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 $(GOBUILD) -ldflags $(FLAG)  -o $(BINARY_DIR)/$(BINARY_NAME)-$(VERSION)-win.exe
+	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 $(GOBUILD) $(StripGoPath) -ldflags $(FLAG)  -o $(BINARY_DIR)/$(BINARY_NAME)-$(VERSION)-win.exe
 
 # 全平台
 build-all:

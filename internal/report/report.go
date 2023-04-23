@@ -74,7 +74,7 @@ func reportAria2TaskStatistics() {
 		downloadTable.Append(v)
 	}
 
-	log.Info("\n当前下载信息: ")
+	log.Info("\n\n当前下载信息: ")
 	downloadTable.Render()
 }
 
@@ -96,7 +96,7 @@ func reportFeedVideoStatistics() {
 		table.Append(v)
 	}
 	table.SetFooter([]string{"总数", fmt.Sprintf("%d", Total)})
-	log.Info("\nReport: 下载统计: ")
+	log.Info("\n\n下载统计: ")
 	table.Render()
 
 }
@@ -105,14 +105,14 @@ func reportIpProxyStatistics() {
 
 	c := ipProxy.FetchProxyTypeCount()
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Http", "Https", "Other"})
+	table.SetHeader([]string{"Http", "Https", "tcp", "Other"})
 	tableData := [][]string{}
 
-	tableData = append(tableData, []string{fmt.Sprintf("%d", c.Http), fmt.Sprintf("%d", c.Https), fmt.Sprintf("%d", c.Other)})
+	tableData = append(tableData, []string{fmt.Sprintf("%d", c.Http), fmt.Sprintf("%d", c.Https), fmt.Sprintf("%d", c.Tcp), fmt.Sprintf("%d", c.Other)})
 	for _, v := range tableData {
 		table.Append(v)
 	}
 
-	log.Info("\n代理统计: ")
+	log.Info("\n\n代理统计: ")
 	table.Render()
 }

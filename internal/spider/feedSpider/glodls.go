@@ -17,18 +17,21 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 )
 
-const urlGlodls = "https://glodls.to/rss.php?cat=1,41"
+const urlGlodls = "http://glodls.to/rss.php?cat=1,41"
 
 type glodls struct {
 	url        string
 	scheduling string
 	web        string
+	httpClient *http.Client
 }
 
 func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
+	fp.Client = g.httpClient
 	fd, err := fp.ParseURL(g.url)
 	if fd == nil {
 		return nil, errors.New("GLODLS: 没有feed数据")
@@ -42,10 +45,8 @@ func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 	for _, v := range fd.Items {
 		// 片名
 		torrentName := strings.ReplaceAll(v.Title, " ", ".")
-
 		// 片名处理
 		var name, year string
-
 		if strings.ToLower(v.Categories[0]) == "tv" {
 			compileRegex := regexp.MustCompile("(.*)(\\.[Ss][0-9][0-9][eE][0-9][0-9])")
 			matchArr := compileRegex.FindStringSubmatch(torrentName)
@@ -83,7 +84,7 @@ func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 		id := parse.Query()["id"][0]
 		all := strings.ReplaceAll(v.Title, " ", "-")
 
-		TorrentUrl := fmt.Sprintf("https://glodls.to/%s-f-%s.html", strings.ToLower(all), id)
+		TorrentUrl := fmt.Sprintf("http://glodls.to/%s-f-%s.html", strings.ToLower(all), id)
 
 		fVideo.TorrentUrl = TorrentUrl
 
@@ -102,12 +103,13 @@ func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 
 	}
 	var wg sync.WaitGroup
-
 	for _, v := range videosA {
 		wg.Add(1)
 		go func(video *types.FeedVideo) {
+			defer wg.Done()
 			magnet, err := g.fetchMagnet(video.TorrentUrl)
 			if err != nil {
+				err := errors.Unwrap(err)
 				log.Error(err)
 			}
 			if magnet == "" {
@@ -115,7 +117,7 @@ func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 			}
 			video.Magnet = magnet
 			videos = append(videos, video)
-			wg.Done()
+
 		}(v)
 	}
 	wg.Wait()
@@ -126,12 +128,12 @@ func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 func (g *glodls) fetchMagnet(url string) (magnet string, err error) {
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return "", errors.WithMessage(err, "GLODLS: 磁链获取错误")
+		return "", errors.Wrap(err, "GLODLS: 创建新的请求")
 	}
-	client := httpClient2.NewHttpClient()
-	resp, err := client.Do(request)
+	g.httpClient.Timeout = 20 * time.Second
+	resp, err := g.httpClient.Do(request)
 	if err != nil {
-		return "", errors.WithMessage(err, "GLODLS: 磁链获取错误")
+		return "", errors.Wrap(err, "GLODLS: 请求错误")
 	}
 	if resp == nil {
 		return "", errors.New("GLODLS: response is nil")
@@ -140,12 +142,12 @@ func (g *glodls) fetchMagnet(url string) (magnet string, err error) {
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return "", errors.WithMessage(err, "GLODLS: 磁链获取错误")
+		return "", errors.Wrap(err, "GLODLS: Document 查找出错")
 	}
 	selector := "#downloadbox > table > tbody > tr > td:nth-child(1) > a:nth-child(2)"
 	magnet, exists := doc.Find(selector).Attr("href")
 	if !exists {
-		return "", errors.WithMessage(err, "GLODLS: 磁链获取错误")
+		return "", errors.Wrap(err, "GLODLS: 查找href出错")
 	}
 	return magnet, nil
 }
@@ -158,15 +160,25 @@ func (g *glodls) Run(ch chan *types.FeedVideo) {
 	log.Infof("GLODLS Scheduling is: [%s]", g.scheduling)
 	c := cron.New()
 	c.AddFunc(g.scheduling, func() {
-		videos, err := g.Crawler()
-		if err != nil {
-			log.Error(err)
-			return
+		log.Info("GLODLS: is working...")
+		for {
+		Start:
+			videos, err := g.Crawler()
+			if err != nil {
+				log.Error(err)
+			}
+			if len(videos) == 0 || videos == nil {
+				log.Info("GLODLS: 切换代理")
+				g.httpClient = httpClient2.NewProxyHttpClient("http")
+				log.Info("GLODLS: crawler agan...")
+				goto Start
+			}
+			for _, video := range videos {
+				ch <- video
+			}
+			break
 		}
-		for _, video := range videos {
-			ch <- video
-		}
-		//model.ProxySaveVideo2DB(videos...)
+
 	})
 	c.Start()
 

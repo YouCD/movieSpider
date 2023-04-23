@@ -34,6 +34,7 @@ func (f *FactoryGLODLS) CreateFeeder(args ...interface{}) Feeder {
 		urlGlodls,
 		scheduling,
 		"glodls",
+		&http.Client{},
 	}
 }
 

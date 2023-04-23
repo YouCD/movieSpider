@@ -35,7 +35,7 @@ func NewFeedBt4g(name string, resolution types.Resolution) *bt4g {
 	return &bt4g{url: bUrl, resolution: resolution, web: "bt4g"}
 }
 
-func (b *bt4g) Crawler() (videos []*types.FeedVideo, err error) {
+func (b *bt4g) Search() (videos []*types.FeedVideo, err error) {
 	f := gofeed.NewParser()
 	fd, err := f.ParseURL(b.url)
 	if fd == nil {

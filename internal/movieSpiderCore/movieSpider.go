@@ -61,11 +61,11 @@ func (m *movieSpider) RunWithTGBot() {
 }
 
 //
-// RunWithSpider
-//  @Description: 运行spider
+// RunWithFeedSpider
+//  @Description: 运行feedSpider
 //  @receiver m
 //
-func (m *movieSpider) RunWithSpider() {
+func (m *movieSpider) RunWithFeedSpider() {
 	// Spider
 	m.spiders = append(m.spiders, douban.NewSpiderDouBan(config.DouBan.DoubanUrl, config.DouBan.Scheduling))
 	for _, s := range m.spiders {
@@ -73,5 +73,4 @@ func (m *movieSpider) RunWithSpider() {
 			spider.Run()
 		}(s)
 	}
-
 }

@@ -9,8 +9,10 @@ import (
 	"movieSpider/internal/config"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
+	"movieSpider/internal/spider/searchSpider"
 	"movieSpider/internal/types"
 	"os"
+	"sync"
 )
 
 type Download struct {
@@ -211,47 +213,57 @@ func (d *Download) Run() {
 	c.Start()
 }
 
-//func (d *Download) DownloadByName(name, Resolution string) (msg string) {
-//	// todo 从 knaben 搜索 todo
-//	feedKnaben := feedSpider.NewFeedKnaben(name, d.ResolutionStr2Int(Resolution))
-//	_, err := feedKnaben.Crawler()
-//	if err != nil {
-//		log.Error(err)
-//	}
-//	//todo 从 Bt4g 搜索
-//	feedBt4g := feedSpider.NewFeedBt4g(name, d.ResolutionStr2Int(Resolution))
-//	_, err = feedBt4g.Crawler()
-//	if err != nil {
-//		log.Error(err)
-//	}
-//
-//	// 获取 磁力连接
-//	videos, err := model.NewMovieDB().GetFeedVideoMovieByName([]string{name}...)
-//	if err != nil {
-//		log.Error(err)
-//	}
-//
-//	if len(videos) == 0 {
-//		return fmt.Sprint("所有资源已下载过,或没有可下载资源.")
-//	}
-//
-//	// 推送 磁力连接至 aria2
-//	newAria2, err := aria2.NewAria2(config.Downloader.Aria2Label)
-//	if err != nil {
-//		log.Error(err)
-//	}
-//	for _, v := range videos {
-//		gid, err := newAria2.DownloadByUrl(v.Magnet)
-//		if err != nil {
-//			log.Error(err)
-//			return
-//		}
-//		err = model.NewMovieDB().UpdateFeedVideoDownloadByID(v.ID, 1)
-//		if err != nil {
-//			log.Error(err)
-//		}
-//		log.Infof("Downloader: %s 开始下载. GID: %s", v.Name, gid)
-//	}
-//
-//	return fmt.Sprintf("已将 %d 资源加入下载.", len(videos))
-//}
+var wg sync.WaitGroup
+
+func (d *Download) DownloadByName(name, Resolution string) (msg string) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		feedKnaben := searchSpider.NewFeedKnaben(name, d.ResolutionStr2Int(Resolution))
+		_, err := feedKnaben.Search()
+		if err != nil {
+			log.Error(err)
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		feedBt4g := searchSpider.NewFeedBt4g(name, d.ResolutionStr2Int(Resolution))
+		_, err := feedBt4g.Search()
+		if err != nil {
+			log.Error(err)
+		}
+	}()
+	wg.Wait()
+
+	// 获取 磁力连接
+	videos, err := model.NewMovieDB().GetFeedVideoMovieByName([]string{name}...)
+	if err != nil {
+		log.Error(err)
+	}
+
+	if len(videos) == 0 {
+		return fmt.Sprint("所有资源已下载过,或没有可下载资源.")
+	}
+
+	// 推送 磁力连接至 aria2
+	newAria2, err := aria2.NewAria2(config.Downloader.Aria2Label)
+	if err != nil {
+		log.Error(err)
+	}
+	for _, v := range videos {
+		gid, err := newAria2.DownloadByUrl(v.Magnet)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		err = model.NewMovieDB().UpdateFeedVideoDownloadByID(v.ID, 1)
+		if err != nil {
+			log.Error(err)
+		}
+		log.Infof("Downloader: %s 开始下载. GID: %s", v.Name, gid)
+	}
+
+	return fmt.Sprintf("已将 %d 资源加入下载.", len(videos))
+}

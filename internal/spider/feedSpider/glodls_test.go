@@ -1,22 +1,39 @@
 package feedSpider
 
 import (
-	"encoding/json"
-	"fmt"
+	"movieSpider/internal/config"
+	httpClient2 "movieSpider/internal/httpClient"
+	"movieSpider/internal/log"
+	"movieSpider/internal/model"
+	"net/http"
 	"testing"
+	"time"
 )
+
+func init() {
+	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
+	model.NewMovieDB().SaveFeedVideoFromChan()
+}
 
 func TestGlodls_Crawler(t *testing.T) {
 	f := &glodls{
-		url: "https://glodls.to/rss.php?cat=1,41",
+		url:        "http://glodls.to/rss.php?cat=1,41",
+		httpClient: &http.Client{Timeout: time.Second * 3},
 	}
-	videos, err := f.Crawler()
-	if err != nil {
-		t.Error(err)
+	for {
+	Start:
+		log.Info("GLODLS: is working...")
+		videos, err := f.Crawler()
+		if err != nil {
+			log.Error(err)
+		}
+		if len(videos) == 0 || videos == nil {
+			log.Info("GLODLS: 切换代理")
+			f.httpClient = httpClient2.NewProxyHttpClient("http")
+			f.httpClient.Timeout = 3 * time.Second
+			goto Start
+		}
+
 	}
-	for _, v := range videos {
-		bytes, _ := json.Marshal(v)
-		//t.Log(v)
-		fmt.Println(string(bytes))
-	}
+
 }

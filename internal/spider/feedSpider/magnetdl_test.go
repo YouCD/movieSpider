@@ -1,6 +1,7 @@
 package feedSpider
 
 import (
+	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
 	"testing"
@@ -13,13 +14,13 @@ func Test_magnetdl_Crawler(t *testing.T) {
 		web:        "magnetdl",
 		scheduling: "*/1 * * * *",
 	}
-	tv.Run()
+	tv.Run(bus.FeedVideoChan)
 
 	m := &magnetdl{
 		typ:        types.ResourceMovie,
 		web:        "magnetdl",
 		scheduling: "*/2 * * * *",
 	}
-	m.Run()
+	m.Run(bus.FeedVideoChan)
 	select {}
 }
