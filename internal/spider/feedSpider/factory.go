@@ -38,30 +38,6 @@ func (f *FactoryGLODLS) CreateFeeder(args ...interface{}) Feeder {
 	}
 }
 
-type FactoryRARBG struct{}
-
-func (f *FactoryRARBG) CreateFeeder(args ...interface{}) Feeder {
-	scheduling := args[0].(string)
-	resourceType := args[1].(types2.Resource)
-
-	if resourceType == types2.ResourceMovie {
-		return &rarbg{
-			resourceType,
-			"rarbg",
-			scheduling,
-			&http.Client{},
-		}
-	} else {
-		return &rarbg{
-			resourceType,
-			"rarbg",
-			scheduling,
-			&http.Client{},
-		}
-	}
-
-}
-
 type FactoryTGX struct{}
 
 func (f *FactoryTGX) CreateFeeder(args ...interface{}) Feeder {

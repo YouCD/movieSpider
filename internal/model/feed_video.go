@@ -167,9 +167,9 @@ func (m *movieDB) GetFeedVideoMovieByName(names ...string) (videos []*types.Feed
 	log.Debugf("GetFeedVideoMovieByName 开始第一次查找Movie数据: %s.", names)
 	for _, n := range names {
 		var likeName string
-		likeName = fmt.Sprintf("%s%%", n)
-		// 只查找 没有下载过 && 类型为movie数据
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="movie"  and download=0`, likeName).Rows()
+		likeName = fmt.Sprintf("%%%s%%", n)
+		// todo 只查找 没有下载过 && 类型为movie数据   and download=0
+		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="movie" `, likeName).Rows()
 		if err != nil {
 			return nil, err
 		}

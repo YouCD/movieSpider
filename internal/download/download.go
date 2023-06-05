@@ -148,17 +148,18 @@ func (d *Download) downloadMovieTask() error {
 		return nil
 	}
 
-	// 推送 磁力连接至 aria2
-	err = d.aria2Download(MovieVideos...)
-	if err != nil {
-		log.Warn(err)
-	}
+	//// 推送 磁力连接至 aria2
+	//err = d.aria2Download(MovieVideos...)
+	//if err != nil {
+	//	log.Warn(err)
+	//}
 
 	for _, video := range needDownloadMovieList {
+		log.Infof("%s", video.TorrentName)
 		UpdateFeedVideoAndDownloadHistory(video)
 	}
 
-	log.Error("needDownloadMovieList: ", len(needDownloadMovieList))
+	log.Info("needDownloadMovieList: ", len(needDownloadMovieList))
 
 	return err
 }
@@ -252,17 +253,18 @@ func (d *Download) DownloadByName(name, Resolution string) (msg string) {
 	if err != nil {
 		log.Error(err)
 	}
+
 	for _, v := range videos {
 		gid, err := newAria2.DownloadByUrl(v.Magnet)
 		if err != nil {
 			log.Error(err)
 			return
 		}
+		log.Infof("Downloader: %s 开始下载. GID: %s", v.Name, gid)
 		err = model.NewMovieDB().UpdateFeedVideoDownloadByID(v.ID, 1)
 		if err != nil {
 			log.Error(err)
 		}
-		log.Infof("Downloader: %s 开始下载. GID: %s", v.Name, gid)
 	}
 
 	return fmt.Sprintf("已将 %d 资源加入下载.", len(videos))

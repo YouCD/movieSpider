@@ -33,11 +33,6 @@ type tpbpirateproxy struct {
 	Scheduling string `json:"Scheduling"`
 }
 
-type rarbg struct {
-	Scheduling   string `json:"Scheduling"`
-	ResourceType string `json:"ResourceType"`
-	Typ          types.Resource
-}
 type magnetdl struct {
 	Scheduling   string `json:"Scheduling"`
 	ResourceType string `json:"ResourceType"`
@@ -61,7 +56,6 @@ var (
 	TPBPIRATEPROXY *tpbpirateproxy
 	TGX            *tgx
 	TORLOCK        []*torlock
-	RARBG          []*rarbg
 	MAGNETDL       []*magnetdl
 	Downloader     *downloader
 	ProxyPool      string
@@ -216,24 +210,6 @@ func InitConfig(config string) {
 	if TGX == nil {
 		fmt.Println("配置 TGX is nil")
 		os.Exit(1)
-	}
-	if err = v.UnmarshalKey("Feed.RARBG", &RARBG); err != nil {
-		fmt.Println("读取GLODLS配置错误")
-		os.Exit(1)
-	}
-	if RARBG == nil {
-		fmt.Println("配置 RARBG is nil")
-		os.Exit(1)
-	}
-	for _, v := range RARBG {
-		switch v.ResourceType {
-		case types.VideoTypeMovie:
-			v.Typ = types.ResourceMovie
-		case types.VideoTypeTV:
-			v.Typ = types.ResourceTV
-		default:
-			v.Typ = types.ResourceTV
-		}
 	}
 
 	if err = v.UnmarshalKey("Feed.TORLOCK", &TORLOCK); err != nil {

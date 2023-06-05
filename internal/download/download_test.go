@@ -48,9 +48,6 @@ func Test_download_downloadTvTask(t *testing.T) {
 }
 
 func TestDownload_downloadMovieTask(t *testing.T) {
-
-	model.NewMovieDB()
-
 	d := &Download{
 		scheduling: "tt.fields.scheduling",
 	}

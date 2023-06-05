@@ -33,25 +33,6 @@ func WithFeeds(feeds ...feed2.Feeder) Option {
 	//EZTV
 	facFeedEZTV := new(feed2.FactoryEZTV)
 	feedEZTV := facFeedEZTV.CreateFeeder(config.EZTV.Scheduling)
-	//
-	facFeedRarbg := new(feed2.FactoryRARBG)
-	// rarbg TV
-	var feedRarbgTV feed2.Feeder
-	// rarbg Movie
-	var feedRarbgMovie feed2.Feeder
-
-	for _, r := range config.RARBG {
-		if r != nil {
-			if r.Typ == types.ResourceTV {
-				feedRarbgTV = facFeedRarbg.CreateFeeder(r.Scheduling, r.Typ)
-			}
-			log.Debug(r)
-			if r.Typ == types.ResourceMovie {
-				feedRarbgMovie = facFeedRarbg.CreateFeeder(r.Scheduling, r.Typ)
-			}
-			log.Debug(r)
-		}
-	}
 
 	// GLODLS
 	facFeedGLODLS := new(feed2.FactoryGLODLS)
@@ -100,8 +81,6 @@ func WithFeeds(feeds ...feed2.Feeder) Option {
 		ms.feeds = append(ms.feeds,
 			feedBTBT,
 			feedEZTV,
-			feedRarbgTV,
-			feedRarbgMovie,
 			feedGLODLS,
 			feedTGXS,
 			feedTorlockMovie,

@@ -1,6 +1,6 @@
 MySQL:
   # 这个地址是docker里面的地址
-  Host: moviespider_mysql
+  Host: 127.0.0.1
   Port: 3306
   Database: movie
   User: root
@@ -23,11 +23,6 @@ Feed:
     Scheduling: "*/3 * * * *"
   TGX:
     Scheduling: "*/3 * * * *"
-  RARBG:
-    - Scheduling: "*/3 * * * *"
-      ResourceType: movie
-    - Scheduling: "*/2 * * * *"
-      ResourceType: tv
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie

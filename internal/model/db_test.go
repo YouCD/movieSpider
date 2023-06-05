@@ -91,7 +91,7 @@ func Test_movieDB_FetchDouBanVideoByType(t *testing.T) {
 }
 
 func Test_movieDB_FetchMovieMagnetByName(t *testing.T) {
-	videos, err := NewMovieDB().GetFeedVideoMovieByName("dasdsadsadsa")
+	videos, err := NewMovieDB().GetFeedVideoMovieByName("满江红")
 	if err != nil {
 		t.Error(err)
 	}
@@ -127,25 +127,6 @@ func Test_movieDB_FindLikeTVFromFeedVideo(t *testing.T) {
 	for _, video := range videos {
 		fmt.Println(video)
 	}
-}
-
-func Test_movieDB_FindVideoByName(t *testing.T) {
-	name, err := NewMovieDB().FilterFeedVideoInDownloadHistory(&types.FeedVideo{
-		Name:        "Raven.of.the.Inner.Palace",
-		TorrentName: "Raven.of.the.Inner.Palace.S01E03.1080p.WEB.H264-SENPAI",
-		TorrentUrl:  "Raven.of.the.Inner.Palace.S01E03.1080p.WEB.H264-SENPAI",
-		Magnet:      "Raven.of.the.Inner.Palace.S01E03.1080p.WEB.H264-SENPAI",
-		Year:        "",
-		Type:        "tv",
-		RowData:     sql.NullString{},
-		Web:         "",
-		Download:    0,
-		Timestamp:   0,
-	})
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Println(name)
 }
 
 func Test_movieDB_RandomOneDouBanVideo(t *testing.T) {

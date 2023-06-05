@@ -33,11 +33,6 @@ Feed:
     Scheduling: "*/3 * * * *"
   TGX:
     Scheduling: "*/3 * * * *"
-  RARBG:
-    - Scheduling: "*/3 * * * *"
-      ResourceType: movie
-    - Scheduling: "*/2 * * * *"
-      ResourceType: tv
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
