@@ -43,7 +43,9 @@ func (f *FeedVideo) FormatName(name string) string {
 }
 
 var (
-	tvReg         = regexp.MustCompile("[Ss]([0-9][0-9])[eE]([0-9][0-9])")
+	tvRegSxxExx = regexp.MustCompile("[Ss]([0-9][0-9])[eE]([0-9][0-9])")
+	tvRegSxx    = regexp.MustCompile("[Ss]([0-9][0-9])")
+
 	resolutionReg = regexp.MustCompile("(2160p|2160P|1080p|1080P)")
 )
 
@@ -54,9 +56,20 @@ func (f *FeedVideo) Convert2DownloadHistory() *DownloadHistory {
 	downloadHistory.Type = f.Type
 	switch f.Type {
 	case VideoTypeTV:
-		TVNameArr := tvReg.FindStringSubmatch(f.TorrentName)
+		// 这个匹配的是 SxxExx 的格式
+		TVNameArr := tvRegSxxExx.FindStringSubmatch(f.TorrentName)
+		downloadHistory.Resolution = parseResolution(f.TorrentName)
 		if len(TVNameArr) <= 2 {
-			return nil
+			// 这个匹配的是 Sxx 的格式
+			TVNameArr = tvRegSxx.FindStringSubmatch(f.TorrentName)
+			if len(TVNameArr) == 0 {
+				return nil
+			}
+
+			downloadHistory.Season = TVNameArr[1]
+			downloadHistory.Episode = "全集"
+
+			return &downloadHistory
 		}
 		downloadHistory.Resolution = parseResolution(f.TorrentName)
 		downloadHistory.Episode = TVNameArr[2]

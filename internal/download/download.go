@@ -63,7 +63,6 @@ func (d *Download) downloadTvTask() (err error) {
 			log.Warnf("name: %s 已全部下载完毕，或该影片没有更新.", name)
 			continue
 		}
-		//log.Errorf("%s             %d      %s", name, len(tvVideos), tvName)
 
 		// 归类同一个电视剧名的视频
 		for _, video := range tvVideos {
@@ -73,6 +72,7 @@ func (d *Download) downloadTvTask() (err error) {
 				log.Error(err)
 			}
 
+			// 如果 feedVideo 不能转化为 downloadHistory 则跳过
 			downloadHistory := video.Convert2DownloadHistory()
 			if downloadHistory == nil {
 				log.Debugf("TorrentName: %#v 不能转化为 downloadHistory ", video.TorrentName)
@@ -138,7 +138,6 @@ func (d *Download) downloadMovieTask() error {
 		}
 	}
 
-	//log.Error("MovieVideos: ", len(MovieVideos))
 	// 通过清晰度过滤已经下载过的视频
 	needDownloadMovieList := filterByResolution(MovieVideos...)
 
@@ -148,11 +147,11 @@ func (d *Download) downloadMovieTask() error {
 		return nil
 	}
 
-	//// 推送 磁力连接至 aria2
-	//err = d.aria2Download(MovieVideos...)
-	//if err != nil {
-	//	log.Warn(err)
-	//}
+	// 推送 磁力连接至 aria2
+	err = d.aria2Download(MovieVideos...)
+	if err != nil {
+		log.Warn(err)
+	}
 
 	for _, video := range needDownloadMovieList {
 		log.Infof("%s", video.TorrentName)
@@ -172,6 +171,10 @@ func (d *Download) downloadMovieTask() error {
 //  @return err
 //
 func (d *Download) aria2Download(videos ...*types.FeedVideo) (err error) {
+	//for _, v := range videos {
+	//	log.Error("开始下载......", v.TorrentName)
+	//}
+	//return
 	if len(videos) < 1 {
 		return errors.New("没有需要下载的视频")
 	}

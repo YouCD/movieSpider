@@ -70,7 +70,7 @@ func (m *movieDB) GetFeedVideoTVByName(names ...string) (videos []*types.FeedVid
 			return nil, err
 		}
 		defer rows.Close()
-		// 只查找 没有下载过 && 类型为movie数据
+		// 只查找 没有下载过 && 类型为tv数据
 		for rows.Next() {
 			var video types.FeedVideo
 			err = m.db.ScanRows(rows, &video)
@@ -96,7 +96,7 @@ func (m *movieDB) GetFeedVideoTVByName(names ...string) (videos []*types.FeedVid
 			likeName = fmt.Sprintf("%%%s%%", n)
 		}
 
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download=0`, likeName).Rows()
+		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download !=1 and  type !="movie" `, likeName).Rows()
 		if err != nil {
 			return nil, err
 		}

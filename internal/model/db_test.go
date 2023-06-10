@@ -110,7 +110,7 @@ func Test_movieDB_FetchOneDouBanVideoByDouBanID(t *testing.T) {
 }
 
 func Test_movieDB_FetchTVMagnetByName(t *testing.T) {
-	videos, err := NewMovieDB().GetFeedVideoTVByName([]string{"The.Last.of.Us"}...)
+	videos, err := NewMovieDB().GetFeedVideoTVByName([]string{"FUBAR"}...)
 	if err != nil {
 		t.Error(err)
 	}

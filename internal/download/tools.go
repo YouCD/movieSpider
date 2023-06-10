@@ -17,10 +17,6 @@ func filterByResolution(videos ...*types.FeedVideo) (list []*types.FeedVideo) {
 	// 1. 在下载历史表中查看是否有此视频的下载记录
 	inDownloadHistory := filterByResolutionInDownloadHistory(videos...)
 
-	for i, video := range inDownloadHistory {
-		log.Info(i, "  ", video.TorrentName, "  ", video.Name, "  ", video.ID)
-	}
-
 	// 2. 如果有多个视频 还需要在这一次的视频中过滤出清晰度最高的2个
 	needDownloadFeedVideo, _ := filterVideosByResolution(inDownloadHistory...)
 	return needDownloadFeedVideo
@@ -41,7 +37,6 @@ func filterByResolutionInDownloadHistory(videos ...*types.FeedVideo) (list []*ty
 			continue
 		}
 		list = append(list, v)
-		log.Errorf("%s  %s   %d   ", v.TorrentName, v.Name, v.ID)
 	}
 
 	return
@@ -57,7 +52,7 @@ func UpdateFeedVideoAndDownloadHistory(video *types.FeedVideo) {
 	if err := model.NewMovieDB().UpdateFeedVideoDownloadByID(video.ID, 1); err != nil {
 		log.Error(err)
 	}
-	//log.Errorf("%s       %s       %d", video.TorrentName, video.Name, video.Convert2DownloadHistory().Resolution)
+
 	//  记录这一次下载的视频
 	if err := model.NewMovieDB().UpdateOrAddDownloadHistory(video.Convert2DownloadHistory()); err != nil {
 		log.Error(video.TorrentName, video.Name, err)
