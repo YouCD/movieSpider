@@ -26,7 +26,18 @@ func (f *FeedVideo) TableName() string {
 	return "feed_video"
 }
 
+var (
+	nameReg = regexp.MustCompile("【.*】.*?[.*](.*)") //  去除 【xxxx】
+
+)
+
 func (f *FeedVideo) FormatName(name string) string {
+	//  首发于高清影视之家 高清剧集网
+	submatch := nameReg.FindStringSubmatch(name)
+	if len(submatch) > 1 {
+		name = submatch[1]
+	}
+
 	// 去除空格
 	name = strings.ReplaceAll(name, " ", "")
 
@@ -38,6 +49,14 @@ func (f *FeedVideo) FormatName(name string) string {
 	name = strings.ReplaceAll(name, ".-.", ".")
 	// 去除 +.
 	name = strings.ReplaceAll(name, ".+.", ".")
+
+	compileRegex := regexp.MustCompile("(.*)\\.(\\(?\\d{4}\\)?)\\.")
+	matchArr := compileRegex.FindStringSubmatch(name)
+	if len(matchArr) == 0 {
+		return name
+	} else {
+		name = matchArr[1]
+	}
 
 	return name
 }
