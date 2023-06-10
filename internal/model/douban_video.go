@@ -32,12 +32,7 @@ func (m *movieDB) CreatDouBanVideo(video *types.DouBanVideo) (err error) {
 	if v != nil {
 		log.Debugf("CreatDouBanVideo已存在 %#v", v)
 		// 将该记录变更为 可播放
-		if v.Playable != video.Playable {
-			v.Playable = video.Playable
-			log.Debugf("FetchOneDouBanVideoByDouBanID %#v", v)
-			err = m.UpdateDouBanVideo(video)
-			return errors.WithMessagef(err, "UpdateDouBanVideo %s", v.Names)
-		}
+		err = m.UpdateDouBanVideo(video)
 		return nil
 	}
 
@@ -116,15 +111,8 @@ func (m *movieDB) UpdateDouBanVideo(video *types.DouBanVideo) (err error) {
 	if video == nil {
 		return errors.New("空数据")
 	}
-
-	err = m.db.Model(&types.DouBanVideo{}).Where("douban_id = ?", video.DoubanID).Updates(&types.DouBanVideo{
-		Names:     video.Names,
-		ImdbID:    video.ImdbID,
-		RowData:   video.RowData,
-		Timestamp: time.Now().Unix(),
-		Type:      video.Type,
-		Playable:  video.Playable,
-	}).Error
+	video.Timestamp = time.Now().Unix()
+	err = m.db.Model(&types.DouBanVideo{}).Where("douban_id = ?", video.DoubanID).Updates(video).Error
 	if err != nil {
 		return errors.WithMessage(err, video.Names)
 	}

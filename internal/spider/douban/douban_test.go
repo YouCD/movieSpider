@@ -13,7 +13,7 @@ import (
 )
 
 func TestDouBan_Crawler(t *testing.T) {
-	request, err := http.NewRequest(http.MethodGet, "https://movie.douban.com/subject/34825964/", nil)
+	request, err := http.NewRequest(http.MethodGet, "https://movie.douban.com/subject/26634250/", nil)
 	if err != nil {
 		log.Error(err)
 		return
@@ -48,18 +48,18 @@ func TestDouBan_Crawler(t *testing.T) {
 		log.Error(err)
 		return
 	}
-	fmt.Println(d)
+	fmt.Println(content)
 }
 
 func TestDouBan_Crawler1(t *testing.T) {
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpider/bin/movieSpider/config.yaml")
+	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
 
 	d := &DouBan{
-		doubanUrl:  "https://movie.douban.com/people/251312920/wish",
+		doubanUrl:  "https://movie.douban.com/people/251312920/wish?start=60&sort=time&rating=all&filter=all&mode=grid",
 		scheduling: "tt.fields.scheduling",
 	}
 	videos := d.Crawler()
 	for _, video := range videos {
-		fmt.Println(video)
+		fmt.Println(video.Names, video.DatePublished)
 	}
 }
