@@ -87,7 +87,7 @@ func (d *Download) downloadTvTask() (err error) {
 	// 根据 清晰度 季数和集数过滤
 	needDownloadFeedVideo := make([]*types.FeedVideo, 0)
 	for _, v := range FilterMap {
-		list := filterByResolution(v...)
+		list := filterByResolution(types.ResourceTV, v...)
 		needDownloadFeedVideo = append(needDownloadFeedVideo, list...)
 	}
 	//  如果没有需要下载的视频 则返回
@@ -160,7 +160,7 @@ func (d *Download) downloadMovieTask() (err error) {
 	// 根据 清晰度 季数和集数过滤
 	needDownloadFeedVideo := make([]*types.FeedVideo, 0)
 	for _, v := range FilterMap {
-		list := filterByResolution(v...)
+		list := filterByResolution(types.ResourceMovie, v...)
 
 		needDownloadFeedVideo = append(needDownloadFeedVideo, list...)
 	}

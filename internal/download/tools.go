@@ -13,12 +13,12 @@ import (
 //  @param videos
 //  @return list
 //
-func filterByResolution(videos ...*types.FeedVideo) (list []*types.FeedVideo) {
+func filterByResolution(movieOrTV types.Resource, videos ...*types.FeedVideo) (list []*types.FeedVideo) {
 	// 1. 在下载历史表中查看是否有此视频的下载记录
 	inDownloadHistory := filterByResolutionInDownloadHistory(videos...)
 
 	// 2. 如果有多个视频 还需要在这一次的视频中过滤出清晰度最高的2个
-	needDownloadFeedVideo, _ := filterVideosByResolution(inDownloadHistory...)
+	needDownloadFeedVideo, _ := filterVideosByResolution(movieOrTV, inDownloadHistory...)
 	return needDownloadFeedVideo
 }
 
@@ -67,10 +67,64 @@ func UpdateFeedVideoAndDownloadHistory(video *types.FeedVideo) {
 //  @return needDownloadFeedVideo  需要下载的资源
 //  @return downloadIs3 需要记录的资源
 //
-func filterVideosByResolution(videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.FeedVideo, needRecordFeedVideo []*types.FeedVideo) {
-	//  将视频按照分辨率排序，当前仅排序 2160P 和 1080P
-	Videos2160P, Videos1080P := sotByResolution(videos)
+func filterVideosByResolution(movieOrTV types.Resource, videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.FeedVideo, needRecordFeedVideo []*types.FeedVideo) {
+	// 如果类型是电影
+	if movieOrTV == types.ResourceMovie {
+		return handlerMovie(videos...)
+	}
 
+	// 如果是电视剧
+	if movieOrTV == types.ResourceTV {
+		// 1. 先根据分辨归类
+		Videos2160P, Videos1080P := sotByResolution(videos)
+		// 2. 创建一个 map 用来存放需要下载的 feedVideo  key的格式：Name + Season + Episode
+		needDownloadFeedVideoMap := make(map[string][]*types.FeedVideo)
+		// 3. 一个用来存放 2160P 的桶
+		needDownloadFeedVideo2160PMap := make(map[string][]*types.FeedVideo)
+		// 4. 一个用来存放 1080P 的桶
+		needDownloadFeedVideo1080PMap := make(map[string][]*types.FeedVideo)
+		// 5. 把 2160P 的视频放到 needDownloadFeedVideo2160PMap 中
+		if len(Videos2160P) > 0 {
+			needDownloadFeedVideo2160PMap = handlerTv(Videos2160P...)
+		}
+		//  6. 把 1080P 的视频放到 needDownloadFeedVideo1080PMap 中
+		if len(Videos1080P) > 0 {
+			needDownloadFeedVideo1080PMap = handlerTv(Videos1080P...)
+		}
+		// 7. 把 2160P 和 1080P 的视频放到相同的桶中
+		for s, feedVideos := range needDownloadFeedVideo2160PMap {
+			needDownloadFeedVideoMap[s] = append(needDownloadFeedVideoMap[s], feedVideos...)
+		}
+		for s, feedVideos := range needDownloadFeedVideo1080PMap {
+			needDownloadFeedVideoMap[s] = append(needDownloadFeedVideoMap[s], feedVideos...)
+		}
+
+		// 8. 遍历 needDownloadFeedVideoMap
+		for _, feedVideos := range needDownloadFeedVideoMap {
+			// 9. 如果这一集tv 有多个视频
+			if (len(feedVideos)) >= 2 {
+				// 10. 利用 handlerTv 处理这一集tv
+				need, Record := handlerMovie(feedVideos...)
+				needDownloadFeedVideo = append(needDownloadFeedVideo, need...)
+				needRecordFeedVideo = append(needRecordFeedVideo, Record...)
+			} else {
+				needDownloadFeedVideo = append(needDownloadFeedVideo, feedVideos...)
+			}
+		}
+	}
+
+	return
+}
+
+//
+// handlerMovie
+//  @Description: 处理电影类型的视频
+//  @param videos
+//  @return needDownloadFeedVideo
+//  @return needRecordFeedVideo
+//
+func handlerMovie(videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.FeedVideo, needRecordFeedVideo []*types.FeedVideo) {
+	Videos2160P, Videos1080P := sotByResolution(videos)
 	// 如果 Videos2160P 有 数据
 	if len(Videos2160P) > 0 {
 		// 如果 Videos2160P 有大于2个片源
@@ -96,6 +150,29 @@ func filterVideosByResolution(videos ...*types.FeedVideo) (needDownloadFeedVideo
 		}
 	}
 	return
+}
+
+//
+// handlerTv
+//  @Description: 处理电视剧类型的视频
+//  @param videos
+//  @return map[string][]*types.FeedVideo
+//
+func handlerTv(videos ...*types.FeedVideo) map[string][]*types.FeedVideo {
+	if len(videos) < 1 {
+		return nil
+	}
+	needDownloadFeedVideoMap := make(map[string][]*types.FeedVideo)
+	for _, video := range videos {
+		historyObj := video.Convert2DownloadHistory()
+		if historyObj == nil {
+			continue
+		}
+
+		key := historyObj.Name + historyObj.Season + historyObj.Episode
+		needDownloadFeedVideoMap[key] = append(needDownloadFeedVideoMap[key], video)
+	}
+	return needDownloadFeedVideoMap
 }
 
 //
