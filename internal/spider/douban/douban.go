@@ -85,7 +85,8 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		log.Error(err)
 		return
 	}
-	var videos1 []*types.DouBanVideo
+	var summaryVideo []*types.DouBanVideo
+
 	doc.Find("#content > div.grid-16-8.clearfix > div.article > div.grid-view> div").Each(func(i int, s *goquery.Selection) {
 		s.Each(func(i int, selection *goquery.Selection) {
 			doubanVideo := new(types.DouBanVideo)
@@ -104,14 +105,14 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 			Playable = strings.ReplaceAll(Playable, "]", "")
 			doubanVideo.Playable = Playable
 
-			videos1 = append(videos1, doubanVideo)
+			summaryVideo = append(summaryVideo, doubanVideo)
 		})
 
 	})
 
 	var videos2 []*types.DouBanVideo
 	var wg sync.WaitGroup
-	for _, video := range videos1 {
+	for _, video := range summaryVideo {
 		wg.Add(1)
 		// 访问 豆瓣 具体的电影首页
 		doc, err := d.newRequest(fmt.Sprintf("%s%s", movieUrlPrefix, video.DoubanID))
@@ -149,6 +150,9 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		// 赋值 原始数据
 		video.RowData = string(marshal)
 
+		// 上映时间
+		video.DatePublished = data.DatePublished
+
 		// 处理类型
 		video.Type = video.FormatType(data.Type)
 		// 处理 名称
@@ -177,7 +181,7 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		log.Infof("DouBan %s 已保存", video.Names)
 	}
 
-	return
+	return videos2
 }
 
 //
@@ -240,3 +244,5 @@ func (d *DouBan) Run() {
 	c.AddFunc(d.scheduling, func() { d.Crawler() })
 	c.Start()
 }
+
+// todo 还需要搞一个定时任务，定时更新 DatePublished

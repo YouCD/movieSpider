@@ -9,14 +9,15 @@ import (
 )
 
 type DouBanVideo struct {
-	ID        int    `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
-	Names     string `gorm:"uniqueIndex;column:names;type:varchar(255);comment:片名列表;NOT NULL" json:"names"`
-	DoubanID  string `gorm:"column:douban_id;type:varchar(255);comment:豆瓣ID;NOT NULL" json:"douban_id"`
-	ImdbID    string `gorm:"column:imdb_id;type:varchar(255);comment:imdbID;NOT NULL" json:"imdb_id"`
-	RowData   string `gorm:"column:row_data;type:longtext;comment:原始数据;NOT NULL" json:"row_data"`
-	Timestamp int64  `gorm:"column:timestamp;type:bigint(11);comment:修改创建时间;NOT NULL" json:"timestamp"`
-	Type      string `gorm:"column:type;type:varchar(255);comment:类型;NOT NULL" json:"type"`
-	Playable  string `gorm:"column:playable;type:varchar(255);comment:是否可以播放;NOT NULL" json:"playable"`
+	ID            int    `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
+	Names         string `gorm:"uniqueIndex;column:names;type:varchar(255);comment:片名列表;NOT NULL" json:"names"`
+	DoubanID      string `gorm:"column:douban_id;type:varchar(255);comment:豆瓣ID;NOT NULL" json:"douban_id"`
+	ImdbID        string `gorm:"column:imdb_id;type:varchar(255);comment:imdbID;NOT NULL" json:"imdb_id"`
+	RowData       string `gorm:"column:row_data;type:longtext;comment:原始数据;NOT NULL" json:"row_data"`
+	Timestamp     int64  `gorm:"column:timestamp;type:bigint(11);comment:修改创建时间;NOT NULL" json:"timestamp"`
+	Type          string `gorm:"column:type;type:varchar(255);comment:类型;NOT NULL" json:"type"`
+	Playable      string `gorm:"column:playable;type:varchar(255);comment:是否可以播放;NOT NULL" json:"playable"`
+	DatePublished string `gorm:"column:date_published;type:varchar(255);comment:上映时间;NOT NULL" json:"datePublished"`
 }
 
 func (d *DouBanVideo) TableName() string {
