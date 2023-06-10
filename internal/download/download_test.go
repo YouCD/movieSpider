@@ -1,6 +1,7 @@
 package download
 
 import (
+	"fmt"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"testing"
@@ -43,7 +44,7 @@ func Test_download_downloadTvTask(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
+	fmt.Println("done")
 	select {}
 }
 
@@ -55,5 +56,7 @@ func TestDownload_downloadMovieTask(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	fmt.Println("done")
 	select {}
 }

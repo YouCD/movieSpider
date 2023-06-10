@@ -59,7 +59,7 @@ func (m *movieDB) UpdateFeedVideoNameByID(id int32, name string, resource types.
 //  @return videos
 //  @return err
 //
-func (m *movieDB) GetFeedVideoTVByName(names ...string) (videos []*types.FeedVideo, err error) {
+func (m *movieDB) GetFeedVideoTVByName(DoubanID string, names ...string) (videos []*types.FeedVideo, err error) {
 	var videos1 []*types.FeedVideo
 	for _, n := range names {
 		log.Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", n)
@@ -79,6 +79,9 @@ func (m *movieDB) GetFeedVideoTVByName(names ...string) (videos []*types.FeedVid
 			}
 			// 重新更名
 			video.Name = n
+			// 添加豆瓣id
+			video.DoubanID = DoubanID
+
 			videos1 = append(videos1, &video)
 		}
 	}
@@ -107,6 +110,10 @@ func (m *movieDB) GetFeedVideoTVByName(names ...string) (videos []*types.FeedVid
 			if err != nil {
 				return nil, err
 			}
+			// 重新更名
+			video.Name = n
+			// 添加豆瓣id
+			video.DoubanID = DoubanID
 			videos = append(videos, &video)
 		}
 	}
@@ -208,6 +215,63 @@ func (m *movieDB) GetFeedVideoMovieByName(names ...string) (videos []*types.Feed
 			if err != nil {
 				return nil, err
 			}
+			video.Name = n
+			videos = append(videos, &video)
+		}
+	}
+	return
+}
+
+func (m *movieDB) GetFeedVideoMovieByNameAndDoubanID(DoubanID string, names ...string) (videos []*types.FeedVideo, err error) {
+
+	var videos1 []*types.FeedVideo
+	log.Debugf("GetFeedVideoMovieByName 开始第一次查找Movie数据: %s.", names)
+	for _, n := range names {
+		var likeName string
+		likeName = fmt.Sprintf("%%%s%%", n)
+		//  只查找 没有下载过 && 类型为movie数据   and download=0
+		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="movie" `, likeName).Rows()
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var video types.FeedVideo
+			err = m.db.ScanRows(rows, &video)
+			if err != nil {
+				return nil, err
+			}
+			// 将feedVideo的名称设置为搜索的名称
+			video.Name = n
+			video.DoubanID = DoubanID
+			videos1 = append(videos1, &video)
+		}
+	}
+	if len(videos1) > 0 {
+		return videos1, nil
+	}
+
+	for _, n := range names {
+
+		var likeName string
+		if strings.Contains(n, ".") {
+			likeName = fmt.Sprintf("%%.%s.%%", n)
+		} else {
+			likeName = fmt.Sprintf("%%%s%%", n)
+		}
+		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download!=1  and type="movie"`, likeName).Rows()
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var video types.FeedVideo
+			err = m.db.ScanRows(rows, &video)
+			if err != nil {
+				return nil, err
+			}
+			video.Name = n
+			video.DoubanID = DoubanID
 			videos = append(videos, &video)
 		}
 	}
@@ -235,5 +299,21 @@ func (m *movieDB) CreatFeedVideo(video *types.FeedVideo) (err error) {
 		return errors.WithMessage(err, video.Name)
 	}
 	log.Debugf("CreatFeedVideo 数据已添加 video: %#v", video)
+	return
+}
+
+//
+// UpdateFeedVideo
+//  @Description: 更新feed视频 所有字段
+//  @receiver m
+//  @param video
+//  @return err
+//
+func (m *movieDB) UpdateFeedVideo(video *types.FeedVideo) (err error) {
+	video.Name = video.FormatName(video.Name)
+	err = m.db.Model(&types.FeedVideo{}).Where("id=?", video.ID).Updates(video).Error
+	if err != nil {
+		return err
+	}
 	return
 }

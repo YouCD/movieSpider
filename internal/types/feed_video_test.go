@@ -25,7 +25,7 @@ func TestFeedVideo_FormatTvByName(t *testing.T) {
 
 func TestFeedVideo_FormatName(t *testing.T) {
 	f := &FeedVideo{
-		Name: "Black.Adam.(2022).1080p.H265.ita.eng.AC3.5.1.sub.ita.eng.Licdom.mkv",
+		Name: "【高清剧集网发布.www.PTHDTV.com】梦中的那片海[第17-20集][国语配音+中文字幕].Where.Dreams.Begin",
 	}
 	fmt.Println(f.FormatName(f.Name))
 }

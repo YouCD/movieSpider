@@ -43,7 +43,7 @@ func (d *Download) downloadTask() {
 //
 func (d *Download) downloadTvTask() (err error) {
 	log.Info("Downloader tv working...")
-	tvs, err := model.NewMovieDB().FetchDouBanTvVideo()
+	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.ResourceTV)
 	if err != nil {
 		return err
 	}
@@ -53,21 +53,22 @@ func (d *Download) downloadTvTask() (err error) {
 	log.Info("查找需要下载的tv.")
 
 	//归类同一个电视剧名的 feedVideo
-	for name, tvName := range tvs {
+	for douBanVideo, name := range videos {
 		// 获取 tv
-		tvVideos, err := model.NewMovieDB().GetFeedVideoTVByName(tvName...)
+		videoList, err := model.NewMovieDB().GetFeedVideoTVByName(douBanVideo.DoubanID, name...)
 		if err != nil {
 			log.Warn(err)
 		}
-		if len(tvVideos) == 0 {
-			log.Warnf("name: %s 已全部下载完毕，或该影片没有更新.", name)
+		if len(videoList) == 0 {
 			continue
 		}
 
 		// 归类同一个电视剧名的视频
-		for _, video := range tvVideos {
+		for _, video := range videoList {
 			//  将此次所有feedVideo的下载状态更新为3
-			err = model.NewMovieDB().UpdateFeedVideoDownloadByID(video.ID, 3)
+			video.Download = 3
+
+			err = model.NewMovieDB().UpdateFeedVideo(video)
 			if err != nil {
 				log.Error(err)
 			}
@@ -79,7 +80,7 @@ func (d *Download) downloadTvTask() (err error) {
 				continue
 			}
 
-			FilterMap[name] = append(FilterMap[name], video)
+			FilterMap[douBanVideo.Names] = append(FilterMap[douBanVideo.Names], video)
 		}
 	}
 
@@ -115,50 +116,70 @@ func (d *Download) downloadTvTask() (err error) {
 //  @receiver d
 //  @return error
 //
-func (d *Download) downloadMovieTask() error {
+func (d *Download) downloadMovieTask() (err error) {
 	// 获取 豆瓣 数据
 	log.Info("Downloader movie working...")
-	names, err := model.NewMovieDB().FetchDouBanVideoByType(types.ResourceMovie)
+	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.ResourceMovie)
 	if err != nil {
 		return err
 	}
 
-	// 获取 feedVideo movie
+	//  FilterMap 暂存 电视剧名相同的视频
+	var FilterMap = make(map[string][]*types.FeedVideo)
 	log.Info("查找需要下载的movie.")
-	MovieVideos, err := model.NewMovieDB().GetFeedVideoMovieByName(names...)
-	if err != nil {
-		return err
-	}
 
-	//  将此次所有feedVideo movie的下载状态更新为3
-	for _, v := range MovieVideos {
-		if err = model.NewMovieDB().UpdateFeedVideoDownloadByID(v.ID, 3); err != nil {
-			log.Error(err)
+	//归类同一个电视剧名的 feedVideo
+	for douBanVideo, names := range videos {
+		// 获取 feedVideo movie
+		videoList, err := model.NewMovieDB().GetFeedVideoMovieByNameAndDoubanID(douBanVideo.DoubanID, names...)
+		if err != nil {
+			return err
+		}
+		if len(videoList) == 0 {
+			//log.Warnf("douBanVideo: %s 已全部下载完毕，或该影片没有更新.", douBanVideo.Names)
 			continue
+		}
+
+		for _, video := range videoList {
+			//  将此次所有feedVideo的下载状态更新为3
+			video.Download = 3
+			err = model.NewMovieDB().UpdateFeedVideo(video)
+			if err != nil {
+				log.Error(err)
+			}
+			// 如果 feedVideo 不能转化为 downloadHistory 则跳过
+			downloadHistory := video.Convert2DownloadHistory()
+			if downloadHistory == nil {
+				log.Debugf("TorrentName: %#v 不能转化为 downloadHistory ", video.TorrentName)
+				continue
+			}
+			FilterMap[douBanVideo.Names] = append(FilterMap[douBanVideo.Names], video)
 		}
 	}
 
-	// 通过清晰度过滤已经下载过的视频
-	needDownloadMovieList := filterByResolution(MovieVideos...)
+	// 根据 清晰度 季数和集数过滤
+	needDownloadFeedVideo := make([]*types.FeedVideo, 0)
+	for _, v := range FilterMap {
+		list := filterByResolution(v...)
 
+		needDownloadFeedVideo = append(needDownloadFeedVideo, list...)
+	}
 	//  如果没有需要下载的视频 则返回
-	if len(needDownloadMovieList) == 0 {
+	if len(needDownloadFeedVideo) == 0 {
 		log.Warn("此次没有要下载的movie.")
-		return nil
+		return
 	}
 
 	// 推送 磁力连接至 aria2
-	err = d.aria2Download(MovieVideos...)
+	err = d.aria2Download(needDownloadFeedVideo...)
 	if err != nil {
 		log.Warn(err)
 	}
 
-	for _, video := range needDownloadMovieList {
+	for _, video := range needDownloadFeedVideo {
 		log.Infof("%s", video.TorrentName)
 		UpdateFeedVideoAndDownloadHistory(video)
 	}
-
-	log.Info("needDownloadMovieList: ", len(needDownloadMovieList))
 
 	return err
 }

@@ -20,6 +20,7 @@ type FeedVideo struct {
 	Web         string         `gorm:"column:web;type:varchar(255);comment:站点;NOT NULL" json:"web"`
 	Download    int            `gorm:"column:download;type:int(11);comment:1:已经下载;NOT NULL" json:"download"`
 	Timestamp   int64          `gorm:"column:timestamp;type:bigint(11);comment:修改创建时间;NOT NULL" json:"timestamp"`
+	DoubanID    string         `gorm:"column:douban_id;type:varchar(255);comment:豆瓣ID;NOT NULL" json:"douban_id"`
 }
 
 func (f *FeedVideo) TableName() string {
@@ -73,6 +74,8 @@ func (f *FeedVideo) Convert2DownloadHistory() *DownloadHistory {
 	downloadHistory.Name = f.Name
 	downloadHistory.TorrentName = f.TorrentName
 	downloadHistory.Type = f.Type
+	downloadHistory.DoubanID = f.DoubanID
+
 	switch f.Type {
 	case VideoTypeTV:
 		// 这个匹配的是 SxxExx 的格式

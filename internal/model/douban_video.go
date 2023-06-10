@@ -139,36 +139,9 @@ func (m *movieDB) UpdateDouBanVideo(video *types.DouBanVideo) (err error) {
 //  @return nameList
 //  @return err
 //
-func (m *movieDB) FetchDouBanVideoByType(typ types.Resource) (nameList []string, err error) {
-	rows, err := m.db.Model(&types.DouBanVideo{}).Select("names").Where("type = ?", typ.Typ()).Rows()
-	if err != nil {
-		return
-	}
-	defer rows.Close()
-	var namesA []string
-	for rows.Next() {
-		var names string
-		if err = rows.Scan(&names); err != nil {
-			continue
-		}
-		namesA = append(namesA, names)
-	}
-
-	for _, v := range namesA {
-		var names1 []string
-		if err = json.Unmarshal([]byte(v), &names1); err != nil {
-			log.Error(err)
-			continue
-		}
-		for _, n := range names1 {
-			nameList = append(nameList, n)
-		}
-	}
-	return
-}
-func (m *movieDB) FetchDouBanTvVideo() (nameList map[string][]string, err error) {
-	nameList = make(map[string][]string)
-	rows, err := m.db.Model(&types.DouBanVideo{}).Select("douban_id,names").Where("type = ?", types.VideoTypeTV).Rows()
+func (m *movieDB) FetchDouBanVideoByType(typ types.Resource) (nameList map[types.DouBanVideo][]string, err error) {
+	nameList = make(map[types.DouBanVideo][]string)
+	rows, err := m.db.Model(&types.DouBanVideo{}).Select("douban_id,names").Where("type = ?", typ.Typ()).Rows()
 	if err != nil {
 		return
 	}
@@ -184,7 +157,7 @@ func (m *movieDB) FetchDouBanTvVideo() (nameList map[string][]string, err error)
 			log.Error(err)
 			continue
 		}
-		nameList[tv.Names] = names
+		nameList[tv] = names
 
 	}
 

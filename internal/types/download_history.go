@@ -9,6 +9,7 @@ type DownloadHistory struct {
 	Resolution  int64  `gorm:"column:resolution;type:bigint(11);comment:分辨率;NOT NULL" json:"resolution"`
 	Season      string `gorm:"uniqueIndex:tv_index;column:season;type:varchar(3);comment:季数;NOT NULL" json:"season"`
 	Episode     string `gorm:"uniqueIndex:tv_index;column:episode;type:varchar(3);comment:集数;NOT NULL" json:"episode"`
+	DoubanID    string `gorm:"column:douban_id;type:varchar(255);comment:豆瓣ID;NOT NULL" json:"douban_id"`
 }
 
 func (m *DownloadHistory) TableName() string {
