@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"encoding/json"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
@@ -12,6 +13,7 @@ import (
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/tools"
+	"movieSpider/internal/types"
 	"os"
 	"strconv"
 	"strings"
@@ -66,13 +68,24 @@ func NewTgBot(BotToken string, TgIDs []int) *TGBot {
 //
 func (t *TGBot) StartBot() {
 
-	// 发送通知
+	// 发送通知 下载通知
 	go func() {
 		for {
 			notifyChan, ok := <-bus.NotifyChan
 			if ok {
 				log.Infof(notifyChan)
 				t.SendStrMsg(notifyChan)
+			} else {
+				return
+			}
+		}
+	}()
+	// 发送通知 上映 通知
+	go func() {
+		for {
+			video, ok := <-bus.DatePublishedChan
+			if ok {
+				t.SendDatePublishedMsg(video)
 			} else {
 				return
 			}
@@ -177,6 +190,40 @@ func (t *TGBot) SendStrMsg(msg string) {
 	for _, id := range t.IDs {
 		tgMsg := tgbotapi.NewMessage(int64(id), msg)
 		if _, err := t.bot.Send(tgMsg); err != nil {
+			log.Error(err)
+		}
+	}
+}
+
+const msg = `<b>电影名：</b> %s
+<b>上映时间：</b> %s
+`
+
+//
+// SendDatePublishedMsg
+//  @Description: 发送电影上映消息
+//  @receiver t
+//  @param msg
+//
+func (t *TGBot) SendDatePublishedMsg(v *types.DouBanVideo) {
+
+	var rowData types.RowData
+	err := json.Unmarshal([]byte(v.RowData), &rowData)
+	if err != nil {
+		log.Error(err)
+
+	}
+	image := rowData.Image
+	var names []string
+	err = json.Unmarshal([]byte(v.Names), &names)
+	if err != nil {
+		log.Error(err)
+	}
+	for _, id := range t.IDs {
+		photo := tgbotapi.NewPhoto(int64(id), tgbotapi.FileURL(image))
+		photo.Caption = fmt.Sprintf(msg, names[0], v.DatePublished)
+		photo.ParseMode = tgbotapi.ModeHTML
+		if _, err := t.bot.Send(photo); err != nil {
 			log.Error(err)
 		}
 	}

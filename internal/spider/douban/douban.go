@@ -25,38 +25,6 @@ type DouBan struct {
 	doubanUrl  string
 	scheduling string
 }
-type rowData struct {
-	Name     string `json:"name"`
-	Url      string `json:"url"`
-	Image    string `json:"image"`
-	Director []struct {
-		Type string `json:"type"`
-		Url  string `json:"url"`
-		Name string `json:"name"`
-	} `json:"director"`
-	Author []struct {
-		Type string `json:"type"`
-		Url  string `json:"url"`
-		Name string `json:"name"`
-	} `json:"author"`
-	Actor []struct {
-		Type string `json:"type"`
-		Url  string `json:"url"`
-		Name string `json:"name"`
-	} `json:"actor"`
-	DatePublished   string   `json:"datePublished"`
-	Genre           []string `json:"genre"`
-	Duration        string   `json:"duration"`
-	Description     string   `json:"description"`
-	Type            string   `json:"type"`
-	AggregateRating struct {
-		Type        string `json:"type"`
-		RatingCount string `json:"ratingCount"`
-		BestRating  string `json:"bestRating"`
-		WorstRating string `json:"worstRating"`
-		RatingValue string `json:"ratingValue"`
-	} `json:"aggregateRating"`
-}
 
 //
 // NewSpiderDouBan
@@ -125,7 +93,7 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		content := doc.Find("script[type='application/ld+json']").Text()
 		content = strings.ReplaceAll(content, "\n", "")
 		content = strings.ReplaceAll(content, "@type", "type")
-		var data rowData
+		var data types.RowData
 		err = json.Unmarshal([]byte(content), &data)
 		if err != nil {
 			wg.Done()

@@ -5,6 +5,7 @@ import (
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
+	"movieSpider/internal/releaseTimeJob"
 	"movieSpider/internal/report"
 	"movieSpider/internal/spider"
 	"movieSpider/internal/spider/douban"
@@ -12,11 +13,12 @@ import (
 )
 
 type movieSpider struct {
-	feeds    []feedSpider.Feeder
-	download *download.Download
-	report   *report.Report
-	bot      *bot.TGBot
-	spiders  []spider.Spider
+	feeds          []feedSpider.Feeder
+	download       *download.Download
+	report         *report.Report
+	bot            *bot.TGBot
+	spiders        []spider.Spider
+	releaseTimeJob *releaseTimeJob.ReleaseTimeJob
 }
 
 var ms = new(movieSpider)

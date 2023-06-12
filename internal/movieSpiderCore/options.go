@@ -5,6 +5,7 @@ import (
 	"movieSpider/internal/download"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
+	"movieSpider/internal/releaseTimeJob"
 	"movieSpider/internal/report"
 	feed2 "movieSpider/internal/spider/feedSpider"
 	"movieSpider/internal/types"
@@ -126,5 +127,17 @@ func WithDownload() Option {
 	return optionFunc(func(ms *movieSpider) {
 		ms.download = download.NewDownloader(config.Downloader.Scheduling)
 		go ms.download.Run()
+	})
+}
+
+//
+// WithReleaseTimeJob
+//  @Description: 初始化下载器
+//  @return Option
+//
+func WithReleaseTimeJob() Option {
+	return optionFunc(func(ms *movieSpider) {
+		ms.releaseTimeJob = releaseTimeJob.NewReleaseTimeJob("")
+		go ms.releaseTimeJob.Run()
 	})
 }

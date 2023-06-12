@@ -173,3 +173,18 @@ func Test_movieDB_checkDownloadHistory(t *testing.T) {
 	})
 	fmt.Println(flag)
 }
+
+func Test_movieDB_IsDatePublished(t *testing.T) {
+	obj := types.DouBanVideo{
+		ID:            99119,
+		Names:         `["阿凡达3：带种者111","Avatar:The.Seed.Bearer11"]`,
+		DoubanID:      "878",
+		ImdbID:        "444444444",
+		RowData:       "444444444",
+		Timestamp:     0,
+		Type:          "444444444",
+		Playable:      "三21问问是岁",
+		DatePublished: "2023-06-13",
+	}
+	fmt.Println(obj.IsDatePublished())
+}

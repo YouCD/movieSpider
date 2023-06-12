@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
 	"math/rand"
 	"movieSpider/internal/log"
@@ -150,4 +151,21 @@ func (m *movieDB) FetchDouBanVideoByType(typ types.Resource) (nameList map[types
 	}
 
 	return
+}
+
+//
+// FetchThisYearVideo
+//  @Description: 获取今年的视频
+//  @receiver m
+//  @return []types.DouBanVideo
+//  @return error
+//
+func (m *movieDB) FetchThisYearVideo() ([]*types.DouBanVideo, error) {
+	thisYear := time.Now().Format("2006")
+	var videos []*types.DouBanVideo
+	err := m.db.Model(&types.DouBanVideo{}).Where("date_published like  ?", fmt.Sprintf("%s%%", thisYear)).Find(&videos).Error
+	if err != nil {
+		return nil, err
+	}
+	return videos, nil
 }

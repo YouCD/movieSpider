@@ -5,9 +5,42 @@ import (
 	"movieSpider/internal/tools"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 )
 
+type RowData struct {
+	Name     string `json:"name"`
+	Url      string `json:"url"`
+	Image    string `json:"image"`
+	Director []struct {
+		Type string `json:"type"`
+		Url  string `json:"url"`
+		Name string `json:"name"`
+	} `json:"director"`
+	Author []struct {
+		Type string `json:"type"`
+		Url  string `json:"url"`
+		Name string `json:"name"`
+	} `json:"author"`
+	Actor []struct {
+		Type string `json:"type"`
+		Url  string `json:"url"`
+		Name string `json:"name"`
+	} `json:"actor"`
+	DatePublished   string   `json:"releaseTimeJob"`
+	Genre           []string `json:"genre"`
+	Duration        string   `json:"duration"`
+	Description     string   `json:"description"`
+	Type            string   `json:"type"`
+	AggregateRating struct {
+		Type        string `json:"type"`
+		RatingCount string `json:"ratingCount"`
+		BestRating  string `json:"bestRating"`
+		WorstRating string `json:"worstRating"`
+		RatingValue string `json:"ratingValue"`
+	} `json:"aggregateRating"`
+}
 type DouBanVideo struct {
 	ID            int    `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
 	Names         string `gorm:"uniqueIndex;column:names;type:varchar(255);comment:片名列表;NOT NULL" json:"names"`
@@ -78,5 +111,19 @@ func (d *DouBanVideo) isChineseChar(str string) bool {
 			return true
 		}
 	}
+	return false
+}
+
+func (d *DouBanVideo) IsDatePublished() bool {
+	// 如果没有上映时间，就返回false
+	if d.DatePublished == "" {
+		return false
+	}
+
+	str := time.Now().Local().Format("2006-01-02")
+	if d.DatePublished == str {
+		return true
+	}
+
 	return false
 }

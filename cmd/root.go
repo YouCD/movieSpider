@@ -25,6 +25,7 @@ var rootCmd = &cobra.Command{
 			movieSpiderCore.WithFeeds(),
 			movieSpiderCore.WithDownload(),
 			movieSpiderCore.WithReport(),
+			movieSpiderCore.WithReleaseTimeJob(),
 		)
 
 		movieSpider.RunWithTGBot()
