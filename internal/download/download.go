@@ -212,7 +212,12 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) (err error) {
 		// 如果开启了tg推送 则推送
 		if config.TG.Enable {
 			go func() {
-				bus.NotifyChan <- fmt.Sprintf("%s 开始下载. GID: %s", v.TorrentName, gid)
+				video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
+				if err != nil {
+					log.Error(err)
+					return
+				}
+				bus.DownloadNotifyChan <- video
 			}()
 		}
 

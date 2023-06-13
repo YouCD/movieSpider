@@ -1,12 +1,11 @@
-package movieSpiderCore
+package core
 
 import (
 	"movieSpider/internal/bot"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
-	"movieSpider/internal/releaseTimeJob"
-	"movieSpider/internal/report"
+	"movieSpider/internal/job"
 	"movieSpider/internal/spider"
 	"movieSpider/internal/spider/douban"
 	"movieSpider/internal/spider/feedSpider"
@@ -15,10 +14,10 @@ import (
 type movieSpider struct {
 	feeds          []feedSpider.Feeder
 	download       *download.Download
-	report         *report.Report
+	report         *job.Report
 	bot            *bot.TGBot
 	spiders        []spider.Spider
-	releaseTimeJob *releaseTimeJob.ReleaseTimeJob
+	releaseTimeJob *job.ReleaseTimeJob
 }
 
 var ms = new(movieSpider)

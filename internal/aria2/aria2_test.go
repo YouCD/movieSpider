@@ -11,8 +11,8 @@ import (
 )
 
 func Test_aria2_DownloadList(t *testing.T) {
-	//config.InitConfig("/home/ycd/Data/Daddylab/source_code/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+	//config.InitConfig("/home/ycd/Data/Daddylab/source_code/go-source/tools-cmd/core/bin/core/config.yaml")
+	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/core/bin/core/config.yaml")
 
 	newAria2, err := NewAria2(config.Downloader.Aria2Label)
 	if err != nil {

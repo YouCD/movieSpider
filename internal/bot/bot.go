@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -18,6 +19,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"text/template"
 	"unicode/utf8"
 )
 
@@ -37,6 +39,25 @@ type TGBot struct {
 	botToken string
 	IDs      []int
 	bot      *tgbotapi.BotAPI
+}
+
+// 定义模板 结构体
+type msgType struct {
+	Name          string
+	DatePublished string
+	MovieUri      string
+	Director      []struct {
+		Type string `json:"type"`
+		Url  string `json:"url"`
+		Name string `json:"name"`
+	}
+	Actor []struct {
+		Type string `json:"type"`
+		Url  string `json:"url"`
+		Name string `json:"name"`
+	}
+	Genre       []string
+	Description string
 }
 
 //
@@ -61,6 +82,13 @@ func NewTgBot(BotToken string, TgIDs []int) *TGBot {
 	return tgBotClient
 }
 
+type notifyType int
+
+const (
+	notifyTypeDownload notifyType = iota + 1
+	notifyTypeDatePublished
+)
+
 //
 // StartBot
 //  @Description: 启动bot
@@ -71,10 +99,10 @@ func (t *TGBot) StartBot() {
 	// 发送通知 下载通知
 	go func() {
 		for {
-			notifyChan, ok := <-bus.NotifyChan
+			video, ok := <-bus.DownloadNotifyChan
 			if ok {
-				log.Infof(notifyChan)
-				t.SendStrMsg(notifyChan)
+
+				t.SendDatePublishedMsg(video, notifyTypeDownload)
 			} else {
 				return
 			}
@@ -85,7 +113,7 @@ func (t *TGBot) StartBot() {
 		for {
 			video, ok := <-bus.DatePublishedChan
 			if ok {
-				t.SendDatePublishedMsg(video)
+				t.SendDatePublishedMsg(video, notifyTypeDatePublished)
 			} else {
 				return
 			}
@@ -195,9 +223,9 @@ func (t *TGBot) SendStrMsg(msg string) {
 	}
 }
 
-const msg = `<b>电影名：</b> %s
-<b>上映时间：</b> %s
-`
+func SplitSpace(s string, index int) string {
+	return strings.Split(s, " ")[index]
+}
 
 //
 // SendDatePublishedMsg
@@ -205,23 +233,69 @@ const msg = `<b>电影名：</b> %s
 //  @receiver t
 //  @param msg
 //
-func (t *TGBot) SendDatePublishedMsg(v *types.DouBanVideo) {
-
+func (t *TGBot) SendDatePublishedMsg(v *types.DouBanVideo, notify notifyType) {
+	// 处理原始信息
 	var rowData types.RowData
 	err := json.Unmarshal([]byte(v.RowData), &rowData)
 	if err != nil {
 		log.Error(err)
-
 	}
-	image := rowData.Image
+	// 处理电影名
 	var names []string
 	err = json.Unmarshal([]byte(v.Names), &names)
 	if err != nil {
 		log.Error(err)
 	}
+	// 定义模板 结构体
+	var msg = msgType{
+		names[0],
+		v.DatePublished,
+		rowData.Url,
+		rowData.Director,
+		rowData.Actor,
+		rowData.Genre,
+		rowData.Description,
+	}
+
+	datePublishedMsgTmpl := template.New("datePublishedMsgTmpl")
+	datePublishedMsgTmpl.Funcs(template.FuncMap{"splitSpace": SplitSpace})
+	switch notify {
+	// 电影下载通知
+	case notifyTypeDownload:
+		datePublishedMsgTmpl.Parse(`<b>下载通知</b>
+<b>电影名：</b> {{.Name}} 
+<b>上映时间：</b> {{.DatePublished}}
+<a href="https://movie.douban.com{{.MovieUri}}">豆瓣</a>
+<b>导演：</b>  {{range .Director}} <a href="https://movie.douban.com{{.Url}}">{{splitSpace .Name 0}}</a> {{end}} 
+<b>演员：</b>  {{range .Actor}} <a href="https://movie.douban.com{{.Url}}">{{ splitSpace .Name 0 }}</a> {{end}} 
+<b>类型：</b>  {{range .Genre}} {{ . }} {{end}} 
+<b>简介：</b>   {{ .Description }}
+`)
+	//	上映通知
+	case notifyTypeDatePublished:
+		datePublishedMsgTmpl.Parse(`<b>上映通知</b>
+<b>电影名：</b> {{.Name}}
+<b>上映时间：</b> {{.DatePublished}}
+<a href="https://movie.douban.com{{.MovieUri}}">豆瓣</a>
+<b>导演：</b>  {{range .Director}} <a href="https://movie.douban.com{{.Url}}">{{splitSpace .Name 0}}</a> {{end}} 
+<b>演员：</b>  {{range .Actor}} <a href="https://movie.douban.com{{.Url}}">{{ splitSpace .Name 0 }}</a> {{end}} 
+<b>类型：</b>  {{range .Genre}} {{ . }} {{end}} 
+<b>简介：</b>   {{ .Description }}
+`)
+	}
+
+	// 定义缓冲区 用于存储模板渲染后的数据
+	b := new(bytes.Buffer)
+	err = datePublishedMsgTmpl.Execute(b, msg)
+	if err != nil {
+		log.Error(err)
+	}
+
+	image := rowData.Image
+
 	for _, id := range t.IDs {
 		photo := tgbotapi.NewPhoto(int64(id), tgbotapi.FileURL(image))
-		photo.Caption = fmt.Sprintf(msg, names[0], v.DatePublished)
+		photo.Caption = b.String()
 		photo.ParseMode = tgbotapi.ModeHTML
 		if _, err := t.bot.Send(photo); err != nil {
 			log.Error(err)

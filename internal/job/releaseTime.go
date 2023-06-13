@@ -1,4 +1,4 @@
-package releaseTimeJob
+package job
 
 import (
 	"encoding/json"

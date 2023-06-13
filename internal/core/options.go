@@ -1,12 +1,11 @@
-package movieSpiderCore
+package core
 
 import (
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
+	"movieSpider/internal/job"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
-	"movieSpider/internal/releaseTimeJob"
-	"movieSpider/internal/report"
 	feed2 "movieSpider/internal/spider/feedSpider"
 	"movieSpider/internal/types"
 )
@@ -113,7 +112,7 @@ func WithConfigFile(configFile string) Option {
 //
 func WithReport() Option {
 	return optionFunc(func(ms *movieSpider) {
-		ms.report = report.NewReport("*/1 * * * *")
+		ms.report = job.NewReport("*/1 * * * *")
 		go ms.report.Run()
 	})
 }
@@ -136,8 +135,13 @@ func WithDownload() Option {
 //  @return Option
 //
 func WithReleaseTimeJob() Option {
+	if !config.TG.Enable {
+		return optionFunc(func(ms *movieSpider) {
+			log.Warn("未开启TG通知，无法运行 电影上线 通知job")
+		})
+	}
 	return optionFunc(func(ms *movieSpider) {
-		ms.releaseTimeJob = releaseTimeJob.NewReleaseTimeJob("")
+		ms.releaseTimeJob = job.NewReleaseTimeJob("")
 		go ms.releaseTimeJob.Run()
 	})
 }

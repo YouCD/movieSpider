@@ -10,7 +10,7 @@ import (
 )
 
 func TestEztv_Crawler(t *testing.T) {
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/core/bin/core/config.yaml")
 	model.NewMovieDB()
 
 	f := NewFeedKnaben("House Of The Dragon", types.ResolutionOther)

@@ -7,7 +7,7 @@ import (
 )
 
 func Test_tpbpirateproxy_Crawler(t *testing.T) {
-	//config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpiderCore/bin/movieSpiderCore/config.yaml")
+	//config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/core/bin/core/config.yaml")
 	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpider/bin/movieSpider/config.yaml")
 	g := &tpbpirateproxy{
 		scheduling: "tpbpirateproxy",

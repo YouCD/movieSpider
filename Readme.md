@@ -170,7 +170,7 @@ curl https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/quickSt
 
 # systemd
 ```shell
-name=movieSpiderCore
+name=core
 WorkDir="/home/ycd/btspidery_data/movieSpider"
 cat >/etc/systemd/system/${name}.service<<EOF
 

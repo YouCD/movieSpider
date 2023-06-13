@@ -1,4 +1,4 @@
-package releaseTimeJob
+package job
 
 import (
 	"movieSpider/internal/config"

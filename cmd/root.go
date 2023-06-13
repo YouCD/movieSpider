@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"movieSpider/internal/core"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
-	"movieSpider/internal/movieSpiderCore"
 	"os"
 )
 
@@ -20,12 +20,12 @@ var rootCmd = &cobra.Command{
 	Short: fmt.Sprintf("%s 电影助手，自动获取电影种子信息，自动刮取豆瓣电影想看列表，自动下载", Name),
 
 	Run: func(cmd *cobra.Command, args []string) {
-		movieSpider := movieSpiderCore.NewMovieSpider(
-			movieSpiderCore.WithConfigFile(configFile),
-			movieSpiderCore.WithFeeds(),
-			movieSpiderCore.WithDownload(),
-			movieSpiderCore.WithReport(),
-			movieSpiderCore.WithReleaseTimeJob(),
+		movieSpider := core.NewMovieSpider(
+			core.WithConfigFile(configFile),
+			core.WithFeeds(),
+			core.WithDownload(),
+			core.WithReport(),
+			core.WithReleaseTimeJob(),
 		)
 
 		movieSpider.RunWithTGBot()

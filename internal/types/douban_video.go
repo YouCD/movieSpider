@@ -28,7 +28,7 @@ type RowData struct {
 		Url  string `json:"url"`
 		Name string `json:"name"`
 	} `json:"actor"`
-	DatePublished   string   `json:"releaseTimeJob"`
+	DatePublished   string   `json:"datePublished"`
 	Genre           []string `json:"genre"`
 	Duration        string   `json:"duration"`
 	Description     string   `json:"description"`
