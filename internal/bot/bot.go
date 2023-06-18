@@ -376,19 +376,21 @@ func (t *TGBot) datePublishedNotify() {
 //  @receiver t
 //
 func (t *TGBot) downloadCompleteNotify() {
-	aria2Server, err := aria2.NewAria2(config.Downloader.Aria2Label)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	for {
-		subscribeCh := aria2Server.Subscribe()
-		select {
-		case video, ok := <-subscribeCh:
-			if ok {
-				t.SendDatePublishedOrDownloadMsg(video.Video, notifyTypeDownloadComplete, video.File, video.Size)
+	go func() {
+		aria2Server, err := aria2.NewAria2(config.Downloader.Aria2Label)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		for {
+			subscribeCh := aria2Server.Subscribe()
+			select {
+			case video, ok := <-subscribeCh:
+				if ok {
+					t.SendDatePublishedOrDownloadMsg(video.Video, notifyTypeDownloadComplete, video.File, video.Size)
+				}
 			}
 		}
-	}
+	}()
 
 }
