@@ -1,6 +1,8 @@
 # movieSpider
-  
- 自动化下载电影的爬虫工具
+
+自动化下载电影的爬虫工具
+
+## 磁力站点
 
 支持的`Torrent`站点
 * [bt4g](https://bt4g.org)
@@ -14,6 +16,8 @@
 * [magnetdl](https://www.magnetdl.com)
 * [TpbpirateProxy](https://thepiratebay.party/rss//top100/200)
 
+## 使用TG
+
 如果要使用 TG bot， 请添加如下指令
 
 Telegram bot 指令如下
@@ -23,6 +27,30 @@ movie_download - 下载电影  电影名  清晰度
 report_download - 报告下载状态
 report_feedvioes - 报告Feed资源
 ```
+
+## 功能
+* [x] 自动爬取上述站点的资源
+* [x] 自动通过`Aria2`下载
+* [x] 支持`Telegram`通知：
+  * 下载时通知
+  * 电影上映通知
+  * 电影下载完成通知
+* [x] 支持`Telegram`机器人命令：
+  
+  有白名单，只有白名单的用户才能使用
+  ```
+  movie_download - 下载电影  电影名  清晰度
+  report_download - 报告下载状态
+  report_feedvioes - 报告Feed资源
+  ```
+* [ ] 自动化下载字幕
+* [ ] 基本网页展示
+
+
+## 时序图
+
+![时序图](http://www.plantuml.com/plantuml/png/bLFBRjD05DtFLupKTJSiKmcLg28RMD5TrSM0Xs39s94p5jkcbBIbE0Jr0IGXF49n9HGt1T5Q2DEVoJoouXSOPspPqoP8R2phpdcSSprUhXFa4k-n1OX9B0plathDDB0BG4tEpGTc3Ta4tflELXolZ6pjG9mr-Vv06wqWWigeZdM5snWRIaKR6yuJstBGrV4jrqGtjCbg1O1Y2hXuCpKlGT6we2-FsDFllBV7Erlyu0UDpzZXYFaXK1YuAE55UWccgEWPzGzrvMjG4GnOlwt9NYLafKkG3j_GpPCK1lBQ2OeF6lHvbyUl-DUt4XbssEjp5Pwsj-Zd847B0YcvY9uMoCLafii3sksdcNQEv8i8cdGtK5pTLoEgChFopQzHTHsljb1nB0Ckt36hZqZPyZ2SR7J4vRQAGDi-UtyiJZ_z-VM2Vjba_Tv3gQpeusZ8UhkPz9hwJchnw_8iAVpk8--6049Ok13QMcUR_R_7qjGamydAkL-sKvYhmddxlHvLNTaIPAsJoKQ31puTfajU-cSlEcgkAPTrzc5RXADnz9DUV1j7UoAE4wOIpXtIJTn5LHkJoVvlrZgU1LwjP5dO-Gvhd09i6s1PFkIl_XS0)
+
 
 # 部署
 
@@ -35,7 +63,7 @@ report_feedvioes - 报告Feed资源
 
 
 ## 定义环境变量
-```api
+```shell
 export Mysql_Password=P@ssw0rd
 export Mysql_Port=3306
 export Aria2_Password=whVi763s5QrctiiyUxIs
@@ -149,9 +177,6 @@ Aria2cList:
 #  TgIDs: [ 123456 ]
 EOF
 
-
-
-
 ```
 ### 运行
 
@@ -191,8 +216,46 @@ EOF
 
 ```
 
+## 截图
+* 上映通知
 
-## RARBG
+  ![photo_2023-06-17_11-22-43.jpg](doc/image/photo_2023-06-17_11-30-45.jpg)
+
+* 下载通知
+
+  ![photo_2023-06-17_11-22-43.jpg](doc/image/photo_2023-06-17_11-22-43.jpg)
+
+* 下载完毕
+
+  ![photo_2023-06-17_11-22-43.jpg](doc/image/photo_2023-06-18_07-59-39.jpg)
+
+
+## 其他
+
+### Q&A 
+* Q：通知渠道
+  
+  A：目前通知的渠道只适配了TG
+
+
+* Q：清晰度
+  
+  A：目前只支持 1080p 2160p等资源
+
+
+* Q：代理池
+
+  A：目前只支持 [IpProxyPool](https://github.com/YouCD/IpProxyPool)
+
+
+
+
+
+
+
+
+
+### RARBG
  RARBG 时代结束了
 ```
 Hello guys,

@@ -204,7 +204,12 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) (err error) {
 		return errors.WithMessage(err, "aria2 初始化失败")
 	}
 	for _, v := range videos {
-		gid, err := newAria2.DownloadByUrl(v.Magnet)
+		video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
+		if err != nil {
+			log.Error(err)
+		}
+
+		gid, err := newAria2.DownloadByWithVideo(video, v.Magnet)
 		if err != nil {
 			return err
 		}
@@ -284,7 +289,13 @@ func (d *Download) DownloadByName(name, Resolution string) (msg string) {
 	}
 
 	for _, v := range videos {
-		gid, err := newAria2.DownloadByUrl(v.Magnet)
+		video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
+		if err != nil {
+			log.Error(err)
+		}
+
+		gid, err := newAria2.DownloadByWithVideo(video, v.Magnet)
+		//gid, err := newAria2.DownloadByUrl(v.Magnet)
 		if err != nil {
 			log.Error(err)
 			return
