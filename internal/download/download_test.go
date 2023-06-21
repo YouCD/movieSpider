@@ -2,9 +2,11 @@ package download
 
 import (
 	"fmt"
+	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"testing"
+	"time"
 )
 
 func init() {
@@ -22,9 +24,28 @@ func Test_download_Run(t *testing.T) {
 func Test_download_DownloadByName(t *testing.T) {
 
 	d := &Download{
-		scheduling: "tt.fields.scheduling",
+		scheduling: "*/1 * * * *",
 	}
-	d.DownloadByName("House.Of.The.Dragon", "1080")
+
+	newAria2, err := aria2.NewAria2(config.Downloader.Aria2Label)
+	if err != nil {
+		t.Error(err)
+	}
+
+	go func() {
+		for {
+			time.Sleep(time.Second * 1)
+			subscribeCh := newAria2.Subscribe()
+			select {
+			case v, ok := <-subscribeCh:
+				if ok {
+					fmt.Println("subscribe", v)
+				}
+			}
+		}
+	}()
+	d.downloadTask()
+	select {}
 }
 
 func Test_download_DownloadByName1(t *testing.T) {

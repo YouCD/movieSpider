@@ -68,7 +68,7 @@ func (m *movieSpider) RunWithTGBot() {
 //
 func (m *movieSpider) RunWithFeedSpider() {
 	// Spider
-	m.spiders = append(m.spiders, douban.NewSpiderDouBan(config.DouBan.DoubanUrl, config.DouBan.Scheduling))
+	m.spiders = append(m.spiders, douban.NewSpiderDouBan(config.DouBanList)...)
 	for _, s := range m.spiders {
 		go func(spider spider.Spider) {
 			spider.Run()

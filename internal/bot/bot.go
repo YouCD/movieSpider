@@ -11,10 +11,12 @@ import (
 	"movieSpider/internal/httpClient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/tools"
+	"movieSpider/internal/types"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 	"unicode/utf8"
 )
 
@@ -34,6 +36,7 @@ type TGBot struct {
 	botToken string
 	IDs      []int
 	bot      *tgbotapi.BotAPI
+	mtx      sync.Mutex
 }
 
 //
@@ -52,7 +55,7 @@ func NewTgBot(BotToken string, TgIDs []int) *TGBot {
 			os.Exit(-1)
 		}
 		tgBotClient = &TGBot{
-			BotToken, TgIDs, bot,
+			botToken: BotToken, IDs: TgIDs, bot: bot,
 		}
 	})
 	return tgBotClient
@@ -362,7 +365,9 @@ func (t *TGBot) datePublishedNotify() {
 		for {
 			video, ok := <-bus.DatePublishedChan
 			if ok {
-				t.SendDatePublishedOrDownloadMsg(video, notifyTypeDatePublished)
+				t.SendDatePublishedOrDownloadMsg(&types.DownloadNotifyVideo{
+					Video: video,
+				}, notifyTypeDatePublished)
 			} else {
 				return
 			}
@@ -383,11 +388,16 @@ func (t *TGBot) downloadCompleteNotify() {
 			return
 		}
 		for {
+			time.Sleep(time.Second * 1)
+			t.mtx.Lock()
 			subscribeCh := aria2Server.Subscribe()
 			select {
 			case video, ok := <-subscribeCh:
 				if ok {
-					t.SendDatePublishedOrDownloadMsg(video.Video, notifyTypeDownloadComplete, video.File, video.Size)
+					t.SendDatePublishedOrDownloadMsg(video, notifyTypeDownloadComplete)
+					t.mtx.Unlock()
+				} else {
+					t.mtx.Unlock()
 				}
 			}
 		}

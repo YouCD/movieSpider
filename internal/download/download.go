@@ -177,7 +177,7 @@ func (d *Download) downloadMovieTask() (err error) {
 	}
 
 	for _, video := range needDownloadFeedVideo {
-		log.Infof("%s", video.TorrentName)
+		log.Debugf("更新 %s ", video.TorrentName)
 		UpdateFeedVideoAndDownloadHistory(video)
 	}
 
@@ -191,7 +191,7 @@ func (d *Download) downloadMovieTask() (err error) {
 //  @param videos
 //  @return err
 //
-func (d *Download) aria2Download(videos ...*types.FeedVideo) (err error) {
+func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 	//for _, v := range videos {
 	//	log.Error("开始下载......", v.TorrentName)
 	//}
@@ -211,22 +211,26 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) (err error) {
 
 		gid, err := newAria2.DownloadByWithVideo(video, v.Magnet)
 		if err != nil {
-			return err
+			log.Error(err)
+			continue
 		}
 
 		// 如果开启了tg推送 则推送
 		if config.TG.Enable {
 			go func() {
-				video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
+				video, err = model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
 				if err != nil {
 					log.Error(err)
-					return
 				}
-				bus.DownloadNotifyChan <- video
+				bus.DownloadNotifyChan <- &types.DownloadNotifyVideo{
+					Video: video,
+					File:  v.TorrentName,
+					Gid:   gid,
+				}
 			}()
 		}
 
-		log.Infof("Downloader: %s 开始下载. GID: %s", v.TorrentName, gid)
+		log.Infof(" 开始下载: %s. videoType: %s.  GID: %s.", v.TorrentName, v.Type, gid)
 	}
 	return nil
 }
@@ -295,10 +299,9 @@ func (d *Download) DownloadByName(name, Resolution string) (msg string) {
 		}
 
 		gid, err := newAria2.DownloadByWithVideo(video, v.Magnet)
-		//gid, err := newAria2.DownloadByUrl(v.Magnet)
 		if err != nil {
 			log.Error(err)
-			return
+			continue
 		}
 		log.Infof("Downloader: %s 开始下载. GID: %s", v.Name, gid)
 		err = model.NewMovieDB().UpdateFeedVideoDownloadByID(v.ID, 1)

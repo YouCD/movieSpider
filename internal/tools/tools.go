@@ -35,8 +35,8 @@ func ExcludeVideo(name string) bool {
 	return false
 }
 
-func ByteCountDecimal(b int64) string {
-	const unit = 1000
+func ByteCountBinary(b int64) string {
+	const unit = 1024
 	if b < unit {
 		return fmt.Sprintf("%d B", b)
 	}
@@ -45,5 +45,5 @@ func ByteCountDecimal(b int64) string {
 		div *= unit
 		exp++
 	}
-	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "kMGTPE"[exp])
+	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }

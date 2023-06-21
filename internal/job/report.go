@@ -46,6 +46,8 @@ func (r *Report) Run() {
 		reportAria2TaskStatistics()
 		// 代理统计
 		reportIpProxyStatistics()
+		//
+		reportAria2DownloadRecordStatistics()
 	})
 	c.Start()
 }
@@ -68,7 +70,6 @@ func reportAria2TaskStatistics() {
 
 	for _, file := range files {
 		downloadTableData = append(downloadTableData, []string{file.GID, file.Size, file.Completed, file.FileName})
-		// todo 下载完后的向TG通知
 	}
 	for _, v := range downloadTableData {
 		downloadTable.Append(v)
@@ -114,5 +115,29 @@ func reportIpProxyStatistics() {
 	}
 
 	log.Info("\n\n代理统计: ")
+	table.Render()
+}
+
+// aria2 下载记录
+func reportAria2DownloadRecordStatistics() {
+	newAria2, err := aria2.NewAria2(config.Downloader.Aria2Label)
+	if err != nil {
+		log.Error("Report: err", err)
+		return
+	}
+	task := newAria2.GetDownloadTask()
+	if len(task) == 0 {
+		return
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Gid", "Names", "Type"})
+	tableData := [][]string{}
+
+	for k, v := range task {
+		tableData = append(tableData, []string{k, v.Names, v.Type})
+	}
+
+	log.Info("\n\n下载记录: ")
 	table.Render()
 }

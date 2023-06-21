@@ -3,7 +3,6 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"github.com/asaskevich/govalidator"
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"movieSpider/internal/log"
@@ -49,7 +48,7 @@ var (
 	Aria2cList     []aria2
 	TG             = new(tg)
 	MySQL          *mysql
-	DouBan         *douban
+	DouBanList     *DouBan
 	BTBT           *btbt
 	EZTV           *eztv
 	GLODLS         *glodls
@@ -89,10 +88,10 @@ type mysql struct {
 	User     string
 	Password string
 }
-type douban struct {
-	DoubanUrl  string
+type DouBan struct {
+	DouBanList []*DouBan
 	Scheduling string
-	Cookie     string
+	Url        string
 }
 
 func InitConfig(config string) {
@@ -158,15 +157,15 @@ func InitConfig(config string) {
 		fmt.Println("配置 MySQL is nil")
 		os.Exit(1)
 	}
-	if err = v.UnmarshalKey("Douban", &DouBan); err != nil {
-		fmt.Println("读取Douban配置错误")
+	if err = v.UnmarshalKey("DouBan", &DouBanList); err != nil {
+		fmt.Println("读取DouBan配置错误")
 		os.Exit(1)
 	}
-	if !govalidator.IsURL(DouBan.DoubanUrl) {
-		DouBan.DoubanUrl = ""
-	}
-	if DouBan == nil {
-		fmt.Println("配置 DouBan is nil")
+	//if !govalidator.IsURL(DouBan.DoubanUrl) {
+	//	DouBan.DoubanUrl = ""
+	//}
+	if DouBanList == nil {
+		fmt.Println("配置 DouBanList is nil")
 		os.Exit(1)
 	}
 	// btbt

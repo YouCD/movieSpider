@@ -96,8 +96,8 @@ func (m *movieDB) GetFeedVideoTVByName(DoubanID string, names ...string) (videos
 		//} else {
 		//	likeName = fmt.Sprintf("%%%s%%", n)
 		//}
-
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and download !=1 and  type !="movie" `, n).Rows()
+		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and download !=1 and type="movie" `, n).Rows()
+		//rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and download !=1 and  type !="movie" `, n).Rows()
 		if err != nil {
 			return nil, err
 		}
@@ -200,7 +200,8 @@ func (m *movieDB) GetFeedVideoMovieByName(names ...string) (videos []*types.Feed
 		//} else {
 		//	likeName = fmt.Sprintf("%%%s%%", n)
 		//}
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download=0 and type!="tv"`, n).Rows()
+		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download=0 and type="movie"`, n).Rows()
+		//rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download=0 and type!="tv"`, n).Rows()
 		if err != nil {
 			return nil, err
 		}
@@ -223,8 +224,7 @@ func (m *movieDB) GetFeedVideoMovieByNameAndDoubanID(DoubanID string, names ...s
 	var videos1 []*types.FeedVideo
 	log.Debugf("GetFeedVideoMovieByName 开始第一次查找Movie数据: %s.", names)
 	for _, n := range names {
-		//var likeName string
-		//likeName = fmt.Sprintf("%%%s%%", n)
+
 		//  只查找 没有下载过 && 类型为movie数据   and download=0
 		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and  type="movie" `, n).Rows()
 		if err != nil {
@@ -245,8 +245,8 @@ func (m *movieDB) GetFeedVideoMovieByNameAndDoubanID(DoubanID string, names ...s
 		return videos1, nil
 	}
 
+	log.Debugf("GetFeedVideoMovieByName 开始第二次查找Movie数据: %s.", names)
 	for _, n := range names {
-
 		//var likeName string
 		//if strings.Contains(n, ".") {
 		//	likeName = fmt.Sprintf("%%.%s.%%", n)

@@ -10,6 +10,7 @@ import (
 	httpClient2 "movieSpider/internal/httpClient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
+	"movieSpider/internal/spider"
 	"movieSpider/internal/types"
 	"net/http"
 	"os"
@@ -22,7 +23,7 @@ import (
 const movieUrlPrefix = "https://movie.douban.com/subject/"
 
 type DouBan struct {
-	doubanUrl  string
+	url        string
 	scheduling string
 }
 
@@ -33,11 +34,18 @@ type DouBan struct {
 //  @param scheduling
 //  @return *DouBan
 //
-func NewSpiderDouBan(doubanUrl, scheduling string) *DouBan {
-	return &DouBan{
-		doubanUrl,
-		scheduling,
+func NewSpiderDouBan(cfg *config.DouBan) (DouBanList []spider.Spider) {
+	for _, db := range cfg.DouBanList {
+		if db.Scheduling == "" {
+			db.Scheduling = cfg.Scheduling
+		}
+		DouBanList = append(DouBanList, &DouBan{
+			url:        db.Url,
+			scheduling: db.Scheduling,
+		})
 	}
+
+	return
 }
 
 //
@@ -48,7 +56,7 @@ func NewSpiderDouBan(doubanUrl, scheduling string) *DouBan {
 //
 func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 
-	doc, err := d.newRequest(d.doubanUrl)
+	doc, err := d.newRequest(d.url)
 	if err != nil {
 		log.Error(err)
 		return
@@ -167,9 +175,9 @@ func (d *DouBan) newRequest(url string) (document *goquery.Document, err error) 
 		return nil, err
 	}
 	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36")
-	if config.DouBan.Cookie != "" {
-		request.Header.Set("Cookie", config.DouBan.Cookie)
-	}
+	//if config.DouBan.Cookie != "" {
+	//	request.Header.Set("Cookie", config.DouBan.Cookie)
+	//}
 	client := httpClient2.NewHttpClient()
 	resp, err := client.Do(request)
 	if err != nil {

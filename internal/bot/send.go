@@ -55,6 +55,7 @@ type msgType struct {
 	Description string
 	File        string
 	Size        string
+	Gid         string
 }
 
 // SendDatePublishedOrDownloadMsg
@@ -62,32 +63,31 @@ type msgType struct {
 //  @receiver t
 //  @param msg
 //
-func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DouBanVideo, notify notifyType, args ...string) {
+func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, notify notifyType) {
 	// 处理原始信息
 	var rowData types.RowData
-	err := json.Unmarshal([]byte(v.RowData), &rowData)
+	err := json.Unmarshal([]byte(v.Video.RowData), &rowData)
 	if err != nil {
 		log.Error(err)
 	}
 	// 处理电影名
 	var names []string
-	err = json.Unmarshal([]byte(v.Names), &names)
+	err = json.Unmarshal([]byte(v.Video.Names), &names)
 	if err != nil {
 		log.Error(err)
 	}
 	// 定义模板 结构体
 	var msg = msgType{
 		Name:          names[0],
-		DatePublished: v.DatePublished,
+		DatePublished: v.Video.DatePublished,
 		MovieUri:      rowData.Url,
 		Director:      rowData.Director,
 		Actor:         rowData.Actor,
 		Genre:         rowData.Genre,
 		Description:   rowData.Description,
-	}
-	if len(args) > 1 {
-		msg.File = args[0]
-		msg.Size = args[1]
+		File:          v.File,
+		Size:          v.Size,
+		Gid:           v.Gid,
 	}
 
 	datePublishedMsgTmpl := template.New("datePublishedMsgTmpl")
@@ -103,6 +103,8 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DouBanVideo, notify noti
 <b>演员：</b>  {{range .Actor}} <a href="https://movie.douban.com{{.Url}}">{{ splitSpace .Name 0 }}</a> {{end}} 
 <b>类型：</b>  {{range .Genre}} {{ . }} {{end}} 
 <b>简介：</b>   {{ .Description }}
+<b>文件：</b>   {{ .File }}
+<b>Gid：</b>   {{ .Gid }}
 `)
 	//	上映通知
 	case notifyTypeDatePublished:
@@ -126,6 +128,7 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DouBanVideo, notify noti
 <b>简介：</b>   {{ .Description }}
 <b>文件名：</b>   {{ .File }}
 <b>大小：</b>   {{ .Size }}
+<b>Gid：</b>   {{ .Gid }}
 `)
 	}
 

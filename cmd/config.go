@@ -16,12 +16,11 @@ var (
   User: root
   Password: P@ssw0rd
 
-Douban:
+DouBan:
   # 豆瓣电影想看清单
-  DoubanUrl: "https://movie.douban.com/people/251312920/wish"
-  Scheduling: "*/60 * * * *"
-  # 豆瓣 Cookie
-  # Cookie: ''
+  Scheduling: "*/10 * * * *"
+  DouBanList:
+    - Url: "https://movie.douban.com/people/251312920/wish"
 Feed:
   # 代理池 这里使用 https://github.com/jhao104/proxy_pool
   ProxyPool: "http://127.0.0.1:5010"

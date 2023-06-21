@@ -9,7 +9,6 @@ import (
 	"movieSpider/internal/log"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
-	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,11 +20,6 @@ var (
 	once        sync.Once
 )
 
-type downloadVideoComplete struct {
-	Video *types.DouBanVideo
-	File  string
-	Size  string
-}
 type aria2 struct {
 	aria2Client  rpc.Client
 	downloadTask map[string]*types.DouBanVideo
@@ -75,11 +69,6 @@ func (a *aria2) DownloadByUrl(url string) (gid string, err error) {
 func (a *aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
-	//// 下载前先获得当前所有的下载任务 并记录 gid
-	//beforeActiveGID, err := a.getAllActiveGID()
-	//if err != nil {
-	//	return "", err
-	//}
 
 	// 添加磁链
 	MateGid, err := a.aria2Client.AddURI([]string{magnet})
@@ -87,37 +76,34 @@ func (a *aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 		return "", err
 	}
 
-	files, err := a.aria2Client.GetFiles(MateGid)
-	if err != nil {
-		return "", err
-	}
-
-	Metafile, _ := getMaxSizeFile(files)
-	Metafile = strings.ReplaceAll(Metafile, "[METADATA]", "")
 	// 超时时间
 	timeout := time.After(5 * time.Minute) // 设置超时时间为10秒
-	complete := false                      // 标志变量，表示循环是否已完成
 	//  要等种子下载完毕后 再获取活动的下载任务
-	for !complete {
+	for {
 		select {
 		case <-timeout:
 			// 达到超时时间，执行相应的逻辑
 			return "", errors.New("TellStatus 超时")
 		default:
 			time.Sleep(1 * time.Second)
-			info, err := a.aria2Client.TellStatus(MateGid, "files", "status", "errorMessage", "errorCode")
+			info, err := a.aria2Client.TellStatus(MateGid, "files", "gid", "status", "errorMessage", "errorCode", "followedBy")
 			if err != nil {
 				log.Error(err)
 				return "", err
 			}
 			// active  waiting   paused   error   complete   removed
 			if info.Status == "complete" {
-				complete = true // 循环完成
-				break
+				// 如果有 followedBy 说明是磁链下载的种子
+				if len(info.FollowedBy) > 0 {
+					return info.FollowedBy[0], nil
+				} else {
+					return info.Gid, nil
+				}
+
 			}
 			if info.Status == "error" {
 				if info.ErrorCode == "12" {
-					return "", errors.New("种子已经下载过了")
+					return info.Gid, nil
 				}
 				msg := fmt.Sprintf("code: %s, msg: %s", info.ErrorCode, info.ErrorMessage)
 				log.Error(msg)
@@ -125,17 +111,7 @@ func (a *aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 			}
 		}
 	}
-	afterActiveGID, err := a.getAllActiveGID()
-	if err != nil {
-		return "", err
-	}
-	// 从所有的下载任务中 找到新添加的任务  也就是磁链的任务
-	if len(afterActiveGID) == 0 {
-		return "", err
-	}
-	gid = afterActiveGID[len(afterActiveGID)-1]
 
-	return
 }
 
 //
@@ -217,35 +193,27 @@ func (a *aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompl
 //
 func (a *aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ...*types.ReportCompletedFiles) []*types.ReportCompletedFiles {
 	for _, v := range sessionInfo {
-		if len(v.Files) > 0 {
-			//  过滤掉元数据文件
-			if strings.Contains(v.Files[0].Path, "[METADATA]") {
-				continue
-			}
 
-			// 下载了多少
-			CompletedLength, err := strconv.Atoi(v.CompletedLength)
-			if err != nil {
-				log.Error(err)
-			}
-			// 文件大小
-			Length, err := strconv.Atoi(v.TotalLength)
-			if err != nil {
-				log.Error(err)
-			}
-
-			//文件完成度百分比
-			completed := float32(CompletedLength) / float32(Length) * 100
-
-			_, file := path.Split(v.Files[0].Path)
-
-			completedFiles = append(completedFiles, &types.ReportCompletedFiles{
-				GID:       v.Gid,
-				Size:      fmt.Sprintf("%.2fGB", float32(Length)/1024/1024/1024),
-				Completed: fmt.Sprintf("%.2f%%", completed),
-				FileName:  file,
-			})
+		file, size := getMaxSizeFile(v.Files)
+		if file == "" {
+			continue
 		}
+		if strings.Contains(file, "[METADATA]") {
+			continue
+		}
+		// 下载了多少
+		CompletedLength, err := strconv.Atoi(v.CompletedLength)
+		if err != nil {
+			log.Error(err)
+		}
+		//文件完成度百分比
+		completed := float32(CompletedLength) / float32(size) * 100
+		completedFiles = append(completedFiles, &types.ReportCompletedFiles{
+			GID:       v.Gid,
+			Size:      tools.ByteCountBinary(int64(size)),
+			Completed: fmt.Sprintf("%.2f%%", completed),
+			FileName:  file,
+		})
 
 	}
 	return completedFiles
@@ -263,12 +231,15 @@ func (a *aria2) AddDownloadTask(douBanVideo *types.DouBanVideo, gid string) {
 	defer a.mtx.Unlock()
 	a.downloadTask[gid] = douBanVideo
 }
+func (a *aria2) GetDownloadTask() map[string]*types.DouBanVideo {
+	return a.downloadTask
+}
 
-func (a *aria2) Subscribe() chan *downloadVideoComplete {
-	downLoadChan := make(chan *downloadVideoComplete)
+func (a *aria2) Subscribe() chan *types.DownloadNotifyVideo {
+	downLoadChan := make(chan *types.DownloadNotifyVideo)
 	go func() {
+		a.mtx.Lock()
 		for gid, video := range a.downloadTask {
-			time.Sleep(time.Second * 1)
 			info, err := a.aria2Client.TellStatus(gid, "files", "status")
 			if err != nil {
 				log.Error(err)
@@ -276,22 +247,20 @@ func (a *aria2) Subscribe() chan *downloadVideoComplete {
 			// active  waiting   paused   error   complete   removed
 			if info.Status == "complete" {
 				file, size := getMaxSizeFile(info.Files)
-				downLoadChan <- &downloadVideoComplete{
+				downLoadChan <- &types.DownloadNotifyVideo{
 					Video: video,
 					File:  file,
-					Size:  tools.ByteCountDecimal(int64(size)),
+					Size:  tools.ByteCountBinary(int64(size)),
+					Gid:   gid,
 				}
-				a.mtx.Lock()
 				delete(a.downloadTask, gid)
-				a.mtx.Unlock()
 			}
-
 		}
 		close(downLoadChan)
+		a.mtx.Unlock()
 	}()
 	return downLoadChan
 }
-
 func getMaxSizeFile(Files []rpc.FileInfo) (string, int) {
 	var maxSizeFile int
 	var f rpc.FileInfo
