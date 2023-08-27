@@ -13,7 +13,7 @@ func Test_torlock_Crawler(t *testing.T) {
 	model.NewMovieDB()
 	var facTORLOCK FactoryTORLOCK
 
-	videos, err := facTORLOCK.CreateFeeder("*/1 * * * *", types.ResourceTV).Crawler()
+	videos, err := facTORLOCK.CreateFeeder("*/1 * * * *", types.VideoTypeTV).Crawler()
 	if err != nil {
 		t.Error(err)
 	}
@@ -21,10 +21,10 @@ func Test_torlock_Crawler(t *testing.T) {
 		fmt.Println(video)
 	}
 
-	//facTORLOCK.CreateFeeder("*/1 * * * *", types.ResourceTV).Run()
+	//facTORLOCK.CreateFeeder("*/1 * * * *", types.VideoTypeTV).Run()
 	//select {}
 
-	//videos, err := facTORLOCK.CreateFeeder("*/1 * * * *", types.ResourceMovie).Search()
+	//videos, err := facTORLOCK.CreateFeeder("*/1 * * * *",  types.VideoTypeMovie).Search()
 	//if err != nil {
 	//	t.Error(err)
 	//}

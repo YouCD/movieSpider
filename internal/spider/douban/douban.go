@@ -141,7 +141,9 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 
 		compileRegex := regexp.MustCompile("tt\\d+")
 		matchArr := compileRegex.FindStringSubmatch(html)
-		video.ImdbID = matchArr[0]
+		if len(matchArr) > 0 {
+			video.ImdbID = matchArr[0]
+		}
 
 		videos2 = append(videos2, video)
 		wg.Done()

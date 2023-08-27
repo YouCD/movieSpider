@@ -27,10 +27,12 @@ func RemoveSpaceItem(a []string) (ret []string) {
 //  @Description:
 //  @param name
 //  @return bool
-func ExcludeVideo(name string) bool {
+func ExcludeVideo(name string, excludeWords []string) bool {
 	lowerTorrentName := strings.ToLower(name)
-	if strings.Contains(lowerTorrentName, "720p") || strings.Contains(lowerTorrentName, "dvsux") || strings.Contains(lowerTorrentName, "480p") || strings.Contains(lowerTorrentName, "hdr") || strings.Contains(lowerTorrentName, ".DV.") {
-		return true
+	for _, word := range excludeWords {
+		if strings.Contains(lowerTorrentName, word) {
+			return true
+		}
 	}
 	return false
 }

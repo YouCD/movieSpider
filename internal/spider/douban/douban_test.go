@@ -56,7 +56,7 @@ func TestDouBan_Crawler1(t *testing.T) {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
 
 	d := &DouBan{
-		url:        "https://movie.douban.com/people/251312920/wish?start=60&sort=time&rating=all&filter=all&mode=grid",
+		url:        "https://movie.douban.com/people/251312920/wish",
 		scheduling: "tt.fields.scheduling",
 	}
 	videos := d.Crawler()

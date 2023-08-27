@@ -8,27 +8,53 @@ import (
 )
 
 //
-// filterByResolution
+// SotByResolution
+//  @Description:  根据分辨率排序
+//  @receiver d
+//  @param videos
+//  @return Videos2160P
+//  @return Videos1080P
+//
+func SotByResolution(videos []*types.FeedVideo) (Videos2160P []*types.FeedVideo, Videos1080P []*types.FeedVideo) {
+	if len(videos) < 1 {
+		return
+	}
+
+	for _, v := range videos {
+		switch {
+		// 如果是2060p 放到 Videos2160P 列表
+		case strings.Contains(v.TorrentName, "2160"):
+			Videos2160P = append(Videos2160P, v)
+		// 如果是1080p 放到 Videos1080P 列表
+		case strings.Contains(v.TorrentName, "1080"):
+			Videos1080P = append(Videos1080P, v)
+		}
+	}
+	return Videos2160P, Videos1080P
+}
+
+//
+// FilterByResolution
 //  @Description: 根据 清晰度 过滤
 //  @param videos
 //  @return list
 //
-func filterByResolution(movieOrTV types.Resource, videos ...*types.FeedVideo) (list []*types.FeedVideo) {
+func FilterByResolution(movieOrTV types.VideoType, videos ...*types.FeedVideo) (list []*types.FeedVideo) {
 	// 1. 在下载历史表中查看是否有此视频的下载记录
-	inDownloadHistory := filterByResolutionInDownloadHistory(videos...)
+	inDownloadHistory := FilterByResolutionInDownloadHistory(videos...)
 
 	// 2. 如果有多个视频 还需要在这一次的视频中过滤出清晰度最高的2个
-	needDownloadFeedVideo, _ := filterVideosByResolution(movieOrTV, inDownloadHistory...)
+	needDownloadFeedVideo, _ := FilterVideosByResolution(movieOrTV, inDownloadHistory...)
 	return needDownloadFeedVideo
 }
 
 //
-// filterByResolutionInDownloadHistory
+// FilterByResolutionInDownloadHistory
 //  @Description: 根据 清晰度 在下载历史表中  过滤
 //  @param videos
 //  @return list
 //
-func filterByResolutionInDownloadHistory(videos ...*types.FeedVideo) (list []*types.FeedVideo) {
+func FilterByResolutionInDownloadHistory(videos ...*types.FeedVideo) (list []*types.FeedVideo) {
 	for _, video := range videos {
 		// 通过清晰度过滤
 		v, err := model.NewMovieDB().FindFeedVideoInDownloadHistory(video)
@@ -60,23 +86,23 @@ func UpdateFeedVideoAndDownloadHistory(video *types.FeedVideo) {
 }
 
 //
-// filterVideosByResolution
+// FilterVideosByResolution
 //  @Description: 根据分辨率排序
 //  @receiver d
 //  @param videos
 //  @return needDownloadFeedVideo  需要下载的资源
 //  @return downloadIs3 需要记录的资源
 //
-func filterVideosByResolution(movieOrTV types.Resource, videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.FeedVideo, needRecordFeedVideo []*types.FeedVideo) {
+func FilterVideosByResolution(movieOrTV types.VideoType, videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.FeedVideo, needRecordFeedVideo []*types.FeedVideo) {
 	// 如果类型是电影
-	if movieOrTV == types.ResourceMovie {
-		return handlerMovie(videos...)
+	if movieOrTV == types.VideoTypeMovie {
+		return HandlerMovie(videos...)
 	}
 
 	// 如果是电视剧
-	if movieOrTV == types.ResourceTV {
+	if movieOrTV == types.VideoTypeTV {
 		// 1. 先根据分辨归类
-		Videos2160P, Videos1080P := sotByResolution(videos)
+		Videos2160P, Videos1080P := SotByResolution(videos)
 		// 2. 创建一个 map 用来存放需要下载的 feedVideo  key的格式：Name + Season + Episode
 		needDownloadFeedVideoMap := make(map[string][]*types.FeedVideo)
 		// 3. 一个用来存放 2160P 的桶
@@ -85,11 +111,11 @@ func filterVideosByResolution(movieOrTV types.Resource, videos ...*types.FeedVid
 		needDownloadFeedVideo1080PMap := make(map[string][]*types.FeedVideo)
 		// 5. 把 2160P 的视频放到 needDownloadFeedVideo2160PMap 中
 		if len(Videos2160P) > 0 {
-			needDownloadFeedVideo2160PMap = handlerTv(Videos2160P...)
+			needDownloadFeedVideo2160PMap = HandlerTv(Videos2160P...)
 		}
 		//  6. 把 1080P 的视频放到 needDownloadFeedVideo1080PMap 中
 		if len(Videos1080P) > 0 {
-			needDownloadFeedVideo1080PMap = handlerTv(Videos1080P...)
+			needDownloadFeedVideo1080PMap = HandlerTv(Videos1080P...)
 		}
 		// 7. 把 2160P 和 1080P 的视频放到相同的桶中
 		for s, feedVideos := range needDownloadFeedVideo2160PMap {
@@ -104,7 +130,7 @@ func filterVideosByResolution(movieOrTV types.Resource, videos ...*types.FeedVid
 			// 9. 如果这一集tv 有多个视频
 			if (len(feedVideos)) >= 2 {
 				// 10. 利用 handlerTv 处理这一集tv
-				need, Record := handlerMovie(feedVideos...)
+				need, Record := HandlerMovie(feedVideos...)
 				needDownloadFeedVideo = append(needDownloadFeedVideo, need...)
 				needRecordFeedVideo = append(needRecordFeedVideo, Record...)
 			} else {
@@ -117,14 +143,14 @@ func filterVideosByResolution(movieOrTV types.Resource, videos ...*types.FeedVid
 }
 
 //
-// handlerMovie
+// HandlerMovie
 //  @Description: 处理电影类型的视频
 //  @param videos
 //  @return needDownloadFeedVideo
 //  @return needRecordFeedVideo
 //
-func handlerMovie(videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.FeedVideo, needRecordFeedVideo []*types.FeedVideo) {
-	Videos2160P, Videos1080P := sotByResolution(videos)
+func HandlerMovie(videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.FeedVideo, needRecordFeedVideo []*types.FeedVideo) {
+	Videos2160P, Videos1080P := SotByResolution(videos)
 	// 如果 Videos2160P 有 数据
 	if len(Videos2160P) > 0 {
 		// 如果 Videos2160P 有大于2个片源
@@ -153,12 +179,12 @@ func handlerMovie(videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.Fe
 }
 
 //
-// handlerTv
+// HandlerTv
 //  @Description: 处理电视剧类型的视频
 //  @param videos
 //  @return map[string][]*types.FeedVideo
 //
-func handlerTv(videos ...*types.FeedVideo) map[string][]*types.FeedVideo {
+func HandlerTv(videos ...*types.FeedVideo) map[string][]*types.FeedVideo {
 	if len(videos) < 1 {
 		return nil
 	}
@@ -173,30 +199,4 @@ func handlerTv(videos ...*types.FeedVideo) map[string][]*types.FeedVideo {
 		needDownloadFeedVideoMap[key] = append(needDownloadFeedVideoMap[key], video)
 	}
 	return needDownloadFeedVideoMap
-}
-
-//
-// sotByResolution
-//  @Description:  根据分辨率排序
-//  @receiver d
-//  @param videos
-//  @return Videos2160P
-//  @return Videos1080P
-//
-func sotByResolution(videos []*types.FeedVideo) (Videos2160P []*types.FeedVideo, Videos1080P []*types.FeedVideo) {
-	if len(videos) < 1 {
-		return
-	}
-
-	for _, v := range videos {
-		switch {
-		// 如果是2060p 放到 Videos2160P 列表
-		case strings.Contains(v.TorrentName, "2160"):
-			Videos2160P = append(Videos2160P, v)
-		// 如果是1080p 放到 Videos1080P 列表
-		case strings.Contains(v.TorrentName, "1080"):
-			Videos1080P = append(Videos1080P, v)
-		}
-	}
-	return Videos2160P, Videos1080P
 }

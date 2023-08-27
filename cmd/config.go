@@ -16,6 +16,14 @@ var (
   User: root
   Password: P@ssw0rd
 
+#  排除包含以下关键字的资源
+ExcludeWords:
+  - 720p
+  - dvsux
+  - 480p
+  - hdr
+  - .dv.
+  - .dolby.vision
 DouBan:
   # 豆瓣电影想看清单
   Scheduling: "*/10 * * * *"

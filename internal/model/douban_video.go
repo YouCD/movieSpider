@@ -128,9 +128,9 @@ func (m *movieDB) UpdateDouBanVideo(video *types.DouBanVideo) (err error) {
 //  @return nameList
 //  @return err
 //
-func (m *movieDB) FetchDouBanVideoByType(typ types.Resource) (nameList map[types.DouBanVideo][]string, err error) {
-	nameList = make(map[types.DouBanVideo][]string)
-	rows, err := m.db.Model(&types.DouBanVideo{}).Select("douban_id,names").Where("type = ?", typ.Typ()).Rows()
+func (m *movieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*types.DouBanVideo][]string, err error) {
+	nameList = make(map[*types.DouBanVideo][]string)
+	rows, err := m.db.Model(&types.DouBanVideo{}).Where("type = ?", typ.String()).Rows()
 	if err != nil {
 		return
 	}
@@ -138,7 +138,7 @@ func (m *movieDB) FetchDouBanVideoByType(typ types.Resource) (nameList map[types
 	for rows.Next() {
 		var tv types.DouBanVideo
 
-		if err = rows.Scan(&tv.DoubanID, &tv.Names); err != nil {
+		if err = m.db.ScanRows(rows, &tv); err != nil {
 			continue
 		}
 		var names []string
@@ -146,7 +146,7 @@ func (m *movieDB) FetchDouBanVideoByType(typ types.Resource) (nameList map[types
 			log.Error(err)
 			continue
 		}
-		nameList[tv] = names
+		nameList[&tv] = names
 
 	}
 

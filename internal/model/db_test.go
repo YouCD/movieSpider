@@ -79,7 +79,7 @@ func Test_movieDB_CreatFeedVideo(t *testing.T) {
 }
 
 func Test_movieDB_FetchDouBanVideoByType(t *testing.T) {
-	var tt = types.ResourceMovie
+	var tt = types.VideoTypeMovie
 	list, err := NewMovieDB().FetchDouBanVideoByType(tt)
 
 	if err != nil {
@@ -110,7 +110,7 @@ func Test_movieDB_FetchOneDouBanVideoByDouBanID(t *testing.T) {
 }
 
 func Test_movieDB_FetchTVMagnetByName(t *testing.T) {
-	videos, err := NewMovieDB().GetFeedVideoTVByName("29384657", []string{"The.Flash"}...)
+	videos, err := NewMovieDB().GetFeedVideoTVByName("29384657", []string{"Ahsoka"}...)
 	if err != nil {
 		t.Error(err)
 	}
@@ -158,7 +158,7 @@ func Test_movieDB_UpdateFeedVideoDownloadByID(t *testing.T) {
 }
 
 func Test_movieDB_UpdateFeedVideoNameByID(t *testing.T) {
-	NewMovieDB().UpdateFeedVideoNameByID(56, "万千瓦请", types.ResourceMovie)
+	NewMovieDB().UpdateFeedVideoNameByID(56, "万千瓦请", types.VideoTypeMovie)
 }
 
 func Test_movieDB_checkDownloadHistory(t *testing.T) {

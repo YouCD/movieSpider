@@ -26,6 +26,9 @@ type FeedVideo struct {
 func (f *FeedVideo) TableName() string {
 	return "feed_video"
 }
+func (f *FeedVideo) VideoType() VideoType {
+	return Convert2VideoType(f.Type)
+}
 
 var (
 	nameReg = regexp.MustCompile("【.*】.*?[.*](.*)") //  去除 【xxxx】
@@ -76,7 +79,7 @@ func (f *FeedVideo) Convert2DownloadHistory() *DownloadHistory {
 	downloadHistory.Type = f.Type
 	downloadHistory.DoubanID = f.DoubanID
 
-	switch f.Type {
+	switch f.VideoType() {
 	case VideoTypeTV:
 		// 这个匹配的是 SxxExx 的格式
 		TVNameArr := tvRegSxxExx.FindStringSubmatch(f.TorrentName)

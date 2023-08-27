@@ -1,7 +1,7 @@
 package feedSpider
 
 import (
-	types2 "movieSpider/internal/types"
+	"movieSpider/internal/types"
 	"net/http"
 )
 
@@ -53,9 +53,9 @@ type FactoryTORLOCK struct{}
 
 func (f *FactoryTORLOCK) CreateFeeder(args ...interface{}) Feeder {
 	scheduling := args[0].(string)
-	resourceType := args[1].(types2.Resource)
+	resourceType := args[1].(types.VideoType)
 
-	if resourceType == types2.ResourceMovie {
+	if resourceType == types.VideoTypeMovie {
 		return &torlock{
 			resourceType,
 			"torlock",
@@ -75,9 +75,9 @@ type FactoryMAGNETDL struct{}
 
 func (f *FactoryMAGNETDL) CreateFeeder(args ...interface{}) Feeder {
 	scheduling := args[0].(string)
-	resourceType := args[1].(types2.Resource)
+	resourceType := args[1].(types.VideoType)
 
-	if resourceType == types2.ResourceMovie {
+	if resourceType == types.VideoTypeMovie {
 		return &torlock{
 			resourceType,
 			"magnetdl",

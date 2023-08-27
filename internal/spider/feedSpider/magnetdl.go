@@ -20,7 +20,7 @@ const (
 )
 
 type magnetdl struct {
-	typ        types.Resource
+	typ        types.VideoType
 	web        string
 	scheduling string
 }
@@ -29,7 +29,7 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 	c := httpClient.NewHttpClient()
 
 	switch m.typ {
-	case types.ResourceMovie:
+	case types.VideoTypeMovie:
 		req, err := http.NewRequest("GET", urlMagnetdlMovie, nil)
 		if err != nil {
 			return nil, err
@@ -81,7 +81,7 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 			fVideo.TorrentName = fVideo.Name
 			Videos = append(Videos, fVideo)
 		})
-	case types.ResourceTV:
+	case types.VideoTypeTV:
 		req, err := http.NewRequest("GET", urlMagnetdlTV, nil)
 		if err != nil {
 			return nil, err

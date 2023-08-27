@@ -19,7 +19,7 @@ type tgx struct {
 type torlock struct {
 	Scheduling   string `json:"Scheduling"`
 	ResourceType string `json:"ResourceType"`
-	Typ          types.Resource
+	Typ          types.VideoType
 }
 
 type eztv struct {
@@ -35,7 +35,7 @@ type tpbpirateproxy struct {
 type magnetdl struct {
 	Scheduling   string `json:"Scheduling"`
 	ResourceType string `json:"ResourceType"`
-	Typ          types.Resource
+	Typ          types.VideoType
 }
 
 type downloader struct {
@@ -58,6 +58,8 @@ var (
 	MAGNETDL       []*magnetdl
 	Downloader     *downloader
 	ProxyPool      string
+	TmDB           *tmDB
+	ExcludeWords   []string
 )
 
 type global struct {
@@ -92,6 +94,11 @@ type DouBan struct {
 	DouBanList []*DouBan
 	Scheduling string
 	Url        string
+}
+
+type tmDB struct {
+	Scheduling string `json:"Scheduling"`
+	ApiKey     string
 }
 
 func InitConfig(config string) {
@@ -161,9 +168,7 @@ func InitConfig(config string) {
 		fmt.Println("读取DouBan配置错误")
 		os.Exit(1)
 	}
-	//if !govalidator.IsURL(DouBan.DoubanUrl) {
-	//	DouBan.DoubanUrl = ""
-	//}
+
 	if DouBanList == nil {
 		fmt.Println("配置 DouBanList is nil")
 		os.Exit(1)
@@ -220,13 +225,13 @@ func InitConfig(config string) {
 		os.Exit(1)
 	}
 	for _, v := range TORLOCK {
-		switch v.ResourceType {
+		switch types.Convert2VideoType(v.ResourceType) {
 		case types.VideoTypeMovie:
-			v.Typ = types.ResourceMovie
+			v.Typ = types.VideoTypeMovie
 		case types.VideoTypeTV:
-			v.Typ = types.ResourceTV
+			v.Typ = types.VideoTypeTV
 		default:
-			v.Typ = types.ResourceTV
+			v.Typ = types.VideoTypeTV
 		}
 	}
 	if err = v.UnmarshalKey("Feed.MAGNETDL", &MAGNETDL); err != nil {
@@ -240,11 +245,11 @@ func InitConfig(config string) {
 	for _, v := range MAGNETDL {
 		switch v.ResourceType {
 		case "movie":
-			v.Typ = types.ResourceMovie
+			v.Typ = types.VideoTypeMovie
 		case "tv":
-			v.Typ = types.ResourceTV
+			v.Typ = types.VideoTypeTV
 		default:
-			v.Typ = types.ResourceTV
+			v.Typ = types.VideoTypeTV
 		}
 	}
 
@@ -264,6 +269,16 @@ func InitConfig(config string) {
 		fmt.Println("配置 Downloader is nil")
 		os.Exit(1)
 	}
+
+	if err = v.UnmarshalKey("TmDB", &TmDB); err != nil {
+		fmt.Println("读取TmDBL配置错误")
+		os.Exit(1)
+	}
+	if err = v.UnmarshalKey("ExcludeWords", &ExcludeWords); err != nil {
+		fmt.Println("读取 ExcludeWords 配置错误")
+		os.Exit(1)
+	}
+
 	return
 
 }

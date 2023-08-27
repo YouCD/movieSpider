@@ -48,11 +48,11 @@ func WithFeeds(feeds ...feed2.Feeder) Option {
 	var feedTorlockTV feed2.Feeder
 	for _, r := range config.TORLOCK {
 		if r != nil {
-			if r.Typ == types.ResourceTV {
+			if r.Typ == types.VideoTypeTV {
 				feedTorlockTV = facFeedTorlock.CreateFeeder(r.Scheduling, r.Typ)
 			}
 			log.Debug(r)
-			if r.Typ == types.ResourceMovie {
+			if r.Typ == types.VideoTypeMovie {
 				feedTorlockMovie = facFeedTorlock.CreateFeeder(r.Scheduling, r.Typ)
 			}
 			log.Debug(r)
@@ -64,11 +64,11 @@ func WithFeeds(feeds ...feed2.Feeder) Option {
 	var feedMagnetdlTV feed2.Feeder
 	for _, r := range config.TORLOCK {
 		if r != nil {
-			if r.Typ == types.ResourceTV {
+			if r.Typ == types.VideoTypeTV {
 				feedMagnetdlTV = facFeedMagnetdl.CreateFeeder(r.Scheduling, r.Typ)
 			}
 			log.Debug(r)
-			if r.Typ == types.ResourceMovie {
+			if r.Typ == types.VideoTypeMovie {
 				feedMagnetdlMovie = facFeedMagnetdl.CreateFeeder(r.Scheduling, r.Typ)
 			}
 			log.Debug(r)

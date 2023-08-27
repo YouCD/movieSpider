@@ -12,6 +12,15 @@ Douban:
   Scheduling: "*/10 * * * *"
   # 豆瓣 Cookie
   # Cookie: ''
+
+#  排除包含以下关键字的资源
+ExcludeWords:
+  - 720p
+  - dvsux
+  - 480p
+  - hdr
+  - .dv.
+  - .dolby.vision
 Feed:
   # 代理池 https://github.com/YouCD/IpProxyPool
   ProxyPool: "http://127.0.0.1:5010"

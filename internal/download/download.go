@@ -43,7 +43,7 @@ func (d *Download) downloadTask() {
 //
 func (d *Download) downloadTvTask() (err error) {
 	log.Info("Downloader tv working...")
-	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.ResourceTV)
+	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.VideoTypeTV)
 	if err != nil {
 		return err
 	}
@@ -87,9 +87,10 @@ func (d *Download) downloadTvTask() (err error) {
 	// 根据 清晰度 季数和集数过滤
 	needDownloadFeedVideo := make([]*types.FeedVideo, 0)
 	for _, v := range FilterMap {
-		list := filterByResolution(types.ResourceTV, v...)
+		list := FilterByResolution(types.VideoTypeTV, v...)
 		needDownloadFeedVideo = append(needDownloadFeedVideo, list...)
 	}
+
 	//  如果没有需要下载的视频 则返回
 	if len(needDownloadFeedVideo) == 0 {
 		log.Warn("此次没有要下载的tv.")
@@ -106,7 +107,6 @@ func (d *Download) downloadTvTask() (err error) {
 	for _, video := range needDownloadFeedVideo {
 		UpdateFeedVideoAndDownloadHistory(video)
 	}
-
 	return
 }
 
@@ -119,7 +119,7 @@ func (d *Download) downloadTvTask() (err error) {
 func (d *Download) downloadMovieTask() (err error) {
 	// 获取 豆瓣 数据
 	log.Info("Downloader movie working...")
-	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.ResourceMovie)
+	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.VideoTypeMovie)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (d *Download) downloadMovieTask() (err error) {
 			return err
 		}
 		if len(videoList) == 0 {
-			//log.Warnf("douBanVideo: %s 已全部下载完毕，或该影片没有更新.", douBanVideo.Names)
+			log.Debugf("douBanVideo: %s 已全部下载完毕，或该影片没有更新.", douBanVideo.Names)
 			continue
 		}
 
@@ -160,8 +160,7 @@ func (d *Download) downloadMovieTask() (err error) {
 	// 根据 清晰度 季数和集数过滤
 	needDownloadFeedVideo := make([]*types.FeedVideo, 0)
 	for _, v := range FilterMap {
-		list := filterByResolution(types.ResourceMovie, v...)
-
+		list := FilterByResolution(types.VideoTypeMovie, v...)
 		needDownloadFeedVideo = append(needDownloadFeedVideo, list...)
 	}
 	//  如果没有需要下载的视频 则返回

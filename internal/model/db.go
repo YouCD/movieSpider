@@ -93,7 +93,7 @@ func (m *movieDB) SaveFeedVideoFromChan() {
 				continue
 			}
 			//  排除 低码率的视频
-			if ok := tools.ExcludeVideo(feedVideo.TorrentName); ok {
+			if ok := tools.ExcludeVideo(feedVideo.TorrentName, config.ExcludeWords); ok {
 				continue
 			}
 			//log.Infof("%s.%s: %s 开始保存.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)

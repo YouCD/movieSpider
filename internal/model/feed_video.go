@@ -43,8 +43,8 @@ func (m *movieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVide
 //  @param resource
 //  @return err
 //
-func (m *movieDB) UpdateFeedVideoNameByID(id int32, name string, resource types.Resource) (err error) {
-	err = m.db.Model(&types.FeedVideo{}).Where("id=?", id).Updates(types.FeedVideo{Name: name, Type: resource.Typ()}).Error
+func (m *movieDB) UpdateFeedVideoNameByID(id int32, name string, resource types.VideoType) (err error) {
+	err = m.db.Model(&types.FeedVideo{}).Where("id=?", id).Updates(types.FeedVideo{Name: name, Type: resource.String()}).Error
 	if err != nil {
 		return err
 	}

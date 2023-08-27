@@ -24,7 +24,7 @@ const (
 )
 
 type torlock struct {
-	typ types.Resource
+	typ types.VideoType
 	//url        string
 	web        string
 	scheduling string
@@ -35,13 +35,13 @@ func (t *torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fp.Client = httpClient.NewHttpClient()
 	fp.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
-	if t.typ == types.ResourceMovie {
+	if t.typ == types.VideoTypeMovie {
 		fd, err := fp.ParseURL(urlTorlockMovie)
 		if err != nil {
 			log.Error(err)
 		}
 		if fd == nil {
-			return nil, errors.New(fmt.Sprintf("TORLOCK.%s feed is nil.", t.typ.Typ()))
+			return nil, errors.New(fmt.Sprintf("TORLOCK.%s feed is nil.", t.typ))
 		}
 		log.Debugf("TORLOCK.movie Data: %#v", fd.String())
 		if len(fd.Items) == 0 {
@@ -93,7 +93,7 @@ func (t *torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 		return Videos, nil
 
 	}
-	if t.typ == types.ResourceTV {
+	if t.typ == types.VideoTypeTV {
 		fd, err := fp.ParseURL(urlTorlockTV)
 		if err != nil {
 			log.Error(err)
@@ -186,10 +186,10 @@ func (t *torlock) fetchMagnetDownLoad(videos []*types.FeedVideo) []*types.FeedVi
 }
 func (t *torlock) Run(ch chan *types.FeedVideo) {
 	if t.scheduling == "" {
-		log.Errorf("TORLOCK %s: Scheduling is null", t.typ.Typ())
+		log.Errorf("TORLOCK %s: Scheduling is null", t.typ)
 		os.Exit(1)
 	}
-	log.Infof("TORLOCK %s: Scheduling is: [%s]", t.typ.Typ(), t.scheduling)
+	log.Infof("TORLOCK %s: Scheduling is: [%s]", t.typ, t.scheduling)
 	c := cron.New()
 	c.AddFunc(t.scheduling, func() {
 		videos, err := t.Crawler()
