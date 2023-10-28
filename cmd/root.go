@@ -9,12 +9,15 @@ import (
 	"os"
 )
 
+//nolint:gochecknoglobals
 var (
 	Name       = "movieSpider"
 	configFile string
 )
 
 // rootCmd represents the base command when called without any subcommands
+//
+//nolint:exhaustruct,gochecknoglobals
 var rootCmd = &cobra.Command{
 	Use:   Name,
 	Short: fmt.Sprintf("%s 电影助手，自动获取电影种子信息，自动刮取豆瓣电影想看列表，自动下载", Name),
@@ -45,6 +48,7 @@ func Execute() {
 	}
 }
 
+//nolint:gochecknoinits
 func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)

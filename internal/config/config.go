@@ -10,39 +10,52 @@ import (
 	"os"
 )
 
+//nolint:tagliatelle
 type btbt struct {
 	Scheduling string `json:"Scheduling"`
 }
+
+//nolint:tagliatelle
 type tgx struct {
 	Scheduling string `json:"Scheduling"`
 }
+
+//nolint:tagliatelle
 type torlock struct {
 	Scheduling   string `json:"Scheduling"`
 	ResourceType string `json:"ResourceType"`
 	Typ          types.VideoType
 }
 
+//nolint:tagliatelle
 type eztv struct {
 	Scheduling string `json:"Scheduling"`
 }
+
+//nolint:tagliatelle
 type glodls struct {
 	Scheduling string `json:"Scheduling"`
 }
+
+//nolint:tagliatelle
 type tpbpirateproxy struct {
 	Scheduling string `json:"Scheduling"`
 }
 
+//nolint:tagliatelle
 type magnetdl struct {
 	Scheduling   string `json:"Scheduling"`
 	ResourceType string `json:"ResourceType"`
 	Typ          types.VideoType
 }
 
+//nolint:tagliatelle
 type downloader struct {
 	Scheduling string `json:"Scheduling"`
 	Aria2Label string `json:"Aria2Label"`
 }
 
+//nolint:gochecknoglobals
 var (
 	Global         *global
 	Aria2cList     []aria2
@@ -68,7 +81,7 @@ type global struct {
 }
 
 type aria2 struct {
-	Url   string
+	URL   string
 	Token string
 	Label string
 }
@@ -77,7 +90,7 @@ type tg struct {
 	BotToken string
 	TgIDs    []int
 	Proxy    struct {
-		Url    string
+		URL    string
 		Enable bool
 	}
 	Enable bool
@@ -93,14 +106,16 @@ type mysql struct {
 type DouBan struct {
 	DouBanList []*DouBan
 	Scheduling string
-	Url        string
+	URL        string
 }
 
+//nolint:tagliatelle
 type tmDB struct {
 	Scheduling string `json:"Scheduling"`
-	ApiKey     string
+	APIKey     string
 }
 
+//nolint:forbidigo,gosimple,gocognit,gocyclo,maintidx
 func InitConfig(config string) {
 	v := viper.New()
 	v.SetConfigType("yaml")
@@ -139,7 +154,7 @@ func InitConfig(config string) {
 		os.Exit(1)
 	}
 	for index, aria := range Aria2cList {
-		Aria2cList[index].Url = aria.Url + "/jsonrpc"
+		Aria2cList[index].URL = aria.URL + "/jsonrpc"
 	}
 	if Aria2cList == nil {
 		fmt.Println("配置 Aria2cList is nil")
@@ -151,7 +166,7 @@ func InitConfig(config string) {
 		fmt.Println("读取TG配置错误")
 		os.Exit(1)
 	}
-	if TG.BotToken != "" && TG.TgIDs != nil && TG.Proxy.Url != "" {
+	if TG.BotToken != "" && TG.TgIDs != nil && TG.Proxy.URL != "" {
 		TG.Enable = true
 	}
 
@@ -225,6 +240,7 @@ func InitConfig(config string) {
 		os.Exit(1)
 	}
 	for _, v := range TORLOCK {
+		//nolint:exhaustive
 		switch types.Convert2VideoType(v.ResourceType) {
 		case types.VideoTypeMovie:
 			v.Typ = types.VideoTypeMovie
@@ -280,5 +296,4 @@ func InitConfig(config string) {
 	}
 
 	return
-
 }

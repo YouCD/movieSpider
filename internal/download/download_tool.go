@@ -7,38 +7,36 @@ import (
 	"strings"
 )
 
-//
 // SotByResolution
-//  @Description:  根据分辨率排序
-//  @receiver d
-//  @param videos
-//  @return Videos2160P
-//  @return Videos1080P
 //
-func SotByResolution(videos []*types.FeedVideo) (Videos2160P []*types.FeedVideo, Videos1080P []*types.FeedVideo) {
+//	@Description:  根据分辨率排序
+//	@receiver d
+//	@param videos
+//	@return Videos2160P
+//	@return Videos1080P
+func SotByResolution(videos []*types.FeedVideo) (videos2160P []*types.FeedVideo, videos1080P []*types.FeedVideo) {
 	if len(videos) < 1 {
 		return
 	}
 
 	for _, v := range videos {
 		switch {
-		// 如果是2060p 放到 Videos2160P 列表
+		// 如果是2060p 放到 videos2160P 列表
 		case strings.Contains(v.TorrentName, "2160"):
-			Videos2160P = append(Videos2160P, v)
-		// 如果是1080p 放到 Videos1080P 列表
+			videos2160P = append(videos2160P, v)
+		// 如果是1080p 放到 videos1080P 列表
 		case strings.Contains(v.TorrentName, "1080"):
-			Videos1080P = append(Videos1080P, v)
+			videos1080P = append(videos1080P, v)
 		}
 	}
-	return Videos2160P, Videos1080P
+	return videos2160P, videos1080P
 }
 
-//
 // FilterByResolution
-//  @Description: 根据 清晰度 过滤
-//  @param videos
-//  @return list
 //
+//	@Description: 根据 清晰度 过滤
+//	@param videos
+//	@return list
 func FilterByResolution(movieOrTV types.VideoType, videos ...*types.FeedVideo) (list []*types.FeedVideo) {
 	// 1. 在下载历史表中查看是否有此视频的下载记录
 	inDownloadHistory := FilterByResolutionInDownloadHistory(videos...)
@@ -48,18 +46,17 @@ func FilterByResolution(movieOrTV types.VideoType, videos ...*types.FeedVideo) (
 	return needDownloadFeedVideo
 }
 
-//
 // FilterByResolutionInDownloadHistory
-//  @Description: 根据 清晰度 在下载历史表中  过滤
-//  @param videos
-//  @return list
 //
+//	@Description: 根据 清晰度 在下载历史表中  过滤
+//	@param videos
+//	@return list
 func FilterByResolutionInDownloadHistory(videos ...*types.FeedVideo) (list []*types.FeedVideo) {
 	for _, video := range videos {
 		// 通过清晰度过滤
 		v, err := model.NewMovieDB().FindFeedVideoInDownloadHistory(video)
 		if err != nil {
-			//log.Warn(err)
+			log.Warn(err)
 			continue
 		}
 		list = append(list, v)
@@ -68,11 +65,10 @@ func FilterByResolutionInDownloadHistory(videos ...*types.FeedVideo) (list []*ty
 	return
 }
 
-//
 // UpdateFeedVideoAndDownloadHistory
-//  @Description: 更新 feedVideo 的下载状态为1 记录这一次下载的视频
-//  @param video
 //
+//	@Description: 更新 feedVideo 的下载状态为1 记录这一次下载的视频
+//	@param video
 func UpdateFeedVideoAndDownloadHistory(video *types.FeedVideo) {
 	//  更新 feedVideo 的下载状态为1
 	if err := model.NewMovieDB().UpdateFeedVideoDownloadByID(video.ID, 1); err != nil {
@@ -85,14 +81,15 @@ func UpdateFeedVideoAndDownloadHistory(video *types.FeedVideo) {
 	}
 }
 
-//
 // FilterVideosByResolution
-//  @Description: 根据分辨率排序
-//  @receiver d
-//  @param videos
-//  @return needDownloadFeedVideo  需要下载的资源
-//  @return downloadIs3 需要记录的资源
 //
+//	@Description: 根据分辨率排序
+//	@receiver d
+//	@param videos
+//	@return needDownloadFeedVideo  需要下载的资源
+//	@return downloadIs3 需要记录的资源
+//
+//nolint:nakedret
 func FilterVideosByResolution(movieOrTV types.VideoType, videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.FeedVideo, needRecordFeedVideo []*types.FeedVideo) {
 	// 如果类型是电影
 	if movieOrTV == types.VideoTypeMovie {
@@ -142,13 +139,12 @@ func FilterVideosByResolution(movieOrTV types.VideoType, videos ...*types.FeedVi
 	return
 }
 
-//
 // HandlerMovie
-//  @Description: 处理电影类型的视频
-//  @param videos
-//  @return needDownloadFeedVideo
-//  @return needRecordFeedVideo
 //
+//	@Description: 处理电影类型的视频
+//	@param videos
+//	@return needDownloadFeedVideo
+//	@return needRecordFeedVideo
 func HandlerMovie(videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.FeedVideo, needRecordFeedVideo []*types.FeedVideo) {
 	Videos2160P, Videos1080P := SotByResolution(videos)
 	// 如果 Videos2160P 有 数据
@@ -166,24 +162,21 @@ func HandlerMovie(videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.Fe
 			needDownloadFeedVideo = append(needDownloadFeedVideo, Videos2160P...)
 			needRecordFeedVideo = append(needRecordFeedVideo, Videos1080P...)
 		}
-
+	}
+	if len(Videos1080P) >= 2 {
+		needDownloadFeedVideo = append(needDownloadFeedVideo, Videos1080P[0:2]...)
+		needRecordFeedVideo = append(needRecordFeedVideo, Videos1080P[2:]...)
 	} else {
-		if len(Videos1080P) >= 2 {
-			needDownloadFeedVideo = append(needDownloadFeedVideo, Videos1080P[0:2]...)
-			needRecordFeedVideo = append(needRecordFeedVideo, Videos1080P[2:]...)
-		} else {
-			needDownloadFeedVideo = append(needDownloadFeedVideo, Videos1080P...)
-		}
+		needDownloadFeedVideo = append(needDownloadFeedVideo, Videos1080P...)
 	}
 	return
 }
 
-//
 // HandlerTv
-//  @Description: 处理电视剧类型的视频
-//  @param videos
-//  @return map[string][]*types.FeedVideo
 //
+//	@Description: 处理电视剧类型的视频
+//	@param videos
+//	@return map[string][]*types.FeedVideo
 func HandlerTv(videos ...*types.FeedVideo) map[string][]*types.FeedVideo {
 	if len(videos) < 1 {
 		return nil

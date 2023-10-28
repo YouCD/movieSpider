@@ -8,7 +8,7 @@ import (
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
-	"movieSpider/internal/httpClient"
+	"movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
@@ -20,6 +20,7 @@ import (
 	"unicode/utf8"
 )
 
+//nolint:gochecknoglobals,unused
 var (
 	pageNum     *int
 	tgBotClient *TGBot
@@ -39,23 +40,23 @@ type TGBot struct {
 	mtx      sync.Mutex
 }
 
-//
 // NewTgBot
-//  @Description: 创建一个TGBot实例
-//  @param BotToken
-//  @param TgIDs
-//  @return *TGBot
 //
-func NewTgBot(BotToken string, TgIDs []int) *TGBot {
+//	@Description: 创建一个TGBot实例
+//	@param BotToken
+//	@param TgIDs
+//	@return *TGBot
+func NewTgBot(botToken string, tgIDs []int) *TGBot {
 	once.Do(func() {
-		client := httpClient.NewHttpClient()
+		client := httpclient.NewHTTPClient()
 		bot, err := tgbotapi.NewBotAPIWithClient(config.TG.BotToken, "https://api.telegram.org/bot%s/%s", client)
 		if err != nil {
 			log.Error(err)
 			os.Exit(-1)
 		}
+		//nolint:exhaustruct
 		tgBotClient = &TGBot{
-			botToken: BotToken, IDs: TgIDs, bot: bot,
+			botToken: botToken, IDs: tgIDs, bot: bot,
 		}
 	})
 	return tgBotClient
@@ -69,13 +70,13 @@ const (
 	notifyTypeDatePublished
 )
 
-//
 // StartBot
-//  @Description: 启动bot
-//  @receiver t
 //
+//	@Description: 启动bot
+//	@receiver t
+//
+//nolint:gocognit
 func (t *TGBot) StartBot() {
-
 	// 发送通知 下载 通知
 	t.downloadNotify()
 	// 发送通知 上映 通知
@@ -88,11 +89,9 @@ func (t *TGBot) StartBot() {
 	u.Timeout = 60
 	updates := t.bot.GetUpdatesChan(u)
 	for update := range updates {
-
 		index := 1
 		pageNum = &index
 		if update.Message != nil {
-
 			switch {
 			case strings.Contains(update.Message.Text, CMDReportDownload):
 				// 如果参数长度不够直接continue 防止地址越界
@@ -133,22 +132,24 @@ func (t *TGBot) StartBot() {
 					continue
 				}
 				t.SendReportFeedVideosMsg(update.Message.Chat.ID, int64(update.Message.MessageID))
-				//count, err := model.NewMovieDB().CountFeedVideo()
-				//if err != nil {
-				//	log.Error(err)
-				//	continue
-				//}
-				//var s string
-				//var Total int
-				//for _, reportCount := range count {
-				//	Total += reportCount.Count
-				//	s += fmt.Sprintf("%s: %d ", reportCount.Web, reportCount.Count)
-				//}
-				//msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Total: %d  %s", Total, s))
-				//msg.ReplyToMessageID = update.Message.MessageID
-				//if _, err := t.bot.Send(msg); err != nil {
-				//	log.Error(err)
-				//}
+				/*
+					count, err := model.NewMovieDB().CountFeedVideo()
+					if err != nil {
+						log.Error(err)
+						continue
+					}
+					var s string
+					var Total int
+					for _, reportCount := range count {
+						Total += reportCount.Count
+						s += fmt.Sprintf("%s: %d ", reportCount.Web, reportCount.Count)
+					}
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Total: %d  %s", Total, s))
+					msg.ReplyToMessageID = update.Message.MessageID
+					if _, err := t.bot.Send(msg); err != nil {
+						log.Error(err)
+					}
+				*/
 
 			// movie_download 指令
 			case strings.Contains(update.Message.Text, CMDMoveDownload):
@@ -167,15 +168,13 @@ func (t *TGBot) StartBot() {
 			}
 		}
 	}
-
 }
 
-//
 // SendStrMsg
-//  @Description: 发送字符串消息
-//  @receiver t
-//  @param msg
 //
+//	@Description: 发送字符串消息
+//	@receiver t
+//	@param msg
 func (t *TGBot) SendStrMsg(msg string) {
 	for _, id := range t.IDs {
 		tgMsg := tgbotapi.NewMessage(int64(id), msg)
@@ -187,39 +186,39 @@ func (t *TGBot) SendStrMsg(msg string) {
 
 //
 
-//
 // getMovieID
-//  @Description: 获取电影id
-//  @param str
-//  @return int
-//  @return error
 //
+//	@Description: 获取电影id
+//	@param str
+//	@return int
+//	@return error
+//
+//nolint:unused
 func getMovieID(str string) (int, error) {
 	sile := strings.Split(str, " ")
 	if len(sile) < 2 {
 		return 0, errors.New("getMovieID id is 0")
-	} else {
-		movieID, err := strconv.Atoi(sile[2])
-		if err != nil {
-			return 0, err
-		}
-		return movieID, nil
 	}
-
+	movieID, err := strconv.Atoi(sile[2])
+	if err != nil {
+		return 0, errors.WithMessage(err, "转换失败")
+	}
+	return movieID, nil
 }
 
-//
 // getMovieInlineKeyboardMarkup
-//  @Description: 获取电影内联键盘
-//  @return *tgbotapi.InlineKeyboardMarkup
 //
+//	@Description: 获取电影内联键盘
+//	@return *tgbotapi.InlineKeyboardMarkup
+//
+//nolint:unused
 func getMovieInlineKeyboardMarkup() *tgbotapi.InlineKeyboardMarkup {
 	if *pageNum <= 1 {
 		if *pageNum == 1 {
 			Markup := tgbotapi.NewInlineKeyboardMarkup(
 				tgbotapi.NewInlineKeyboardRow(
 					tgbotapi.NewInlineKeyboardButtonData("上一页", "0"),
-					tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("下一页(第%d页)", *pageNum+1), fmt.Sprintf("%d", *pageNum+1)),
+					tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("下一页(第%d页)", *pageNum+1), strconv.Itoa(*pageNum+1)),
 				),
 			)
 			return &Markup
@@ -236,8 +235,8 @@ func getMovieInlineKeyboardMarkup() *tgbotapi.InlineKeyboardMarkup {
 	} else if *pageNum > 1 {
 		Markup := tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("上一页(第%d页)", *pageNum-1), fmt.Sprintf("%d", *pageNum-1)),
-				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("下一页(第%d页)", *pageNum+1), fmt.Sprintf("%d", *pageNum+1)),
+				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("上一页(第%d页)", *pageNum-1), strconv.Itoa(*pageNum-1)),
+				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("下一页(第%d页)", *pageNum+1), strconv.Itoa(*pageNum+1)),
 			),
 		)
 		return &Markup
@@ -246,14 +245,15 @@ func getMovieInlineKeyboardMarkup() *tgbotapi.InlineKeyboardMarkup {
 	return nil
 }
 
-//
 // inArray
-//  @Description: 判断数组中是否存在某个值
-//  @param val
-//  @param array
-//  @return ok
-//  @return i
 //
+//	@Description: 判断数组中是否存在某个值
+//	@param val
+//	@param array
+//	@return ok
+//	@return i
+//
+//nolint:unused
 func inArray(val int, array []int) (ok bool, i int) {
 	for i = range array {
 		if ok = array[i] == val; ok {
@@ -263,18 +263,19 @@ func inArray(val int, array []int) (ok bool, i int) {
 	return
 }
 
-//
 // checkUser
-//  @Description: 检查用户是否有权限
-//  @receiver t
-//  @param ChatID
-//  @param update
-//  @return bool
 //
-func (t *TGBot) checkUser(ChatID int64, update tgbotapi.Update) bool {
-	ok, _ := inArray(int(ChatID), config.TG.TgIDs)
+//	@Description: 检查用户是否有权限
+//	@receiver t
+//	@param ChatID
+//	@param update
+//	@return bool
+//
+//nolint:unused
+func (t *TGBot) checkUser(chatID int64, update tgbotapi.Update) bool {
+	ok, _ := inArray(int(chatID), config.TG.TgIDs)
 	if !ok {
-		msg := tgbotapi.NewMessage(ChatID, "您没有权限")
+		msg := tgbotapi.NewMessage(chatID, "您没有权限")
 		msg.ReplyToMessageID = update.Message.MessageID
 		if _, err := t.bot.Send(msg); err != nil {
 			log.Error(err)
@@ -285,23 +286,22 @@ func (t *TGBot) checkUser(ChatID int64, update tgbotapi.Update) bool {
 	return ok
 }
 
-//
 // checkPars
-//  @Description: 检查参数
-//  @receiver t
-//  @param pars
-//  @param ChatID
-//  @param update
-//  @param cmd
-//  @return []string
-//  @return bool
 //
-func (t *TGBot) checkPars(pars string, ChatID int64, update tgbotapi.Update, cmd string) ([]string, bool) {
+//	@Description: 检查参数
+//	@receiver t
+//	@param pars
+//	@param ChatID
+//	@param update
+//	@param cmd
+//	@return []string
+//	@return bool
+func (t *TGBot) checkPars(pars string, chatID int64, update tgbotapi.Update, cmd string) ([]string, bool) {
 	log.Infof("Msg: %s", update.Message.Text)
 	cmdAndargs := tools.RemoveSpaceItem(strings.Split(pars, " "))
 	switch cmd {
 	case CMDMoveDownload:
-		flag := t.checkArgsLen(ChatID, update, cmdAndargs, 2)
+		flag := t.checkArgsLen(chatID, update, cmdAndargs, 2)
 		return cmdAndargs, flag
 	case CMDReportFeedVideos:
 		return cmdAndargs, true
@@ -310,22 +310,20 @@ func (t *TGBot) checkPars(pars string, ChatID int64, update tgbotapi.Update, cmd
 	default:
 		return cmdAndargs, false
 	}
-
 }
 
-//
 // checkArgsLen
-//  @Description: 检查参数长度
-//  @receiver t
-//  @param ChatID
-//  @param update
-//  @param cmdAndargs
-//  @param length
-//  @return bool
 //
-func (t *TGBot) checkArgsLen(ChatID int64, update tgbotapi.Update, cmdAndargs []string, length int) bool {
+//	@Description: 检查参数长度
+//	@receiver t
+//	@param ChatID
+//	@param update
+//	@param cmdAndargs
+//	@param length
+//	@return bool
+func (t *TGBot) checkArgsLen(chatID int64, update tgbotapi.Update, cmdAndargs []string, length int) bool {
 	if len(cmdAndargs) < length {
-		msg := tgbotapi.NewMessage(ChatID, "参数长度不够")
+		msg := tgbotapi.NewMessage(chatID, "参数长度不够")
 		msg.ReplyToMessageID = update.Message.MessageID
 		if _, err := t.bot.Send(msg); err != nil {
 			log.Error(err)
@@ -337,11 +335,10 @@ func (t *TGBot) checkArgsLen(ChatID int64, update tgbotapi.Update, cmdAndargs []
 	return true
 }
 
-//
 // downloadNotify
-//  @Description: 下载通知
-//  @receiver t
 //
+//	@Description: 下载通知
+//	@receiver t
 func (t *TGBot) downloadNotify() {
 	go func() {
 		for {
@@ -355,11 +352,12 @@ func (t *TGBot) downloadNotify() {
 	}()
 }
 
-//
 // datePublishedNotify
-//  @Description: 上映通知
-//  @receiver t
 //
+//	@Description: 上映通知
+//	@receiver t
+//
+//nolint:exhaustruct
 func (t *TGBot) datePublishedNotify() {
 	go func() {
 		for {
@@ -375,11 +373,10 @@ func (t *TGBot) datePublishedNotify() {
 	}()
 }
 
-//
 // downloadCompleteNotify
-//  @Description: 下载完成通知
-//  @receiver t
 //
+//	@Description: 下载完成通知
+//	@receiver t
 func (t *TGBot) downloadCompleteNotify() {
 	go func() {
 		aria2Server, err := aria2.NewAria2(config.Downloader.Aria2Label)
@@ -391,6 +388,7 @@ func (t *TGBot) downloadCompleteNotify() {
 			time.Sleep(time.Second * 1)
 			t.mtx.Lock()
 			subscribeCh := aria2Server.Subscribe()
+			//nolint:gosimple
 			select {
 			case video, ok := <-subscribeCh:
 				if ok {
@@ -402,5 +400,4 @@ func (t *TGBot) downloadCompleteNotify() {
 			}
 		}
 	}()
-
 }

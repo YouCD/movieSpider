@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var newAria2 = &aria2{}
+var newAria2 = &Aria2{}
 
 func init() {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")

@@ -1,13 +1,14 @@
 package douban
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 	"movieSpider/internal/config"
-	httpClient2 "movieSpider/internal/httpClient"
+	httpClient2 "movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/spider"
@@ -20,27 +21,26 @@ import (
 	"sync"
 )
 
-const movieUrlPrefix = "https://movie.douban.com/subject/"
+const movieURLPrefix = "https://movie.douban.com/subject/"
 
 type DouBan struct {
 	url        string
 	scheduling string
 }
 
-//
 // NewSpiderDouBan
-//  @Description: 新建DouBan
-//  @param doubanUrl
-//  @param scheduling
-//  @return *DouBan
 //
-func NewSpiderDouBan(cfg *config.DouBan) (DouBanList []spider.Spider) {
+//	@Description: 新建DouBan
+//	@param doubanUrl
+//	@param scheduling
+//	@return *DouBan
+func NewSpiderDouBan(cfg *config.DouBan) (douBanList []spider.Spider) {
 	for _, db := range cfg.DouBanList {
 		if db.Scheduling == "" {
 			db.Scheduling = cfg.Scheduling
 		}
-		DouBanList = append(DouBanList, &DouBan{
-			url:        db.Url,
+		douBanList = append(douBanList, &DouBan{
+			url:        db.URL,
 			scheduling: db.Scheduling,
 		})
 	}
@@ -48,17 +48,18 @@ func NewSpiderDouBan(cfg *config.DouBan) (DouBanList []spider.Spider) {
 	return
 }
 
-//
 // Crawler
-//  @Description: 爬取
-//  @receiver d
-//  @return videos
 //
+//	@Description: 爬取
+//	@receiver d
+//	@return videos
+//
+//nolint:gosimple
 func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
-
 	doc, err := d.newRequest(d.url)
 	if err != nil {
 		log.Error(err)
+		//nolint:nakedret
 		return
 	}
 	var summaryVideo []*types.DouBanVideo
@@ -83,18 +84,18 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 
 			summaryVideo = append(summaryVideo, doubanVideo)
 		})
-
 	})
-
+	//nolint:prealloc
 	var videos2 []*types.DouBanVideo
 	var wg sync.WaitGroup
 	for _, video := range summaryVideo {
 		wg.Add(1)
 		// 访问 豆瓣 具体的电影首页
-		doc, err := d.newRequest(fmt.Sprintf("%s%s", movieUrlPrefix, video.DoubanID))
+		doc, err := d.newRequest(fmt.Sprintf("%s%s", movieURLPrefix, video.DoubanID))
 		if err != nil {
 			wg.Done()
 			log.Error(err)
+			//nolint:nakedret
 			return
 		}
 		// 获取电影原始数据
@@ -106,6 +107,7 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		if err != nil {
 			wg.Done()
 			log.Error(err)
+			//nolint:nakedret
 			return
 		}
 
@@ -154,6 +156,7 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		err = model.NewMovieDB().CreatDouBanVideo(video)
 		if err != nil {
 			log.Error(err)
+			//nolint:nakedret
 			return
 		}
 		log.Infof("DouBan %s 已保存", video.Names)
@@ -162,28 +165,25 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 	return videos2
 }
 
-//
 // newRequest
-//  @Description: 新建请求
-//  @receiver d
-//  @param url
-//  @return document
-//  @return err
 //
+//	@Description: 新建请求
+//	@receiver d
+//	@param url
+//	@return document
+//	@return err
+//
+//nolint:goerr113
 func (d *DouBan) newRequest(url string) (document *goquery.Document, err error) {
-
-	request, err := http.NewRequest(http.MethodGet, url, nil)
+	request, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "newRequest")
 	}
 	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36")
-	//if config.DouBan.Cookie != "" {
-	//	request.Header.Set("Cookie", config.DouBan.Cookie)
-	//}
-	client := httpClient2.NewHttpClient()
+	client := httpClient2.NewHTTPClient()
 	resp, err := client.Do(request)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "client.Do")
 	}
 	if resp == nil {
 		return nil, errors.New("未能正常获取豆瓣数据")
@@ -192,23 +192,24 @@ func (d *DouBan) newRequest(url string) (document *goquery.Document, err error) 
 
 	document, err = goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "goquery.NewDocumentFromReader")
 	}
 	return
 }
 
-//
 // zhToUnicode
-//  @Description: 中文转 unicode
-//  @receiver d
-//  @param raw
-//  @return []byte
-//  @return error
 //
+//	@Description: 中文转 unicode
+//	@receiver d
+//	@param raw
+//	@return []byte
+//	@return error
+//
+//nolint:gocritic
 func (d *DouBan) zhToUnicode(raw []byte) ([]byte, error) {
 	str, err := strconv.Unquote(strings.Replace(strconv.Quote(string(raw)), `\\u`, `\u`, -1))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "zhToUnicode")
 	}
 	return []byte(str), nil
 }
@@ -219,7 +220,7 @@ func (d *DouBan) Run() {
 	}
 	log.Infof("DouBan Scheduling is: [%s]", d.scheduling)
 	c := cron.New()
-	c.AddFunc(d.scheduling, func() { d.Crawler() })
+	_, _ = c.AddFunc(d.scheduling, func() { d.Crawler() })
 	c.Start()
 }
 

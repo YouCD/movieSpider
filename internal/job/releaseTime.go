@@ -21,14 +21,13 @@ func NewReleaseTimeJob(scheduling string) *ReleaseTimeJob {
 	return &ReleaseTimeJob{scheduling: scheduling}
 }
 func (r *ReleaseTimeJob) Run() {
-
 	if r.scheduling == "" {
 		log.Error("ReleaseTimeJob: Scheduling is null")
 		os.Exit(1)
 	}
 	log.Infof("ReleaseTimeJob: Scheduling is: [%s]", r.scheduling)
 	c := cron.New()
-	c.AddFunc(r.scheduling, func() {
+	_, _ = c.AddFunc(r.scheduling, func() {
 		log.Infof("ReleaseTimeJob: Check video date for published.", r.scheduling)
 
 		videos, err := model.NewMovieDB().FetchThisYearVideo()
@@ -47,9 +46,7 @@ func (r *ReleaseTimeJob) Run() {
 				}
 				log.Infof("Video: %s , DatePublished: %v", names[0], video.DatePublished)
 			}
-
 		}
 	})
 	c.Start()
-
 }

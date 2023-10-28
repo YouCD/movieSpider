@@ -15,36 +15,38 @@ import (
 	"time"
 )
 
+//nolint:gochecknoglobals
 var (
-	aria2Client *aria2
+	aria2Client *Aria2
 	once        sync.Once
 )
 
-type aria2 struct {
+type Aria2 struct {
 	aria2Client  rpc.Client
 	downloadTask map[string]*types.DouBanVideo
 	mtx          sync.Mutex
 }
 
-//
 // NewAria2
-//  @Description: 初始化aria2
-//  @param label
-//  @return *aria2
-//  @return error
 //
-func NewAria2(label string) (*aria2, error) {
+//	@Description: 初始化aria2
+//	@param label
+//	@return *Aria2
+//	@return error
+//
+//nolint:exhaustruct
+func NewAria2(label string) (*Aria2, error) {
 	var e error
 	once.Do(func() {
 		for _, v := range config.Aria2cList {
 			if v.Label == label {
-				client, err := rpc.New(context.TODO(), v.Url, v.Token, 0, nil)
+				client, err := rpc.New(context.TODO(), v.URL, v.Token, 0, nil)
 				if err != nil {
 					log.Error(err)
 					e = err
 				}
 				log.Debug(config.Aria2cList)
-				aria2Client = &aria2{aria2Client: client, downloadTask: make(map[string]*types.DouBanVideo)}
+				aria2Client = &Aria2{aria2Client: client, downloadTask: make(map[string]*types.DouBanVideo)}
 			}
 		}
 	})
@@ -54,26 +56,27 @@ func NewAria2(label string) (*aria2, error) {
 	return aria2Client, nil
 }
 
+// DownloadByURL
 //
-// DownloadByUrl
-//  @Description: 通过url下载
-//  @receiver a
-//  @param url
-//  @return gid
-//  @return err
+//	@Description: 通过url下载
+//	@receiver a
+//	@param url
+//	@return gid
+//	@return err
 //
-func (a *aria2) DownloadByUrl(url string) (gid string, err error) {
+//nolint:wrapcheck
+func (a *Aria2) DownloadByURL(url string) (gid string, err error) {
 	return a.aria2Client.AddURI([]string{url})
 }
 
-func (a *aria2) DownloadByMagnet(magnet string) (gid string, err error) {
+func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 
 	// 添加磁链
 	MateGid, err := a.aria2Client.AddURI([]string{magnet})
 	if err != nil {
-		return "", err
+		return "", errors.WithMessage(err, "AddURI")
 	}
 
 	// 超时时间
@@ -89,17 +92,15 @@ func (a *aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 			info, err := a.aria2Client.TellStatus(MateGid, "files", "gid", "status", "errorMessage", "errorCode", "followedBy")
 			if err != nil {
 				log.Error(err)
-				return "", err
+				return "", errors.WithMessage(err, "TellStatus")
 			}
 			// active  waiting   paused   error   complete   removed
 			if info.Status == "complete" {
 				// 如果有 followedBy 说明是磁链下载的种子
 				if len(info.FollowedBy) > 0 {
 					return info.FollowedBy[0], nil
-				} else {
-					return info.Gid, nil
 				}
-
+				return info.Gid, nil
 			}
 			if info.Status == "error" {
 				if info.ErrorCode == "12" {
@@ -111,17 +112,17 @@ func (a *aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 			}
 		}
 	}
-
 }
 
-//
 // getAllActiveGID
-//  @Description: 获取所有正在下载的任务的gid
-//  @receiver a
-//  @return []string
-//  @return error
 //
-func (a *aria2) getAllActiveGID() ([]string, error) {
+//	@Description: 获取所有正在下载的任务的gid
+//	@receiver a
+//	@return []string
+//	@return error
+//
+//nolint:prealloc
+func (a *Aria2) getAllActiveGID() ([]string, error) {
 	infos, err := a.List()
 	if err != nil {
 		return nil, err
@@ -133,7 +134,7 @@ func (a *aria2) getAllActiveGID() ([]string, error) {
 	return gid, nil
 }
 
-func (a *aria2) DownloadByWithVideo(v *types.DouBanVideo, url string) (gid string, err error) {
+func (a *Aria2) DownloadByWithVideo(v *types.DouBanVideo, url string) (gid string, err error) {
 	gid, err = a.DownloadByMagnet(url)
 	if err != nil {
 		return "", err
@@ -144,25 +145,25 @@ func (a *aria2) DownloadByWithVideo(v *types.DouBanVideo, url string) (gid strin
 	return
 }
 
-//
 // List
-//  @Description: 获取当前正在下载的文件列表
-//  @receiver a
-//  @param url
-//  @return gid
-//  @return err
 //
-func (a *aria2) List() (infos []rpc.StatusInfo, err error) {
+//	@Description: 获取当前正在下载的文件列表
+//	@receiver a
+//	@param url
+//	@return gid
+//	@return err
+//
+//nolint:wrapcheck
+func (a *Aria2) List() (infos []rpc.StatusInfo, err error) {
 	return a.aria2Client.TellActive()
 }
 
-//
 // CurrentActiveAndStopFiles
-//  @Description: 获取当前正在下载以及停止下载的文件
-//  @receiver a
-//  @return completedFiles
 //
-func (a *aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompletedFiles) {
+//	@Description: 获取当前正在下载以及停止下载的文件
+//	@receiver a
+//	@return completedFiles
+func (a *Aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompletedFiles) {
 	// 获取已停止下载的文件
 	sessionInfo, err := a.aria2Client.TellStopped(0, 100)
 	if err != nil {
@@ -183,17 +184,15 @@ func (a *aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompl
 	return
 }
 
-//
 // completedHandler
-//  @Description: 处理已完成的文件
-//  @receiver a
-//  @param sessionInfo
-//  @param completedFiles
-//  @return []*types.ReportCompletedFiles
 //
-func (a *aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ...*types.ReportCompletedFiles) []*types.ReportCompletedFiles {
+//	@Description: 处理已完成的文件
+//	@receiver a
+//	@param sessionInfo
+//	@param completedFiles
+//	@return []*types.ReportCompletedFiles
+func (a *Aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ...*types.ReportCompletedFiles) []*types.ReportCompletedFiles {
 	for _, v := range sessionInfo {
-
 		file, size := getMaxSizeFile(v.Files)
 		if file == "" {
 			continue
@@ -206,7 +205,7 @@ func (a *aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ..
 		if err != nil {
 			log.Error(err)
 		}
-		//文件完成度百分比
+		// 文件完成度百分比
 		completed := float32(CompletedLength) / float32(size) * 100
 		completedFiles = append(completedFiles, &types.ReportCompletedFiles{
 			GID:       v.Gid,
@@ -214,28 +213,26 @@ func (a *aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ..
 			Completed: fmt.Sprintf("%.2f%%", completed),
 			FileName:  file,
 		})
-
 	}
 	return completedFiles
 }
 
-//
 // AddDownloadTask
-//  @Description: 添加下载任务
-//  @receiver a
-//  @param douBanVideo
-//  @param gid
 //
-func (a *aria2) AddDownloadTask(douBanVideo *types.DouBanVideo, gid string) {
+//	@Description: 添加下载任务
+//	@receiver a
+//	@param douBanVideo
+//	@param gid
+func (a *Aria2) AddDownloadTask(douBanVideo *types.DouBanVideo, gid string) {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 	a.downloadTask[gid] = douBanVideo
 }
-func (a *aria2) GetDownloadTask() map[string]*types.DouBanVideo {
+func (a *Aria2) GetDownloadTask() map[string]*types.DouBanVideo {
 	return a.downloadTask
 }
 
-func (a *aria2) Subscribe() chan *types.DownloadNotifyVideo {
+func (a *Aria2) Subscribe() chan *types.DownloadNotifyVideo {
 	downLoadChan := make(chan *types.DownloadNotifyVideo)
 	go func() {
 		a.mtx.Lock()
@@ -261,10 +258,10 @@ func (a *aria2) Subscribe() chan *types.DownloadNotifyVideo {
 	}()
 	return downLoadChan
 }
-func getMaxSizeFile(Files []rpc.FileInfo) (string, int) {
+func getMaxSizeFile(files []rpc.FileInfo) (string, int) {
 	var maxSizeFile int
 	var f rpc.FileInfo
-	for _, file := range Files {
+	for _, file := range files {
 		if len(file.Length) > maxSizeFile {
 			maxSizeFile = len(file.Length)
 			f = file

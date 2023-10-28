@@ -8,6 +8,7 @@ import (
 	"os"
 )
 
+//nolint:gochecknoglobals
 var (
 	cfgTmp = `MySQL:
   IP: 127.0.0.1
@@ -28,7 +29,7 @@ DouBan:
   # 豆瓣电影想看清单
   Scheduling: "*/10 * * * *"
   DouBanList:
-    - Url: "https://movie.douban.com/people/251312920/wish"
+    - URL: "https://movie.douban.com/people/251312920/wish"
 Feed:
   # 代理池 这里使用 https://github.com/jhao104/proxy_pool
   ProxyPool: "http://127.0.0.1:5010"
@@ -64,10 +65,10 @@ Downloader:
 
 # Aria2 下载服务器
 Aria2cList:
-  - Url: "http://127.0.0.1e:6800"
+  - URL: "http://127.0.0.1e:6800"
     Token: 123456
     Label: home
-  - Url: "http://127.0.0.1:6801"
+  - URL: "http://127.0.0.1:6801"
     Token: 123456
     Label: nas
 
@@ -75,7 +76,7 @@ Aria2cList:
 #TG:
   # Telegram 网络代理
 #  Proxy:
-#    Url: socks5://127.0.0.1:1080
+#    URL: socks5://127.0.0.1:1080
 #    Enable: false
   # Telegram 机器人 token
 #  BotToken: "TOKEN"
@@ -85,6 +86,8 @@ Aria2cList:
 `
 	outFile string
 )
+
+//nolint:exhaustruct,gochecknoglobals,forbidigo
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: fmt.Sprintf("generate %s config file.", Name),
@@ -103,6 +106,7 @@ var configCmd = &cobra.Command{
 	},
 }
 
+//nolint:gochecknoinits
 func init() {
 	configCmd.Flags().StringVarP(&outFile, "out.file", "o", "", "指定输出的文件")
 }

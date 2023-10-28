@@ -5,15 +5,14 @@ import (
 	"strings"
 )
 
-//
 // RemoveSpaceItem
-//  @Description: 去除数组中的空格
-//  @param a
-//  @return ret
 //
+//	@Description: 去除数组中的空格
+//	@param a
+//	@return ret
 func RemoveSpaceItem(a []string) (ret []string) {
-	a_len := len(a)
-	for i := 0; i < a_len; i++ {
+	aLen := len(a)
+	for i := 0; i < aLen; i++ {
 		if (i > 0 && a[i-1] == a[i]) || len(a[i]) == 0 {
 			continue
 		}
@@ -24,9 +23,12 @@ func RemoveSpaceItem(a []string) (ret []string) {
 
 // ExcludeVideo
 // ExcludeVideo 排除  480p 720p  dvsux  hdr 视频源
-//  @Description:
-//  @param name
-//  @return bool
+//
+//	@Description:
+//	@param name
+//	@return bool
+//
+//nolint:dupword
 func ExcludeVideo(name string, excludeWords []string) bool {
 	lowerTorrentName := strings.ToLower(name)
 	for _, word := range excludeWords {

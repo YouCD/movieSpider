@@ -20,7 +20,6 @@ func Convert2VideoType(t string) VideoType {
 	default:
 		return VideoTypeUnknown
 	}
-
 }
 
 func (v VideoType) String() string {

@@ -64,7 +64,7 @@ func Test_movieDB_CreatFeedVideo(t *testing.T) {
 		ID:          888888,
 		Name:        "888888",
 		TorrentName: "888888",
-		TorrentUrl:  "888888",
+		TorrentURL:  "888888",
 		Magnet:      "888888",
 		Year:        "888888",
 		Type:        "888888",

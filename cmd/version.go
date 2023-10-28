@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//nolint:gochecknoglobals
 var (
 	Version   string
 	commitID  string
@@ -12,6 +13,8 @@ var (
 	goVersion string
 	buildUser string
 )
+
+//nolint:exhaustruct,gochecknoglobals,forbidigo
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: fmt.Sprintf("Print the version info of %s", Name),

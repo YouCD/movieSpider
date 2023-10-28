@@ -11,21 +11,21 @@ import (
 
 type RowData struct {
 	Name     string `json:"name"`
-	Url      string `json:"url"`
+	URL      string `json:"url"`
 	Image    string `json:"image"`
 	Director []struct {
 		Type string `json:"type"`
-		Url  string `json:"url"`
+		URL  string `json:"url"`
 		Name string `json:"name"`
 	} `json:"director"`
 	Author []struct {
 		Type string `json:"type"`
-		Url  string `json:"url"`
+		URL  string `json:"url"`
 		Name string `json:"name"`
 	} `json:"author"`
 	Actor []struct {
 		Type string `json:"type"`
-		Url  string `json:"url"`
+		URL  string `json:"url"`
 		Name string `json:"name"`
 	} `json:"actor"`
 	DatePublished   string   `json:"datePublished"`
@@ -41,6 +41,8 @@ type RowData struct {
 		RatingValue string `json:"ratingValue"`
 	} `json:"aggregateRating"`
 }
+
+//nolint:tagliatelle
 type DouBanVideo struct {
 	ID            int    `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
 	Names         string `gorm:"uniqueIndex;column:names;type:varchar(255);comment:片名列表;NOT NULL" json:"names"`
@@ -57,6 +59,7 @@ func (d *DouBanVideo) TableName() string {
 	return "douban_video"
 }
 
+//nolint:gosimple
 func (d *DouBanVideo) FormatName(names string) string {
 	var n []string
 
@@ -87,6 +90,7 @@ func (d *DouBanVideo) FormatName(names string) string {
 			}
 			n = append(n, name)
 		}
+		//nolint:goconst
 		if d.Type == "movie" {
 			n = append(n, name)
 		}
@@ -114,6 +118,7 @@ func (d *DouBanVideo) isChineseChar(str string) bool {
 	return false
 }
 
+//nolint:gosimple
 func (d *DouBanVideo) IsDatePublished() bool {
 	// 如果没有上映时间，就返回false
 	if d.DatePublished == "" {

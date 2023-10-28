@@ -8,11 +8,12 @@ import (
 	"strings"
 )
 
+//nolint:tagliatelle
 type FeedVideo struct {
 	ID          int32          `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
 	Name        string         `gorm:"uniqueIndex:nt;column:name;type:varchar(255);comment:片名;NOT NULL" json:"name"`
 	TorrentName string         `gorm:"uniqueIndex:nt;column:torrent_name;type:varchar(255);comment:种子名;NOT NULL" json:"torrent_name"`
-	TorrentUrl  string         `gorm:"column:torrent_url;type:longtext;comment:种子引用地址;NOT NULL" json:"torrent_url"`
+	TorrentURL  string         `gorm:"column:torrent_url;type:longtext;comment:种子引用地址;NOT NULL" json:"torrent_url"`
 	Magnet      string         `gorm:"column:magnet;type:longtext;comment:磁力链接;NOT NULL" json:"magnet"`
 	Year        string         `gorm:"column:year;type:varchar(255);comment:年份;NOT NULL" json:"year"`
 	Type        string         `gorm:"column:type;type:varchar(255);comment:tv或movie;NOT NULL" json:"type"`
@@ -35,6 +36,7 @@ var (
 
 )
 
+//nolint:gosimple
 func (f *FeedVideo) FormatName(name string) string {
 	//  首发于高清影视之家 高清剧集网
 	submatch := nameReg.FindStringSubmatch(name)
@@ -58,9 +60,8 @@ func (f *FeedVideo) FormatName(name string) string {
 	matchArr := compileRegex.FindStringSubmatch(name)
 	if len(matchArr) == 0 {
 		return name
-	} else {
-		name = matchArr[1]
 	}
+	name = matchArr[1]
 
 	return name
 }
@@ -78,7 +79,7 @@ func (f *FeedVideo) Convert2DownloadHistory() *DownloadHistory {
 	downloadHistory.TorrentName = f.TorrentName
 	downloadHistory.Type = f.Type
 	downloadHistory.DoubanID = f.DoubanID
-
+	//nolint:exhaustive
 	switch f.VideoType() {
 	case VideoTypeTV:
 		// 这个匹配的是 SxxExx 的格式
@@ -102,19 +103,16 @@ func (f *FeedVideo) Convert2DownloadHistory() *DownloadHistory {
 	case VideoTypeMovie:
 		downloadHistory.Resolution = parseResolution(f.TorrentName)
 	}
-	//log.Errorf("%#v", downloadHistory)
 
 	return &downloadHistory
 }
 
-//
 // parseResolution
-//  @Description: 解析分辨率
-//  @param torrentName
-//  @return resolution
 //
+//	@Description: 解析分辨率
+//	@param torrentName
+//	@return resolution
 func parseResolution(torrentName string) (resolution int64) {
-
 	resolutionArr := resolutionReg.FindStringSubmatch(torrentName)
 	if len(resolutionArr) < 1 {
 		return 0

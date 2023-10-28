@@ -17,19 +17,18 @@ func (t *TGBot) SendReportFeedVideosMsg(msgChatID, msgID int64) {
 		log.Error(err)
 	}
 	reportFeedVideosTmpl := template.New("reportFeedVideosTmpl")
-	reportFeedVideosTmpl.Parse(`<b>Feed数据统计</b>
+	_, _ = reportFeedVideosTmpl.Parse(`<b>Feed数据统计</b>
 {{range .}} <b>{{ .Web }}：</b>   {{ .Count }}
 {{end}} 
 `)
 	b := new(bytes.Buffer)
-	reportFeedVideosTmpl.Execute(b, count)
+	_ = reportFeedVideosTmpl.Execute(b, count)
 	msg := tgbotapi.NewMessage(msgChatID, b.String())
 	msg.ReplyToMessageID = int(msgID)
 	msg.ParseMode = tgbotapi.ModeHTML
 	if _, err := t.bot.Send(msg); err != nil {
 		log.Error(err)
 	}
-
 }
 
 func splitSpace(s string, index int) string {
@@ -40,15 +39,15 @@ func splitSpace(s string, index int) string {
 type msgType struct {
 	Name          string
 	DatePublished string
-	MovieUri      string
+	MovieURI      string
 	Director      []struct {
 		Type string `json:"type"`
-		Url  string `json:"url"`
+		URL  string `json:"url"`
 		Name string `json:"name"`
 	}
 	Actor []struct {
 		Type string `json:"type"`
-		Url  string `json:"url"`
+		URL  string `json:"url"`
 		Name string `json:"name"`
 	}
 	Genre       []string
@@ -59,10 +58,10 @@ type msgType struct {
 }
 
 // SendDatePublishedOrDownloadMsg
-//  @Description: 发送电影上映消息
-//  @receiver t
-//  @param msg
 //
+//	@Description: 发送电影上映消息
+//	@receiver t
+//	@param msg
 func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, notify notifyType) {
 	// 处理原始信息
 	var rowData types.RowData
@@ -80,7 +79,7 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, not
 	var msg = msgType{
 		Name:          names[0],
 		DatePublished: v.Video.DatePublished,
-		MovieUri:      rowData.Url,
+		MovieURI:      rowData.URL,
 		Director:      rowData.Director,
 		Actor:         rowData.Actor,
 		Genre:         rowData.Genre,
@@ -95,12 +94,12 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, not
 	switch notify {
 	// 电影下载通知
 	case notifyTypeDownload:
-		datePublishedMsgTmpl.Parse(`<b>下载通知</b>
+		_, _ = datePublishedMsgTmpl.Parse(`<b>下载通知</b>
 <b>电影名：</b> {{.Name}} 
 <b>上映时间：</b> {{.DatePublished}}
-<a href="https://movie.douban.com{{.MovieUri}}">豆瓣</a>
-<b>导演：</b>  {{range .Director}} <a href="https://movie.douban.com{{.Url}}">{{splitSpace .Name 0}}</a> {{end}} 
-<b>演员：</b>  {{range .Actor}} <a href="https://movie.douban.com{{.Url}}">{{ splitSpace .Name 0 }}</a> {{end}} 
+<a href="https://movie.douban.com{{.MovieURI}}">豆瓣</a>
+<b>导演：</b>  {{range .Director}} <a href="https://movie.douban.com{{.URL}}">{{splitSpace .Name 0}}</a> {{end}} 
+<b>演员：</b>  {{range .Actor}} <a href="https://movie.douban.com{{.URL}}">{{ splitSpace .Name 0 }}</a> {{end}} 
 <b>类型：</b>  {{range .Genre}} {{ . }} {{end}} 
 <b>简介：</b>   {{ .Description }}
 <b>文件：</b>   {{ .File }}
@@ -108,22 +107,22 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, not
 `)
 	//	上映通知
 	case notifyTypeDatePublished:
-		datePublishedMsgTmpl.Parse(`<b>上映通知</b>
+		_, _ = datePublishedMsgTmpl.Parse(`<b>上映通知</b>
 <b>电影名：</b> {{.Name}}
 <b>上映时间：</b> {{.DatePublished}}
-<a href="https://movie.douban.com{{.MovieUri}}">豆瓣</a>
-<b>导演：</b>  {{range .Director}} <a href="https://movie.douban.com{{.Url}}">{{splitSpace .Name 0}}</a> {{end}} 
-<b>演员：</b>  {{range .Actor}} <a href="https://movie.douban.com{{.Url}}">{{ splitSpace .Name 0 }}</a> {{end}} 
+<a href="https://movie.douban.com{{.MovieURI}}">豆瓣</a>
+<b>导演：</b>  {{range .Director}} <a href="https://movie.douban.com{{.URL}}">{{splitSpace .Name 0}}</a> {{end}} 
+<b>演员：</b>  {{range .Actor}} <a href="https://movie.douban.com{{.URL}}">{{ splitSpace .Name 0 }}</a> {{end}} 
 <b>类型：</b>  {{range .Genre}} {{ . }} {{end}} 
 <b>简介：</b>   {{ .Description }}
 `)
 	case notifyTypeDownloadComplete:
-		datePublishedMsgTmpl.Parse(`<b>下载完毕通知</b>
+		_, _ = datePublishedMsgTmpl.Parse(`<b>下载完毕通知</b>
 <b>电影名：</b> {{.Name}}
 <b>上映时间：</b> {{.DatePublished}}
-<a href="https://movie.douban.com{{.MovieUri}}">豆瓣</a>
-<b>导演：</b>  {{range .Director}} <a href="https://movie.douban.com{{.Url}}">{{splitSpace .Name 0}}</a> {{end}} 
-<b>演员：</b>  {{range .Actor}} <a href="https://movie.douban.com{{.Url}}">{{ splitSpace .Name 0 }}</a> {{end}} 
+<a href="https://movie.douban.com{{.MovieURI}}">豆瓣</a>
+<b>导演：</b>  {{range .Director}} <a href="https://movie.douban.com{{.URL}}">{{splitSpace .Name 0}}</a> {{end}} 
+<b>演员：</b>  {{range .Actor}} <a href="https://movie.douban.com{{.URL}}">{{ splitSpace .Name 0 }}</a> {{end}} 
 <b>类型：</b>  {{range .Genre}} {{ . }} {{end}} 
 <b>简介：</b>   {{ .Description }}
 <b>文件名：</b>   {{ .File }}

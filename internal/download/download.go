@@ -9,7 +9,7 @@ import (
 	"movieSpider/internal/config"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
-	"movieSpider/internal/spider/searchSpider"
+	"movieSpider/internal/spider/searchspider"
 	"movieSpider/internal/types"
 	"os"
 	"sync"
@@ -21,6 +21,7 @@ type Download struct {
 }
 
 func NewDownloader(scheduling string) *Download {
+	//nolint:exhaustruct
 	return &Download{scheduling: scheduling}
 }
 
@@ -35,24 +36,25 @@ func (d *Download) downloadTask() {
 	}
 }
 
-//
 // downloadTvTask
-//  @Description: 下载电视剧
-//  @receiver d
-//  @return err
 //
+//	@Description: 下载电视剧
+//	@receiver d
+//	@return err
+//
+//nolint:nakedret
 func (d *Download) downloadTvTask() (err error) {
 	log.Info("Downloader tv working...")
 	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.VideoTypeTV)
 	if err != nil {
-		return err
+		return errors.WithMessage(err, "FetchDouBanVideoByType")
 	}
 
 	//  FilterMap 暂存 电视剧名相同的视频
 	var FilterMap = make(map[string][]*types.FeedVideo)
 	log.Info("查找需要下载的tv.")
 
-	//归类同一个电视剧名的 feedVideo
+	// 归类同一个电视剧名的 feedVideo
 	for douBanVideo, name := range videos {
 		// 获取 tv
 		videoList, err := model.NewMovieDB().GetFeedVideoTVByName(douBanVideo.DoubanID, name...)
@@ -97,7 +99,7 @@ func (d *Download) downloadTvTask() (err error) {
 		return
 	}
 
-	//推送 磁力连接至 aria2
+	// 推送 磁力连接至 aria2
 	err = d.aria2Download(needDownloadFeedVideo...)
 	if err != nil {
 		log.Error(err)
@@ -110,30 +112,31 @@ func (d *Download) downloadTvTask() (err error) {
 	return
 }
 
-//
 // downloadMovieTask
-//  @Description: 下载电影
-//  @receiver d
-//  @return error
 //
+//	@Description: 下载电影
+//	@receiver d
+//	@return error
+//
+//nolint:nakedret
 func (d *Download) downloadMovieTask() (err error) {
 	// 获取 豆瓣 数据
 	log.Info("Downloader movie working...")
 	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.VideoTypeMovie)
 	if err != nil {
-		return err
+		return errors.WithMessage(err, "FetchDouBanVideoByType")
 	}
 
 	//  FilterMap 暂存 电视剧名相同的视频
 	var FilterMap = make(map[string][]*types.FeedVideo)
 	log.Info("查找需要下载的movie.")
 
-	//归类同一个电视剧名的 feedVideo
+	// 归类同一个电视剧名的 feedVideo
 	for douBanVideo, names := range videos {
 		// 获取 feedVideo movie
 		videoList, err := model.NewMovieDB().GetFeedVideoMovieByNameAndDoubanID(douBanVideo.DoubanID, names...)
 		if err != nil {
-			return err
+			return errors.WithMessage(err, "douBanVideo: "+douBanVideo.Names)
 		}
 		if len(videoList) == 0 {
 			log.Debugf("douBanVideo: %s 已全部下载完毕，或该影片没有更新.", douBanVideo.Names)
@@ -183,18 +186,13 @@ func (d *Download) downloadMovieTask() (err error) {
 	return err
 }
 
-//
 // aria2Download
-//  @Description: 通过aria2下载
-//  @receiver d
-//  @param videos
-//  @return err
 //
+//	@Description: 通过aria2下载
+//	@receiver d
+//	@param videos
+//	@return err
 func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
-	//for _, v := range videos {
-	//	log.Error("开始下载......", v.TorrentName)
-	//}
-	//return
 	if len(videos) < 1 {
 		return errors.New("没有需要下载的视频")
 	}
@@ -221,6 +219,7 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 				if err != nil {
 					log.Error(err)
 				}
+				//nolint:exhaustruct
 				bus.DownloadNotifyChan <- &types.DownloadNotifyVideo{
 					Video: video,
 					File:  v.TorrentName,
@@ -251,13 +250,15 @@ func (d *Download) Run() {
 	c.Start()
 }
 
+//nolint:gochecknoglobals
 var wg sync.WaitGroup
 
-func (d *Download) DownloadByName(name, Resolution string) (msg string) {
+//nolint:nakedret
+func (d *Download) DownloadByName(name, resolution string) (msg string) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		feedKnaben := searchSpider.NewFeedKnaben(name, d.ResolutionStr2Int(Resolution))
+		feedKnaben := searchspider.NewFeedKnaben(name, d.ResolutionStr2Int(resolution))
 		_, err := feedKnaben.Search()
 		if err != nil {
 			log.Error(err)
@@ -267,7 +268,7 @@ func (d *Download) DownloadByName(name, Resolution string) (msg string) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		feedBt4g := searchSpider.NewFeedBt4g(name, d.ResolutionStr2Int(Resolution))
+		feedBt4g := searchspider.NewFeedBt4g(name, d.ResolutionStr2Int(resolution))
 		_, err := feedBt4g.Search()
 		if err != nil {
 			log.Error(err)
@@ -282,7 +283,7 @@ func (d *Download) DownloadByName(name, Resolution string) (msg string) {
 	}
 
 	if len(videos) == 0 {
-		return fmt.Sprint("所有资源已下载过,或没有可下载资源.")
+		return "所有资源已下载过,或没有可下载资源."
 	}
 
 	// 推送 磁力连接至 aria2

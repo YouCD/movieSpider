@@ -18,21 +18,23 @@ import (
 	"time"
 )
 
-type movieDB struct {
+type MovieDB struct {
 	db          *gorm.DB
 	feedVideoCh chan *types.FeedVideo
 }
 
+//nolint:gochecknoglobals
 var (
-	once           sync.Once
-	db             = new(gorm.DB)
-	ErrorDataExist = errors.New("数据已存在")
-	err            error
+	once         sync.Once
+	db           = new(gorm.DB)
+	ErrDataExist = errors.New("数据已存在")
+	err          error
 )
 
-func NewMovieDB() *movieDB {
+func NewMovieDB() *MovieDB {
 	once.Do(func() {
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8&parseTime=True&loc=Local", config.MySQL.User, config.MySQL.Password, config.MySQL.Host, config.MySQL.Port)
+		//nolint:exhaustruct
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Error(err)
@@ -48,6 +50,7 @@ func NewMovieDB() *movieDB {
 
 		newLogger := logger.New(
 			log1.New(os.Stdout, "\r\n", log1.LstdFlags), // io writer
+			//nolint:exhaustruct
 			logger.Config{
 				SlowThreshold: time.Second,   // 慢 SQL 阈值
 				LogLevel:      logger.Silent, // Log level
@@ -56,7 +59,7 @@ func NewMovieDB() *movieDB {
 			},
 		)
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local", config.MySQL.User, config.MySQL.Password, config.MySQL.Host, config.MySQL.Port, config.MySQL.Database) // 连接数据库
-
+		//nolint:exhaustruct
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 			Logger: newLogger,
 		})
@@ -65,26 +68,24 @@ func NewMovieDB() *movieDB {
 			log.Error(err)
 			os.Exit(1)
 		}
+		//nolint:exhaustruct
 		err = db.Set("gorm:table_options", "CHARSET=utf8mb4").AutoMigrate(&types.FeedVideo{}, &types.DownloadHistory{}, &types.DouBanVideo{})
 		if err != nil {
 			log.Error(err)
 			os.Exit(1)
 		}
-
 	})
-	return &movieDB{
+	return &MovieDB{
 		db,
 		bus.FeedVideoChan,
 	}
-
 }
 
-//
 // SaveFeedVideoFromChan
-//  @Description: 从通道中获取 feedVideo 并保存
-//  @receiver m
 //
-func (m *movieDB) SaveFeedVideoFromChan() {
+//	@Description: 从通道中获取 feedVideo 并保存
+//	@receiver m
+func (m *MovieDB) SaveFeedVideoFromChan() {
 	go func() {
 		for {
 			feedVideo := <-m.feedVideoCh
@@ -96,9 +97,9 @@ func (m *movieDB) SaveFeedVideoFromChan() {
 			if ok := tools.ExcludeVideo(feedVideo.TorrentName, config.ExcludeWords); ok {
 				continue
 			}
-			//log.Infof("%s.%s: %s 开始保存.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)
+			// log.Infof("%s.%s: %s 开始保存.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)
 			if err := NewMovieDB().CreatFeedVideo(feedVideo); err != nil {
-				if errors.Is(err, ErrorDataExist) {
+				if errors.Is(err, ErrDataExist) {
 					log.Debugf("%s.%s err: %s", strings.ToUpper(feedVideo.Web), feedVideo.Type, err)
 					continue
 				}

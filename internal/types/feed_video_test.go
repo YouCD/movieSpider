@@ -9,13 +9,13 @@ func TestFeedVideo_FormatTvByName(t *testing.T) {
 	f := &FeedVideo{
 		ID:          1,
 		TorrentName: "Deadliest.Catch.the.Viking.Returns.S01E04.Norwegian.Blood.iNTERNAL.1080p.WEB.h264-B2B[rartv]",
-		TorrentUrl:  "ccc",
+		TorrentURL:  "ccc",
 		Type:        "tv",
 	}
 
 	f1 := &FeedVideo{
 		TorrentName: "Spider-Man.No.Way.Home.2021.EXTENDED.1080p.WEBRip.x264-RARBG",
-		TorrentUrl:  "ccc",
+		TorrentURL:  "ccc",
 		Type:        "movie",
 	}
 

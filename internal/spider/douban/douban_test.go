@@ -20,7 +20,7 @@ func TestDouBan_Crawler(t *testing.T) {
 		return
 	}
 	request.Header.Set("User-Agent", "go")
-	client := httpClient2.NewHttpClient()
+	client := httpClient2.NewHTTPClient()
 	resp, err := client.Do(request)
 	if err != nil {
 		log.Error(err)

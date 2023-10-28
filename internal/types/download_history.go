@@ -1,5 +1,6 @@
 package types
 
+//nolint:tagliatelle
 type DownloadHistory struct {
 	ID          int    `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
 	Name        string `gorm:"uniqueIndex:tv_index;column:name;type:varchar(255);comment:片名;NOT NULL" json:"name"`

@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
+	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 	"io"
-	"movieSpider/internal/httpClient"
+	"movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
@@ -37,12 +38,13 @@ func NewSpiderTmDB(scheduling, apikey string) *TmDB {
 		url:        url,
 		apikey:     apikey,
 		scheduling: scheduling,
-		client:     httpClient.NewHttpClient(),
+		client:     httpclient.NewHTTPClient(),
 	}
 }
 
-func (t *TmDB) FindByImdbID(imdbID string) (*types.TmDBFindByImdbIdData, error) {
-	res := types.TmDBFindByImdbIdData{}
+//nolint:exhaustruct
+func (t *TmDB) FindByImdbID(imdbID string) (*types.TmDBFindByImdbIDData, error) {
+	res := types.TmDBFindByImdbIDData{}
 
 	urlStr := fmt.Sprintf(patternFindByImdbID, imdbID, t.apikey)
 	err := t.request(urlStr, &res)
@@ -70,7 +72,6 @@ func (t *TmDB) GetMovieDetailByID(id int, zhCN bool) (*types.TmDBMovieDetailData
 }
 
 func (t *TmDB) GetTVDetailByID(id int, zhCN bool) (*types.TmDBTVDetailData, error) {
-
 	var tv types.TmDBTVDetailData
 	var urlStr string
 	if zhCN {
@@ -85,25 +86,25 @@ func (t *TmDB) GetTVDetailByID(id int, zhCN bool) (*types.TmDBTVDetailData, erro
 	return &tv, err
 }
 
+//nolint:noctx
 func (t *TmDB) request(urlStr string, result interface{}) error {
 	resp, err := t.client.Get(urlStr)
 	if err != nil {
-		return err
+		return errors.WithMessage(err, "请求失败")
 	}
 	defer resp.Body.Close()
 	all, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return errors.WithMessage(err, "读取body失败")
 	}
 
 	err = json.Unmarshal(all, result)
 	if err != nil {
 		log.Debug(err)
-		return err
+		return errors.WithMessage(err, "解析json失败")
 	}
 
 	return nil
-
 }
 
 func (t *TmDB) Crawler() {
@@ -114,8 +115,8 @@ func (t *TmDB) Crawler() {
 		return
 	}
 	log.Error("获取到电视剧数量：", len(list))
-	//2	遍历所有电视剧 ，获取 tmDB信息 详情
-	dataMap := make(map[*types.DouBanVideo]*types.TmDBFindByImdbIdData)
+	// 2	遍历所有电视剧 ，获取 tmDB信息 详情
+	dataMap := make(map[*types.DouBanVideo]*types.TmDBFindByImdbIDData)
 
 	// 将 list 中的名字提取出来
 	videoDoubanNamesMap := make(map[*types.DouBanVideo][]string)
@@ -133,13 +134,13 @@ func (t *TmDB) Crawler() {
 
 	for video, got := range dataMap {
 		if len(got.TvEpisodeResults) > 0 {
-			tv, err := t.GetTVDetailByID(got.TvEpisodeResults[0].ShowId, false)
+			tv, err := t.GetTVDetailByID(got.TvEpisodeResults[0].ShowID, false)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
 			videoDoubanNamesMap[video] = append(videoDoubanNamesMap[video], allName(tv.Name, tv.NumberOfSeasons))
-			tv, err = t.GetTVDetailByID(got.TvEpisodeResults[0].ShowId, true)
+			tv, err = t.GetTVDetailByID(got.TvEpisodeResults[0].ShowID, true)
 			if err != nil {
 				log.Error(err)
 				continue
@@ -148,21 +149,20 @@ func (t *TmDB) Crawler() {
 		}
 
 		if len(got.TvResults) > 0 {
-			tv, err := t.GetTVDetailByID(got.TvResults[0].Id, false)
+			tv, err := t.GetTVDetailByID(got.TvResults[0].ID, false)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
 			videoDoubanNamesMap[video] = append(videoDoubanNamesMap[video], allName(tv.Name, tv.NumberOfSeasons))
 
-			tv, err = t.GetTVDetailByID(got.TvResults[0].Id, true)
+			tv, err = t.GetTVDetailByID(got.TvResults[0].ID, true)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
 			videoDoubanNamesMap[video] = append(videoDoubanNamesMap[video], joinDot(tv.Name))
 		}
-
 	}
 
 	// 4. 遍历 videoTMDBNamesMap ，去掉重复的名字
@@ -176,32 +176,27 @@ func (t *TmDB) Crawler() {
 		}
 
 		log.Errorf("video3: %#v    names：   %#v", video.ImdbID, string(marshal))
-
 	}
 }
 
+//nolint:govet
 func (t *TmDB) Run() {
-	//TODO implement me
-	panic("implement me")
-
 	if t.scheduling == "" {
 		log.Error("DouBan Scheduling is null")
 		os.Exit(1)
 	}
 	log.Infof("DouBan Scheduling is: [%s]", t.scheduling)
 	c := cron.New()
-	c.AddFunc(t.scheduling, func() { t.Crawler() })
+	_, _ = c.AddFunc(t.scheduling, func() { t.Crawler() })
 	c.Start()
-
 }
 
 func allName(str string, seasons int) string {
 	name := joinDot(str)
 	if seasons < 10 {
 		return name + ".S0" + strconv.Itoa(seasons)
-	} else {
-		return name + ".S" + strconv.Itoa(seasons)
 	}
+	return name + ".S" + strconv.Itoa(seasons)
 }
 
 func joinDot(str string) string {

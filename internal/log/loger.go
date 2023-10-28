@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+//nolint:gochecknoglobals
 var (
 	logTmFmt    = "2006-01-02 15:04:05"
 	logger      *zap.SugaredLogger
@@ -16,14 +17,11 @@ func NewLogger(level string) {
 	core := newCore(level)
 	l := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.Development())
 	logger = l.Sugar()
-	logger.Sync()
-
-	//return zap.New(bus, zap.AddCaller(), zap.AddCallerSkip(1), zap.Development(), zap.AddStacktrace(zap.ErrorLevel)))
-
+	_ = logger.Sync()
 }
 
 func newCore(level string) zapcore.Core {
-
+	//nolint:exhaustruct
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:       "ts",
 		LevelKey:      "level",
@@ -31,7 +29,7 @@ func newCore(level string) zapcore.Core {
 		CallerKey:     "caller",
 		MessageKey:    "msg",
 		StacktraceKey: "stacktrace",
-		EncodeLevel:   zapcore.CapitalColorLevelEncoder, //这里可以指定颜色
+		EncodeLevel:   zapcore.CapitalColorLevelEncoder, // 这里可以指定颜色
 		LineEnding:    zapcore.DefaultLineEnding,
 		//EncodeLevel:    zapcore.LowercaseLevelEncoder,  // 小写编码器
 		EncodeTime:     zapcore.TimeEncoderOfLayout(logTmFmt), // ISO8601 UTC 时间格式
@@ -42,6 +40,7 @@ func newCore(level string) zapcore.Core {
 	}
 
 	// 设置级别
+	//nolint:ineffassign,wastedassign
 	logLevel := zap.DebugLevel
 	switch level {
 	case "debug":
@@ -63,8 +62,6 @@ func newCore(level string) zapcore.Core {
 	return zapcore.NewCore(
 
 		zapcore.NewConsoleEncoder(encoderConfig),
-		//		zapcore.NewJSONEncoder(encoderConfig), // 编码器配置
-		//zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&hook)), // 打印到控制台和文件
 		zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), // 打印到控制台和文件
 		AtomicLevel, // 日志级别
 	)

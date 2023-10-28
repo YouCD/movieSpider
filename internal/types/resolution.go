@@ -11,6 +11,7 @@ const (
 )
 
 func (r Resolution) Res() string {
+	//nolint:exhaustive
 	switch r {
 	case Resolution480P:
 		return "480"

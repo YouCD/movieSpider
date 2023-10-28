@@ -1,36 +1,34 @@
 package job
 
 import (
-	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"github.com/robfig/cron/v3"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
-	"movieSpider/internal/ipProxy"
+	"movieSpider/internal/ipproxy"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"os"
+	"strconv"
 )
 
 type Report struct {
 	scheduling string
 }
 
-//
 // NewReport
-//  @Description: 新建Report
-//  @param scheduling
-//  @return *Report
 //
+//	@Description: 新建Report
+//	@param scheduling
+//	@return *Report
 func NewReport(scheduling string) *Report {
 	return &Report{scheduling: scheduling}
 }
 
-//
 // Run
-//  @Description: 运行
-//  @receiver r
 //
+//	@Description: 运行
+//	@receiver r
 func (r *Report) Run() {
 	if r.scheduling == "" {
 		log.Error("Report: Scheduling is null")
@@ -38,14 +36,13 @@ func (r *Report) Run() {
 	}
 	log.Infof("Report: Scheduling is: [%s]", r.scheduling)
 	c := cron.New()
-	c.AddFunc(r.scheduling, func() {
-
+	_, _ = c.AddFunc(r.scheduling, func() {
 		// FeedVideo 资源统计
 		reportFeedVideoStatistics()
 		// aria下载列表统计
 		reportAria2TaskStatistics()
 		// 代理统计
-		reportIpProxyStatistics()
+		reportIPProxyStatistics()
 		//
 		reportAria2DownloadRecordStatistics()
 	})
@@ -91,25 +88,23 @@ func reportFeedVideoStatistics() {
 	var Total int
 	for _, reportCount := range count {
 		Total += reportCount.Count
-		tableData = append(tableData, []string{reportCount.Web, fmt.Sprintf("%d", reportCount.Count)})
+		tableData = append(tableData, []string{reportCount.Web, strconv.Itoa(reportCount.Count)})
 	}
 	for _, v := range tableData {
 		table.Append(v)
 	}
-	table.SetFooter([]string{"总数", fmt.Sprintf("%d", Total)})
+	table.SetFooter([]string{"总数", strconv.Itoa(Total)})
 	log.Info("\n\n下载统计: ")
 	table.Render()
-
 }
 
-func reportIpProxyStatistics() {
-
-	c := ipProxy.FetchProxyTypeCount()
+func reportIPProxyStatistics() {
+	c := ipproxy.FetchProxyTypeCount()
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Http", "Https", "tcp", "Other"})
+	table.SetHeader([]string{"HTTP", "HTTPS", "tcp", "Other"})
 	tableData := [][]string{}
 
-	tableData = append(tableData, []string{fmt.Sprintf("%d", c.Http), fmt.Sprintf("%d", c.Https), fmt.Sprintf("%d", c.Tcp), fmt.Sprintf("%d", c.Other)})
+	tableData = append(tableData, []string{strconv.FormatInt(c.HTTP, 10), strconv.FormatInt(c.HTTPS, 10), strconv.FormatInt(c.TCP, 10), strconv.FormatInt(c.Other, 10)})
 	for _, v := range tableData {
 		table.Append(v)
 	}

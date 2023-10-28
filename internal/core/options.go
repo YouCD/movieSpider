@@ -6,31 +6,31 @@ import (
 	"movieSpider/internal/job"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
-	feed2 "movieSpider/internal/spider/feedSpider"
+	feed2 "movieSpider/internal/spider/feedspider"
 	"movieSpider/internal/types"
 )
 
+//nolint:inamedparam
 type Option interface {
-	apply(*movieSpider)
+	apply(*MovieSpider)
 }
-type optionFunc func(*movieSpider)
+type optionFunc func(*MovieSpider)
 
-func (f optionFunc) apply(ms *movieSpider) {
+func (f optionFunc) apply(ms *MovieSpider) {
 	f(ms)
 }
 
-//
 // WithFeeds
-//  @Description: 初始化feeds
-//  @param feeds
-//  @return Option
 //
+//	@Description: 初始化feeds
+//	@param feeds
+//	@return Option
 func WithFeeds(feeds ...feed2.Feeder) Option {
 	// BTBT
 	facFeedBTBT := new(feed2.FactoryBTBT)
 	feedBTBT := facFeedBTBT.CreateFeeder(config.BTBT.Scheduling)
 
-	//EZTV
+	// EZTV
 	facFeedEZTV := new(feed2.FactoryEZTV)
 	feedEZTV := facFeedEZTV.CreateFeeder(config.EZTV.Scheduling)
 
@@ -77,7 +77,7 @@ func WithFeeds(feeds ...feed2.Feeder) Option {
 	facFeedTPBPIRATEPROXY := new(feed2.FactoryTPBPIRATEPROXY)
 	feedTPBPIRATEPROXY := facFeedTPBPIRATEPROXY.CreateFeeder(config.TPBPIRATEPROXY.Scheduling)
 
-	return optionFunc(func(ms *movieSpider) {
+	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
 			feedBTBT,
 			feedEZTV,
@@ -93,54 +93,50 @@ func WithFeeds(feeds ...feed2.Feeder) Option {
 	})
 }
 
-//
 // WithConfigFile
-//  @Description: 初始化配置文件
-//  @param configFile
-//  @return Option
 //
+//	@Description: 初始化配置文件
+//	@param configFile
+//	@return Option
 func WithConfigFile(configFile string) Option {
 	config.InitConfig(configFile)
 	model.NewMovieDB()
-	return optionFunc(func(ms *movieSpider) {})
+	return optionFunc(func(ms *MovieSpider) {})
 }
 
-//
 // WithReport
-//  @Description: 初始化 report
-//  @return Option
 //
+//	@Description: 初始化 report
+//	@return Option
 func WithReport() Option {
-	return optionFunc(func(ms *movieSpider) {
+	return optionFunc(func(ms *MovieSpider) {
 		ms.report = job.NewReport("*/1 * * * *")
 		go ms.report.Run()
 	})
 }
 
-//
 // WithDownload
-//  @Description: 初始化下载器
-//  @return Option
 //
+//	@Description: 初始化下载器
+//	@return Option
 func WithDownload() Option {
-	return optionFunc(func(ms *movieSpider) {
+	return optionFunc(func(ms *MovieSpider) {
 		ms.download = download.NewDownloader(config.Downloader.Scheduling)
 		go ms.download.Run()
 	})
 }
 
-//
 // WithReleaseTimeJob
-//  @Description: 初始化下载器
-//  @return Option
 //
+//	@Description: 初始化下载器
+//	@return Option
 func WithReleaseTimeJob() Option {
 	if !config.TG.Enable {
-		return optionFunc(func(ms *movieSpider) {
+		return optionFunc(func(ms *MovieSpider) {
 			log.Warn("未开启TG通知，无法运行 电影上线 通知job")
 		})
 	}
-	return optionFunc(func(ms *movieSpider) {
+	return optionFunc(func(ms *MovieSpider) {
 		ms.releaseTimeJob = job.NewReleaseTimeJob("")
 		go ms.releaseTimeJob.Run()
 	})
