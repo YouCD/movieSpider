@@ -29,19 +29,33 @@ type Glodls struct {
 	BaseFeeder
 }
 
+func NewGlodls(scheduling, mirrorSite string) *Glodls {
+	urlBase := urlBaseGlodls
+	urlStr := fmt.Sprintf("%s/%s", urlBaseGlodls, urlRssURIGlodls)
+	if mirrorSite != "" {
+		urlStr = fmt.Sprintf("%s/%s", mirrorSite, urlRssURIGlodls)
+		urlBase = mirrorSite
+	}
+
+	//nolint:exhaustruct
+	return &Glodls{
+		urlBase,
+		BaseFeeder{
+			web:        "glodls",
+			url:        urlStr,
+			scheduling: scheduling,
+		},
+	}
+}
+
 //nolint:gosimple,ineffassign,goconst
 func (g *Glodls) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(g.url)
-	if fd == nil {
-		return nil, ErrNoFeedData
+	if err != nil {
+		return nil, ErrFeedParseURL
 	}
-	log.Debugf("GLODLS Config: %#v", fd)
-	log.Debugf("GLODLS Data: %#v", fd.String())
-	if len(fd.Items) == 0 {
-		return nil, errors.New("GLODLS: 没有feed数据")
-	}
-	log.Infof("%s working, url: %s", strings.ToUpper(g.web), g.url)
+	log.Debugf("%s Data: %#v", strings.ToUpper(g.web), fd.String())
 	//nolint:prealloc
 	var videosA []*types.FeedVideo
 	for _, v := range fd.Items {

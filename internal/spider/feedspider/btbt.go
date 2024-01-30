@@ -21,6 +21,16 @@ type Btbt struct {
 	BaseFeeder
 }
 
+func NewBtbt(scheduling string) *Btbt {
+	//nolint:forcetypeassert
+	return &Btbt{
+		BaseFeeder{
+			web:        "btbt",
+			url:        urlBtbt,
+			scheduling: scheduling,
+		},
+	}
+}
 func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
 	c := httpclient.NewHTTPClient()
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, b.url, nil)

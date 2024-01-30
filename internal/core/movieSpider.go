@@ -1,14 +1,19 @@
 package core
 
 import (
+	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
 	"movieSpider/internal/bot"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
 	"movieSpider/internal/job"
+	"movieSpider/internal/log"
 	"movieSpider/internal/spider"
 	"movieSpider/internal/spider/douban"
 	"movieSpider/internal/spider/feedspider"
+	"os"
+	"strings"
 )
 
 type MovieSpider struct {
@@ -42,7 +47,28 @@ func NewMovieSpider(options ...Option) *MovieSpider {
 func (m *MovieSpider) RunWithFeed() {
 	for _, feeder := range m.feeds {
 		go func(feeder feedspider.Feeder) {
-			feeder.Run(bus.FeedVideoChan)
+			if feeder.Scheduling() == "" {
+				log.Errorf("%s Scheduling is null", feeder.WebName())
+				os.Exit(1)
+			}
+			log.Infof("%s Scheduling is: [%s]", feeder.WebName(), feeder.Scheduling())
+			c := cron.New()
+			_, _ = c.AddFunc(feeder.Scheduling(), func() {
+				videos, err := feeder.Crawler()
+				if err != nil {
+					if errors.Is(err, feedspider.ErrNoFeedData) {
+						log.Warnf("%s: 没有feed数据, url: %s", strings.ToUpper(feeder.WebName()), feeder.Url())
+						return
+					}
+					log.Error(err)
+					return
+				}
+				for _, video := range videos {
+					bus.FeedVideoChan <- video
+				}
+			})
+			c.Start()
+
 		}(feeder)
 	}
 }

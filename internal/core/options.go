@@ -27,55 +27,49 @@ func (f optionFunc) apply(ms *MovieSpider) {
 //	@return Option
 func WithFeeds(feeds ...feed2.Feeder) Option {
 	// BTBT
-	facFeedBTBT := new(feed2.FactoryBTBT)
-	feedBTBT := facFeedBTBT.CreateFeeder(config.BTBT.Scheduling)
+	feedBTBT := feed2.NewBtbt(config.BTBT.Scheduling)
 
 	// EZTV
-	facFeedEZTV := new(feed2.FactoryEZTV)
-	feedEZTV := facFeedEZTV.CreateFeeder(config.EZTV.Scheduling, config.EZTV.MirrorSite)
+	feedEZTV := feed2.NewEztv(config.EZTV.Scheduling, config.EZTV.MirrorSite)
 
 	// GLODLS
-	facFeedGLODLS := new(feed2.FactoryGLODLS)
-	feedGLODLS := facFeedGLODLS.CreateFeeder(config.GLODLS.Scheduling, config.GLODLS.MirrorSite)
+	feedGLODLS := feed2.NewGlodls(config.GLODLS.Scheduling, config.GLODLS.MirrorSite)
 
 	// TGX
-	facFeedTGX := new(feed2.FactoryTGX)
-	feedTGXS := facFeedTGX.CreateFeeder(config.TGX.Scheduling, config.TGX.MirrorSite)
+	feedTGXS := feed2.NewTgx(config.TGX.Scheduling, config.TGX.MirrorSite)
 
 	// TORLOCK
-	facFeedTorlock := new(feed2.FactoryTORLOCK)
 	var feedTorlockMovie feed2.Feeder
 	var feedTorlockTV feed2.Feeder
 	for _, r := range config.TORLOCK {
 		if r != nil {
 			if r.Typ == types.VideoTypeTV {
-				feedTorlockTV = facFeedTorlock.CreateFeeder(r.Scheduling, r.Typ, r.MirrorSite)
+				feedTorlockTV = feed2.NewTorlock(r.Scheduling, r.Typ, r.MirrorSite)
 			}
 			log.Debug(r)
 			if r.Typ == types.VideoTypeMovie {
-				feedTorlockMovie = facFeedTorlock.CreateFeeder(r.Scheduling, r.Typ, r.MirrorSite)
+				feedTorlockMovie = feed2.NewTorlock(r.Scheduling, r.Typ, r.MirrorSite)
 			}
 			log.Debug(r)
 		}
 	}
 	// MAGNETDL
-	facFeedMagnetdl := new(feed2.FactoryMAGNETDL)
 	var feedMagnetdlMovie feed2.Feeder
 	var feedMagnetdlTV feed2.Feeder
 	for _, r := range config.MAGNETDL {
 		if r != nil {
 			if r.Typ == types.VideoTypeTV {
-				feedMagnetdlTV = facFeedMagnetdl.CreateFeeder(r.Scheduling, r.Typ, r.MirrorSite)
+				feedMagnetdlTV = feed2.NewMagnetdl(r.Scheduling, r.Typ, r.MirrorSite)
 			}
 			log.Debug(r)
 			if r.Typ == types.VideoTypeMovie {
-				feedMagnetdlMovie = facFeedMagnetdl.CreateFeeder(r.Scheduling, r.Typ, r.MirrorSite)
+				feedMagnetdlMovie = feed2.NewMagnetdl(r.Scheduling, r.Typ, r.MirrorSite)
 			}
 			log.Debug(r)
 		}
 	}
-	facFeedTPBPIRATEPROXY := new(feed2.FactoryTPBPIRATEPROXY)
-	feedTPBPIRATEPROXY := facFeedTPBPIRATEPROXY.CreateFeeder(config.TPBPIRATEPROXY.Scheduling, config.TPBPIRATEPROXY.MirrorSite)
+
+	feedTPBPIRATEPROXY := feed2.NewTpbpirateproxy(config.TPBPIRATEPROXY.Scheduling, config.TPBPIRATEPROXY.MirrorSite)
 
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,

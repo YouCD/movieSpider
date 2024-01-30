@@ -3,9 +3,9 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
-	"github.com/pkg/errors"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/magnetconvert"
@@ -24,25 +24,40 @@ type Torlock struct {
 	BaseFeeder
 }
 
+//nolint:forcetypeassert
+func NewTorlock(args ...interface{}) *Torlock {
+	resourceType := args[1].(types.VideoType)
+
+	urlBase := urlBaseTorlock
+	if len(args) == 3 && args[2] != 0 {
+		urlBase = args[2].(string)
+	}
+
+	url := fmt.Sprintf("%s/television/rss.xml", urlBase)
+	if resourceType == types.VideoTypeMovie {
+		url = fmt.Sprintf("%s/movies/rss.xml", urlBase)
+	}
+	return &Torlock{
+		typ: resourceType,
+		BaseFeeder: BaseFeeder{
+			web:        "torlock",
+			url:        url,
+			scheduling: args[0].(string),
+		},
+	}
+}
+
 //nolint:gosimple,gocognit,gocritic
 func (t *Torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fp.Client = httpclient.NewHTTPClient()
 	fp.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
 	if t.typ == types.VideoTypeMovie {
-		log.Infof("%s working, type:%s ,url: %s", strings.ToUpper(t.web), t.typ.String(), t.url)
 		fd, err := fp.ParseURL(t.url)
 		if err != nil {
-			log.Errorf("url: %s, err: %s", t.url, err)
+			return nil, ErrFeedParseURL
 		}
-		if fd == nil {
-			return nil, ErrNoFeedData
-		}
-		log.Debugf("TORLOCK.movie Data: %#v", fd.String())
-		if len(fd.Items) == 0 {
-			//nolint:revive
-			return nil, errors.New("TORLOCK.movie: 没有feed数据.")
-		}
+		log.Debugf("%s Data: %#v", strings.ToUpper(t.web), fd.String())
 
 		var videos1 []*types.FeedVideo
 		nameReg := regexp.MustCompile("(.*)\\.([0-9][0-9][0-9][0-9])\\.")
@@ -91,18 +106,11 @@ func (t *Torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 		return Videos, nil
 	}
 	if t.typ == types.VideoTypeTV {
-		log.Infof("%s working, type:%s ,url: %s", strings.ToUpper(t.web), t.typ.String(), t.url)
 		fd, err := fp.ParseURL(t.url)
 		if err != nil {
-			log.Errorf("url: %s, err: %s", t.url, err)
-		}
-		if fd == nil {
-			return nil, ErrNoFeedData
+			return nil, ErrFeedParseURL
 		}
 		log.Debugf("TORLOCK.tv Data: %#v", fd.String())
-		if len(fd.Items) == 0 {
-			return nil, errors.New("TORLOCK.tv: 没有feed数据")
-		}
 		compileRegex := regexp.MustCompile("(.*)\\.[sS][0-9][0-9]|[Ee][0-9][0-9]?\\.")
 
 		var videos1 []*types.FeedVideo

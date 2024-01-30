@@ -3,8 +3,8 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/mmcdole/gofeed"
-	"github.com/pkg/errors"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"regexp"
@@ -20,21 +20,28 @@ type Eztv struct {
 	BaseFeeder
 }
 
+func NewEztv(Scheduling, mirrorSite string) *Eztv {
+	url := fmt.Sprintf("%s/%s", urlBaseEztv, urlRssURIEztv)
+	if mirrorSite != "" {
+		url = fmt.Sprintf("%s/%s", mirrorSite, urlRssURIEztv)
+	}
+	//nolint:forcetypeassert
+	return &Eztv{BaseFeeder{
+		web:        "eztv",
+		url:        url,
+		scheduling: Scheduling,
+	}}
+}
+
 //nolint:gosimple
 func (f *Eztv) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(f.url)
-	if fd == nil {
-		return nil, ErrNoFeedData
-	}
 	if err != nil {
-		return nil, errors.Wrap(err, "EZTV: 解析失败")
+		return nil, ErrFeedParseURL
 	}
+	log.Debugf("%s Data: %#v", strings.ToUpper(f.web), fd.String())
 
-	log.Infof("%s working, url: %s", strings.ToUpper(f.web), f.url)
-	if len(fd.Items) == 0 {
-		return nil, errors.New("EZTV: 没有feed数据")
-	}
 	for _, v := range fd.Items {
 		torrentName := strings.ReplaceAll(v.Title, " ", ".")
 		var name, year string

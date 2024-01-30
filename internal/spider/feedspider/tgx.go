@@ -3,6 +3,7 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
 	"movieSpider/internal/log"
@@ -22,6 +23,24 @@ type Tgx struct {
 	BaseFeeder
 }
 
+//nolint:forcetypeassert
+func NewTgx(args ...interface{}) *Tgx {
+	var url string
+	if len(args) == 0 {
+		url = fmt.Sprintf("%s/%s", urlBaseTgx, urlRssURITgx)
+	} else if args[1] != "" {
+		url = fmt.Sprintf("%s/%s", args[1], urlRssURITgx)
+	}
+
+	return &Tgx{
+		BaseFeeder{
+			web:        "tgx",
+			url:        url,
+			scheduling: args[0].(string),
+		},
+	}
+}
+
 //nolint:gochecknoglobals
 var (
 	//  跳过的类别
@@ -38,16 +57,10 @@ func inSkipCategories(categories string) bool {
 func (t *Tgx) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(t.url)
-	if fd == nil {
-		return nil, ErrNoFeedData
+	if err != nil {
+		return nil, ErrFeedParseURL
 	}
-	log.Debugf("TGx Config: %#v", fd)
-	log.Debugf("TGx Data: %#v", fd.String())
-	if len(fd.Items) == 0 {
-		return nil, ErrNoFeedData
-	}
-
-	log.Infof("%s working, url: %s", strings.ToUpper(t.web), t.url)
+	log.Debugf("%s Data: %#v", strings.ToUpper(t.web), fd.String())
 
 	videos1 := make([]*types.FeedVideo, 0)
 	for _, v := range fd.Items {

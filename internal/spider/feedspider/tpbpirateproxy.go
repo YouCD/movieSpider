@@ -3,8 +3,8 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/mmcdole/gofeed"
-	"github.com/pkg/errors"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"regexp"
@@ -20,19 +20,30 @@ type Tpbpirateproxy struct {
 	BaseFeeder
 }
 
+func NewTpbpirateproxy(scheduling, mirrorSite string) *Tpbpirateproxy {
+	url := fmt.Sprintf("%s/%s", urlBaseTpbpirateProxy, urlRssURITpbpirateProxy)
+	if mirrorSite != "" {
+		url = fmt.Sprintf("%s/%s", mirrorSite, urlRssURITpbpirateProxy)
+	}
+
+	return &Tpbpirateproxy{
+		BaseFeeder{
+			web:        "tpbpirateproxy",
+			url:        url,
+			scheduling: scheduling,
+		},
+	}
+}
+
 //nolint:gosimple,gocritic
 func (t *Tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(t.url)
-	if fd == nil {
-		return nil, ErrNoFeedData
+	if err != nil {
+		return nil, ErrFeedParseURL
 	}
-	log.Debugf("Tpbpirateproxy Config: %#v", fd)
-	log.Debugf("Tpbpirateproxy Data: %#v", fd.String())
-	if len(fd.Items) == 0 {
-		return nil, errors.New("Tpbpirateproxy: 没有feed数据")
-	}
-	log.Infof("%s working, url: %s", strings.ToUpper(t.web), t.url)
+	log.Debugf("%s Data: %#v", strings.ToUpper(t.web), fd.String())
+
 	//nolint:prealloc
 	var videosA []*types.FeedVideo
 	for _, v := range fd.Items {

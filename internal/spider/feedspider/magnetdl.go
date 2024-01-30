@@ -2,6 +2,7 @@ package feedspider
 
 import (
 	"context"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
 	"movieSpider/internal/httpclient"
@@ -23,13 +24,33 @@ type Magnetdl struct {
 	BaseFeeder
 }
 
+func NewMagnetdl(scheduling string, typ types.VideoType, mirrorSite string) *Magnetdl {
+	resourceType := typ
+	urlBase := urlBaseMagnetdl
+	if mirrorSite != "" {
+		urlBase = mirrorSite
+	}
+
+	url := fmt.Sprintf("%s/%s", urlBase, urlRssURITVMagnetdl)
+	if resourceType == types.VideoTypeMovie {
+		url = fmt.Sprintf("%s/%s", urlBase, urlRssURIMovieMagnetdl)
+	}
+	return &Magnetdl{
+		resourceType,
+		BaseFeeder{
+			web:        "magnetdl",
+			url:        url,
+			scheduling: scheduling,
+		},
+	}
+}
+
 //nolint:gosimple,gocognit,gocritic
 func (m *Magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 	c := httpclient.NewHTTPClient()
 	//nolint:exhaustive
 	switch m.typ {
 	case types.VideoTypeMovie:
-		log.Infof("%s working, type:%s ,url: %s", strings.ToUpper(m.web), m.typ.String(), m.url)
 		req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, m.url, nil)
 		if err != nil {
 			return nil, errors.WithMessage(err, "magnetdl req")
