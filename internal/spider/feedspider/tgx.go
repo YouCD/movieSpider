@@ -5,63 +5,86 @@ import (
 	"encoding/json"
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
 	"movieSpider/internal/log"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
-	"os"
 	"regexp"
 	"strings"
 	"sync"
 )
 
-const urlTgx = "https://tgx.rs/rss"
+const (
+	urlBaseTgx   = "https://tgx.rs"
+	urlRssURITgx = "rss"
+)
 
-type tgx struct {
-	scheduling string
-	url        string
-	web        string
+type Tgx struct {
+	BaseFeeder
 }
 
-//nolint:gosimple,gocritic,,rowserrcheck,ineffassign
-func (t *tgx) Crawler() (videos []*types.FeedVideo, err error) {
+//nolint:gochecknoglobals
+var (
+	//  跳过的类别
+	skipCategories = []string{"games", "xxx", "apps", "music", "books"}
+)
+
+func inSkipCategories(categories string) bool {
+	for _, category := range skipCategories {
+		return strings.Contains(strings.ToLower(categories), category)
+	}
+	return false
+}
+
+func (t *Tgx) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(t.url)
 	if fd == nil {
-		return nil, errors.New("TGx: 没有feed数据")
+		return nil, ErrNoFeedData
 	}
 	log.Debugf("TGx Config: %#v", fd)
 	log.Debugf("TGx Data: %#v", fd.String())
 	if len(fd.Items) == 0 {
-		return nil, errors.New("TGx: 没有feed数据")
+		return nil, ErrNoFeedData
 	}
-	//nolint:prealloc,ineffassign
-	var videos1 []*types.FeedVideo
+
+	log.Infof("%s working, url: %s", strings.ToUpper(t.web), t.url)
+
+	videos1 := make([]*types.FeedVideo, 0)
 	for _, v := range fd.Items {
+		if len(v.Categories) > 0 {
+			if inSkipCategories(v.Categories[0]) {
+				log.Infof("TGx: 跳过类别: [%s], Title: %s", v.Categories[0], v.Title)
+				continue
+			}
+		}
+
 		torrentName := strings.ReplaceAll(v.Title, " ", ".")
 		var name, year, typ string
-
-		compileRegex := regexp.MustCompile("(.*)\\.(\\d{4})\\.")
+		compileRegex := regexp.MustCompile(`(.*)\.(\d{4})\.`)
 		matchArr := compileRegex.FindStringSubmatch(torrentName)
+		if len(matchArr) < 3 {
+			continue
+		}
+		year = matchArr[2]
 		if len(matchArr) == 0 {
-			tvReg := regexp.MustCompile("(.*)(\\.[Ss][0-9][0-9][eE][0-9][0-9])")
+			tvReg := regexp.MustCompile(`(.*)(\.[Ss][0-9][0-9][eE][0-9][0-9])`)
 			TVNameArr := tvReg.FindStringSubmatch(torrentName)
 			// 如果 正则匹配过后 没有结果直接 过滤掉
 			if len(TVNameArr) == 0 {
 				continue
 			}
-			//nolint:wastedassign
 			name = TVNameArr[1]
+		} else {
+			name = matchArr[1]
 		}
-		year = matchArr[2]
-		name = matchArr[1]
 
 		// 过滤掉 其他类型的种子
-		if strings.HasPrefix(strings.ToLower(v.Categories[0]), "tv :") {
+		switch {
+		case strings.HasPrefix(strings.ToLower(v.Categories[0]), "tv :"):
 			typ = "tv"
-		} else if strings.HasPrefix(strings.ToLower(v.Categories[0]), "movies :") {
+		case strings.HasPrefix(strings.ToLower(v.Categories[0]), "movies :"):
 			typ = "movie"
-		} else {
+		default:
 			continue
 		}
 
@@ -96,25 +119,4 @@ func (t *tgx) Crawler() (videos []*types.FeedVideo, err error) {
 	wg.Wait()
 	//nolint:nakedret
 	return
-}
-
-func (t *tgx) Run(ch chan *types.FeedVideo) {
-	if t.scheduling == "" {
-		log.Error("TGx Scheduling is null")
-		os.Exit(1)
-	}
-	log.Infof("TGx Scheduling is: [%s]", t.scheduling)
-	c := cron.New()
-	_, _ = c.AddFunc(t.scheduling, func() {
-		videos, err := t.Crawler()
-		if err != nil {
-			log.Error(err)
-			return
-		}
-		// model.ProxySaveVideo2DB(videos...)
-		for _, video := range videos {
-			ch <- video
-		}
-	})
-	c.Start()
 }

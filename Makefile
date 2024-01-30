@@ -18,6 +18,7 @@ BINARY_NAME:=movieSpider
 
 build:
 	@CGO_ENABLED=0 $(GOBUILD) $(StripGoPath) -ldflags $(FLAG) -o $(BINARY_DIR)/$(BINARY_NAME)
+	@upx $(BINARY_DIR)/$(BINARY_NAME)
 # linux
 build-linux:
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) $(StripGoPath) -ldflags $(FLAG) -o $(BINARY_DIR)/$(BINARY_NAME)-$(VERSION)-linux
@@ -37,3 +38,5 @@ build-all:
 	make build-win
 	#cd bin&&tar zcf ${BINARY_NAME}.tgz ${BINARY_NAME}
 
+check:
+	@golangci-lint run ./...

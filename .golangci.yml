@@ -10,17 +10,18 @@ run:
   tests: false
 
 linters:
-#  # 禁用所有默认启用的linters
-#  disable-all: true
-#  # 仅启用以下linters
+  #  # 禁用所有默认启用的linters
+  #  disable-all: true
+  #  # 仅启用以下linters
   enable-all: true
   disable:
     - varnamelen
-    - nolintlint
+    #- nolintlint
+    - gochecknoinits
     - nonamedreturns
     - ireturn
     - nlreturn
-#    - inamedparam
+    - inamedparam
     - godot
     - godox
     - gofumpt
@@ -45,7 +46,11 @@ linters:
     - deadcode
     - goimports
     - gci
-    - unused
+    - gochecknoglobals
+    - exhaustive
+    - goconst
+    - exhaustruct
+    - forbidigo
 
 
 
@@ -65,14 +70,3 @@ linters-settings:
       - G101
       - G112
       - G306
-
-# 配置问题排除规则
-#issues:
-#  # 对_test.go文件排除以下linters的检查
-#  exclude-rules:
-#    - path: _test\.go
-#      linters:
-#        - errcheck
-#        - gosec
-#        - rowserrcheck
-#        - makezero

@@ -1,17 +1,9 @@
 package httpclient
 
 import (
-	"crypto/tls"
-	"fmt"
-	"golang.org/x/net/http2"
 	"movieSpider/internal/config"
-	"movieSpider/internal/ipproxy"
-	"movieSpider/internal/log"
-	"net"
 	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -46,6 +38,7 @@ func NewHTTPClient() *http.Client {
 	return httpClient
 }
 
+/*
 func NewProxyHTTPClient(proxyType string) *http.Client {
 	proxyObj := ipproxy.FetchProxy(proxyType)
 	if proxyObj == nil {
@@ -103,3 +96,5 @@ func NewProxyHTTPClient(proxyType string) *http.Client {
 	}
 	return nil
 }
+
+*/

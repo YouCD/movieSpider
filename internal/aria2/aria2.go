@@ -2,6 +2,7 @@ package aria2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/zyxar/argo/rpc"
@@ -45,7 +46,8 @@ func NewAria2(label string) (*Aria2, error) {
 					log.Error(err)
 					e = err
 				}
-				log.Debug(config.Aria2cList)
+				marshal, _ := json.Marshal(config.Aria2cList)
+				log.Debug(string(marshal))
 				aria2Client = &Aria2{aria2Client: client, downloadTask: make(map[string]*types.DouBanVideo)}
 			}
 		}
@@ -114,6 +116,7 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 	}
 }
 
+/*
 // getAllActiveGID
 //
 //	@Description: 获取所有正在下载的任务的gid
@@ -122,17 +125,19 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 //	@return error
 //
 //nolint:prealloc
-func (a *Aria2) getAllActiveGID() ([]string, error) {
-	infos, err := a.List()
-	if err != nil {
-		return nil, err
+
+	func (a *Aria2) getAllActiveGID() ([]string, error) {
+		infos, err := a.List()
+		if err != nil {
+			return nil, err
+		}
+		var gid []string
+		for _, info := range infos {
+			gid = append(gid, info.Gid)
+		}
+		return gid, nil
 	}
-	var gid []string
-	for _, info := range infos {
-		gid = append(gid, info.Gid)
-	}
-	return gid, nil
-}
+*/
 
 func (a *Aria2) DownloadByWithVideo(v *types.DouBanVideo, url string) (gid string, err error) {
 	gid, err = a.DownloadByMagnet(url)

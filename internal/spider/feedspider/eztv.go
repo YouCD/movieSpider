@@ -5,31 +5,33 @@ import (
 	"encoding/json"
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
-	"os"
 	"regexp"
 	"strings"
 )
 
-const urlEztv = "https://eztv.re/ezrss.xml"
+const (
+	urlBaseEztv   = "https://eztv.io"
+	urlRssURIEztv = "ezrss.xml"
+)
 
-type eztv struct {
-	scheduling string
-	url        string
-	web        string
+type Eztv struct {
+	BaseFeeder
 }
 
 //nolint:gosimple
-func (f *eztv) Crawler() (videos []*types.FeedVideo, err error) {
+func (f *Eztv) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(f.url)
 	if fd == nil {
-		return nil, errors.New("EZTV: 没有feed数据")
+		return nil, ErrNoFeedData
 	}
-	log.Debugf("EZTV Config: %#v", fd)
-	log.Debugf("EZTV Data: %#v", fd.String())
+	if err != nil {
+		return nil, errors.Wrap(err, "EZTV: 解析失败")
+	}
+
+	log.Infof("%s working, url: %s", strings.ToUpper(f.web), f.url)
 	if len(fd.Items) == 0 {
 		return nil, errors.New("EZTV: 没有feed数据")
 	}
@@ -71,24 +73,4 @@ func (f *eztv) Crawler() (videos []*types.FeedVideo, err error) {
 	}
 	//nolint:nakedret
 	return
-}
-func (f *eztv) Run(ch chan *types.FeedVideo) {
-	if f.scheduling == "" {
-		log.Error("EZTV Scheduling is null")
-		os.Exit(1)
-	}
-	log.Infof("EZTV Scheduling is: [%s]", f.scheduling)
-	c := cron.New()
-	_, _ = c.AddFunc(f.scheduling, func() {
-		videos, err := f.Crawler()
-		if err != nil {
-			log.Error(err)
-			return
-		}
-		for _, video := range videos {
-			ch <- video
-		}
-		// model.ProxySaveVideo2DB(videos...)
-	})
-	c.Start()
 }

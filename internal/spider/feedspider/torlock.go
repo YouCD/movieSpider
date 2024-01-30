@@ -3,47 +3,40 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
-	"os"
 	"regexp"
 	"strings"
 	"sync"
 )
 
 const (
-	urlTorlockMovie = "https://www.torlock.com/movies/rss.xml"
-	urlTorlockTV    = "https://www.torlock.com/television/rss.xml"
+	urlBaseTorlock = "https://www.torlock.com"
 )
 
-type torlock struct {
+type Torlock struct {
 	typ types.VideoType
-	// url        string
-	web        string
-	scheduling string
-	// httpClient *http.Client
+	BaseFeeder
 }
 
 //nolint:gosimple,gocognit,gocritic
-func (t *torlock) Crawler() (Videos []*types.FeedVideo, err error) {
+func (t *Torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fp.Client = httpclient.NewHTTPClient()
 	fp.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
 	if t.typ == types.VideoTypeMovie {
-		fd, err := fp.ParseURL(urlTorlockMovie)
+		log.Infof("%s working, type:%s ,url: %s", strings.ToUpper(t.web), t.typ.String(), t.url)
+		fd, err := fp.ParseURL(t.url)
 		if err != nil {
-			log.Error(err)
+			log.Errorf("url: %s, err: %s", t.url, err)
 		}
 		if fd == nil {
-			//nolint:revive,goerr113
-			return nil, fmt.Errorf("TORLOCK.%s feed is nil.", t.typ)
+			return nil, ErrNoFeedData
 		}
 		log.Debugf("TORLOCK.movie Data: %#v", fd.String())
 		if len(fd.Items) == 0 {
@@ -98,12 +91,13 @@ func (t *torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 		return Videos, nil
 	}
 	if t.typ == types.VideoTypeTV {
-		fd, err := fp.ParseURL(urlTorlockTV)
+		log.Infof("%s working, type:%s ,url: %s", strings.ToUpper(t.web), t.typ.String(), t.url)
+		fd, err := fp.ParseURL(t.url)
 		if err != nil {
-			log.Error(err)
+			log.Errorf("url: %s, err: %s", t.url, err)
 		}
 		if fd == nil {
-			return nil, errors.New("TORLOCK.tv: 没有feed数据")
+			return nil, ErrNoFeedData
 		}
 		log.Debugf("TORLOCK.tv Data: %#v", fd.String())
 		if len(fd.Items) == 0 {
@@ -146,7 +140,7 @@ func (t *torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 	return
 }
 
-func (t *torlock) fetchMagnet(videos []*types.FeedVideo) (feedVideos []*types.FeedVideo) {
+func (t *Torlock) fetchMagnet(videos []*types.FeedVideo) (feedVideos []*types.FeedVideo) {
 	var wg sync.WaitGroup
 	for _, video := range videos {
 		wg.Add(1)
@@ -164,7 +158,7 @@ func (t *torlock) fetchMagnet(videos []*types.FeedVideo) (feedVideos []*types.Fe
 	return feedVideos
 }
 
-func (t *torlock) fetchMagnetDownLoad(videos []*types.FeedVideo) []*types.FeedVideo {
+func (t *Torlock) fetchMagnetDownLoad(videos []*types.FeedVideo) []*types.FeedVideo {
 	var wg sync.WaitGroup
 	var videos2 []*types.FeedVideo
 	for _, video := range videos {
@@ -191,23 +185,4 @@ func (t *torlock) fetchMagnetDownLoad(videos []*types.FeedVideo) []*types.FeedVi
 	}
 	wg.Wait()
 	return videos2
-}
-func (t *torlock) Run(ch chan *types.FeedVideo) {
-	if t.scheduling == "" {
-		log.Errorf("TORLOCK %s: Scheduling is null", t.typ)
-		os.Exit(1)
-	}
-	log.Infof("TORLOCK %s: Scheduling is: [%s]", t.typ, t.scheduling)
-	c := cron.New()
-	_, _ = c.AddFunc(t.scheduling, func() {
-		videos, err := t.Crawler()
-		if err != nil {
-			log.Error(err)
-		}
-		// model.ProxySaveVideo2DB(videos...)
-		for _, video := range videos {
-			ch <- video
-		}
-	})
-	c.Start()
 }

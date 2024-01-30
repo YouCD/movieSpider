@@ -7,11 +7,12 @@ import (
 )
 
 func Test_tpbpirateproxy_Crawler(t *testing.T) {
-	//config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/core/bin/core/config.yaml")
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/movieSpider/bin/movieSpider/config.yaml")
-	g := &tpbpirateproxy{
-		scheduling: "tpbpirateproxy",
-		web:        "tpbpirateproxy",
+	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
+	g := &Tpbpirateproxy{
+		BaseFeeder{
+			web: "tpbpirateproxy",
+			url: fmt.Sprintf("%s/%s", urlBaseTpbpirateProxy, urlRssURITpbpirateProxy),
+		},
 	}
 	gotVideos, err := g.Crawler()
 	if err != nil {

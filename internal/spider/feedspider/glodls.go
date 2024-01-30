@@ -8,41 +8,40 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
 	httpClient2 "movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"net/http"
 	"net/url"
-	"os"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 )
 
-const urlGlodls = "http://glodls.to/rss.php?cat=1,41"
+const (
+	urlBaseGlodls   = "http://gtso.cc"
+	urlRssURIGlodls = "rss.php?cat=1,41"
+)
 
-type glodls struct {
-	url        string
-	scheduling string
-	web        string
-	httpClient *http.Client
+type Glodls struct {
+	urlBase string
+	BaseFeeder
 }
 
 //nolint:gosimple,ineffassign,goconst
-func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
+func (g *Glodls) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
-	fp.Client = g.httpClient
 	fd, err := fp.ParseURL(g.url)
 	if fd == nil {
-		return nil, errors.New("GLODLS: 没有feed数据")
+		return nil, ErrNoFeedData
 	}
 	log.Debugf("GLODLS Config: %#v", fd)
 	log.Debugf("GLODLS Data: %#v", fd.String())
 	if len(fd.Items) == 0 {
 		return nil, errors.New("GLODLS: 没有feed数据")
 	}
+	log.Infof("%s working, url: %s", strings.ToUpper(g.web), g.url)
 	//nolint:prealloc
 	var videosA []*types.FeedVideo
 	for _, v := range fd.Items {
@@ -88,7 +87,7 @@ func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 		id := parse.Query()["id"][0]
 		all := strings.ReplaceAll(v.Title, " ", "-")
 
-		TorrentURL := fmt.Sprintf("http://glodls.to/%s-f-%s.html", strings.ToLower(all), id)
+		TorrentURL := fmt.Sprintf("%s/%s-f-%s.html", g.urlBase, strings.ToLower(all), id)
 
 		fVideo.TorrentURL = TorrentURL
 
@@ -113,7 +112,6 @@ func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 			defer wg.Done()
 			magnet, err := g.fetchMagnet(video.TorrentURL)
 			if err != nil {
-				err := errors.Unwrap(err)
 				log.Error(err)
 			}
 			if magnet == "" {
@@ -128,13 +126,14 @@ func (g *glodls) Crawler() (videos []*types.FeedVideo, err error) {
 	return
 }
 
-func (g *glodls) fetchMagnet(url string) (magnet string, err error) {
+func (g *Glodls) fetchMagnet(url string) (magnet string, err error) {
 	request, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
 	if err != nil {
 		return "", errors.Wrap(err, "GLODLS: 创建新的请求")
 	}
-	g.httpClient.Timeout = 20 * time.Second
-	resp, err := g.httpClient.Do(request)
+	httpClient := httpClient2.NewHTTPClient()
+	httpClient.Timeout = 20 * time.Second
+	resp, err := httpClient.Do(request)
 	if err != nil {
 		return "", errors.Wrap(err, "GLODLS: 请求错误")
 	}
@@ -153,34 +152,4 @@ func (g *glodls) fetchMagnet(url string) (magnet string, err error) {
 		return "", errors.Wrap(err, "GLODLS: 查找href出错")
 	}
 	return magnet, nil
-}
-
-func (g *glodls) Run(ch chan *types.FeedVideo) {
-	if g.scheduling == "" {
-		log.Error("GLODLS Scheduling is null")
-		os.Exit(1)
-	}
-	log.Infof("GLODLS Scheduling is: [%s]", g.scheduling)
-	c := cron.New()
-	_, _ = c.AddFunc(g.scheduling, func() {
-		log.Info("GLODLS: is working...")
-		for {
-		Start:
-			videos, err := g.Crawler()
-			if err != nil {
-				log.Error(err)
-			}
-			if len(videos) == 0 || videos == nil {
-				log.Info("GLODLS: 切换代理")
-				g.httpClient = httpClient2.NewProxyHTTPClient("http")
-				log.Info("GLODLS: crawler agan...")
-				goto Start
-			}
-			for _, video := range videos {
-				ch <- video
-			}
-			break
-		}
-	})
-	c.Start()
 }

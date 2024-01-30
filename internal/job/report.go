@@ -5,7 +5,6 @@ import (
 	"github.com/robfig/cron/v3"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
-	"movieSpider/internal/ipproxy"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"os"
@@ -41,8 +40,6 @@ func (r *Report) Run() {
 		reportFeedVideoStatistics()
 		// aria下载列表统计
 		reportAria2TaskStatistics()
-		// 代理统计
-		reportIPProxyStatistics()
 		//
 		reportAria2DownloadRecordStatistics()
 	})
@@ -95,21 +92,6 @@ func reportFeedVideoStatistics() {
 	}
 	table.SetFooter([]string{"总数", strconv.Itoa(Total)})
 	log.Info("\n\n下载统计: ")
-	table.Render()
-}
-
-func reportIPProxyStatistics() {
-	c := ipproxy.FetchProxyTypeCount()
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"HTTP", "HTTPS", "tcp", "Other"})
-	tableData := [][]string{}
-
-	tableData = append(tableData, []string{strconv.FormatInt(c.HTTP, 10), strconv.FormatInt(c.HTTPS, 10), strconv.FormatInt(c.TCP, 10), strconv.FormatInt(c.Other, 10)})
-	for _, v := range tableData {
-		table.Append(v)
-	}
-
-	log.Info("\n\n代理统计: ")
 	table.Render()
 }
 

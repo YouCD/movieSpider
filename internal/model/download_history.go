@@ -118,7 +118,7 @@ func (m *MovieDB) FindFeedVideoInDownloadHistory(v *types.FeedVideo) (*types.Fee
 	// 如果 查找的 video 的分辨率小于 download_history 的分辨率，就不用下载，返回 nil
 	if downloadHistory.Resolution <= d.Resolution {
 		//nolint:goerr113
-		return nil, fmt.Errorf("要下载的种子: %#v 已经下载过相同分辨率，或分辨率小于已经下载的种子", downloadHistory)
+		return nil, fmt.Errorf("种子名: %s, 分辨率: %d ,已经下载过相同分辨率，或分辨率小于已经下载的种子", downloadHistory.Name, downloadHistory.Resolution)
 	}
 
 	return v, nil

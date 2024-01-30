@@ -18,10 +18,12 @@ type btbt struct {
 //nolint:tagliatelle
 type tgx struct {
 	Scheduling string `json:"Scheduling"`
+	MirrorSite string
 }
 
 //nolint:tagliatelle
 type torlock struct {
+	MirrorSite   string
 	Scheduling   string `json:"Scheduling"`
 	ResourceType string `json:"ResourceType"`
 	Typ          types.VideoType
@@ -30,20 +32,24 @@ type torlock struct {
 //nolint:tagliatelle
 type eztv struct {
 	Scheduling string `json:"Scheduling"`
+	MirrorSite string
 }
 
 //nolint:tagliatelle
 type glodls struct {
 	Scheduling string `json:"Scheduling"`
+	MirrorSite string
 }
 
 //nolint:tagliatelle
 type tpbpirateproxy struct {
 	Scheduling string `json:"Scheduling"`
+	MirrorSite string
 }
 
 //nolint:tagliatelle
 type magnetdl struct {
+	MirrorSite   string
 	Scheduling   string `json:"Scheduling"`
 	ResourceType string `json:"ResourceType"`
 	Typ          types.VideoType

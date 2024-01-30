@@ -253,7 +253,6 @@ func (d *Download) Run() {
 //nolint:gochecknoglobals
 var wg sync.WaitGroup
 
-//nolint:nakedret
 func (d *Download) DownloadByName(name, resolution string) (msg string) {
 	wg.Add(1)
 	go func() {

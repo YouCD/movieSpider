@@ -11,11 +11,19 @@ import (
 //nolint:gochecknoglobals
 var (
 	cfgTmp = `MySQL:
-  IP: 127.0.0.1
+  # 这个地址是docker里面的地址
+  Host: 127.0.0.1
   Port: 3306
   Database: movie
   User: root
   Password: P@ssw0rd
+
+Douban:
+  # 豆瓣电影想看清单
+  DoubanUrl:
+    - Url: "https://movie.douban.com/people/251312920/wish"
+    - Url: "https://movie.douban.com/people/271517237/wish"
+  Scheduling: "*/10 * * * *"
 
 #  排除包含以下关键字的资源
 ExcludeWords:
@@ -25,27 +33,25 @@ ExcludeWords:
   - hdr
   - .dv.
   - .dolby.vision
-DouBan:
-  # 豆瓣电影想看清单
-  Scheduling: "*/10 * * * *"
-  DouBanList:
-    - URL: "https://movie.douban.com/people/251312920/wish"
 Feed:
-  # 代理池 这里使用 https://github.com/jhao104/proxy_pool
-  ProxyPool: "http://127.0.0.1:5010"
   BTBT:
     Scheduling: "*/5 * * * *"
   EZTV:
     Scheduling: "*/5 * * * *"
+    MirrorSite: "https://eztvx.to"
   GLODLS:
     Scheduling: "*/3 * * * *"
+    MirrorSite: "https://gtso.cc"
   TGX:
     Scheduling: "*/3 * * * *"
+    MirrorSite: "https://tgx.rs"
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
+      MirrorSite: "https://torlock.123unblock.art"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
+      MirrorSite: "https://torlock.123unblock.art"
   MAGNETDL:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
@@ -53,8 +59,9 @@ Feed:
       ResourceType: tv
   TPBPIRATEPROXY:
     Scheduling: "*/3 * * * *"
+    MirrorSite: "https://thepiratebay10.info"
 Global:
-  LogLevel: debug
+  LogLevel: info
   Report: true
 
 # Downloader 下载
@@ -65,23 +72,21 @@ Downloader:
 
 # Aria2 下载服务器
 Aria2cList:
-  - URL: "http://127.0.0.1e:6800"
-    Token: 123456
+  - Url: "http://127.0.0.1e:6800"
+    Token: P@ssw0rd
     Label: home
-  - URL: "http://127.0.0.1:6801"
-    Token: 123456
-    Label: nas
 
 # 如果没有Telegram 就请忽略
 #TG:
   # Telegram 网络代理
 #  Proxy:
-#    URL: socks5://127.0.0.1:1080
+#    Url: socks5://127.0.0.1:1080
 #    Enable: false
   # Telegram 机器人 token
 #  BotToken: "TOKEN"
 #   能正常访问机器人的Telegram用户
 #  TgIDs: [ 123456 ]
+
 
 `
 	outFile string

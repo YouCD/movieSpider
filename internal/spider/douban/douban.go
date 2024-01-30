@@ -172,8 +172,6 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 //	@param url
 //	@return document
 //	@return err
-//
-//nolint:goerr113
 func (d *DouBan) newRequest(url string) (document *goquery.Document, err error) {
 	request, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
 	if err != nil {

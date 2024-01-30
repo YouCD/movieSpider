@@ -5,26 +5,23 @@ import (
 	"database/sql"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 )
 
 const urlBtbt = "https://www.btbtt12.com/forum-index-fid-951.htm"
 
-type btbt struct {
-	url        string
-	scheduling string
+type Btbt struct {
+	BaseFeeder
 }
 
-func (b *btbt) Crawler() (videos []*types.FeedVideo, err error) {
+func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
 	c := httpclient.NewHTTPClient()
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, b.url, nil)
 	if err != nil {
@@ -118,26 +115,6 @@ func (b *btbt) Crawler() (videos []*types.FeedVideo, err error) {
 	wg1.Wait()
 	//nolint:nakedret
 	return
-}
-
-func (b *btbt) Run(ch chan *types.FeedVideo) {
-	if b.scheduling == "" {
-		log.Error("BTBT: Scheduling is null")
-		os.Exit(1)
-	}
-	log.Infof("BTBT: Scheduling is: [%s]", b.scheduling)
-	c := cron.New()
-	_, _ = c.AddFunc(b.scheduling, func() {
-		videos, err := b.Crawler()
-		if err != nil {
-			log.Error(err)
-			return
-		}
-		for _, video := range videos {
-			ch <- video
-		}
-	})
-	c.Start()
 }
 
 func splitTitle(str string) string {

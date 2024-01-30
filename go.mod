@@ -15,7 +15,6 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063
 	go.uber.org/zap v1.23.0
-	golang.org/x/net v0.0.0-20220630215102-69896b714898
 	gorm.io/driver/mysql v1.5.0
 	gorm.io/gorm v1.25.0
 )
@@ -50,6 +49,7 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a // indirect
+	golang.org/x/net v0.0.0-20220630215102-69896b714898 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

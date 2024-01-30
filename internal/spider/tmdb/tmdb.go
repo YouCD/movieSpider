@@ -179,7 +179,6 @@ func (t *TmDB) Crawler() {
 	}
 }
 
-//nolint:govet
 func (t *TmDB) Run() {
 	if t.scheduling == "" {
 		log.Error("DouBan Scheduling is null")

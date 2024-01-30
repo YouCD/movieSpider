@@ -5,33 +5,34 @@ import (
 	"encoding/json"
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
-	"os"
 	"regexp"
 	"strings"
 )
 
-const urlTpbpirateProxy = "https://thepiratebay.party/rss//top100/200"
+const (
+	urlBaseTpbpirateProxy   = "https://thepiratebay.party"
+	urlRssURITpbpirateProxy = "rss/top100/200"
+)
 
-type tpbpirateproxy struct {
-	scheduling string
-	web        string
+type Tpbpirateproxy struct {
+	BaseFeeder
 }
 
 //nolint:gosimple,gocritic
-func (g *tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
+func (t *Tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
-	fd, err := fp.ParseURL(urlTpbpirateProxy)
+	fd, err := fp.ParseURL(t.url)
 	if fd == nil {
-		return nil, errors.New("tpbpirateproxy: 没有feed数据")
+		return nil, ErrNoFeedData
 	}
 	log.Debugf("Tpbpirateproxy Config: %#v", fd)
 	log.Debugf("Tpbpirateproxy Data: %#v", fd.String())
 	if len(fd.Items) == 0 {
 		return nil, errors.New("Tpbpirateproxy: 没有feed数据")
 	}
+	log.Infof("%s working, url: %s", strings.ToUpper(t.web), t.url)
 	//nolint:prealloc
 	var videosA []*types.FeedVideo
 	for _, v := range fd.Items {
@@ -66,7 +67,7 @@ func (g *tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
 		fVideo.Name = fVideo.FormatName(name)
 		fVideo.Year = year
 
-		fVideo.Web = g.web
+		fVideo.Web = t.web
 		fVideo.Magnet = v.Link
 		// 种子名
 		fVideo.TorrentName = fVideo.FormatName(torrentName)
@@ -104,12 +105,6 @@ func (g *tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
 		}
 		if v.Type == "movies" {
 			matchArr := moviesRegex.FindStringSubmatch(v.Name)
-			//if len(matchArr) == 0 {
-			//	v.Name = v.Name
-			//} else {
-			//	v.Name = matchArr[1]
-			//	v.Year = strings.ReplaceAll(strings.ReplaceAll(matchArr[2], "(", ""), ")", "")
-			//}
 
 			if len(matchArr) > 0 {
 				v.Name = matchArr[1]
@@ -120,25 +115,4 @@ func (g *tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
 	}
 	//nolint:nakedret
 	return
-}
-
-func (g *tpbpirateproxy) Run(ch chan *types.FeedVideo) {
-	if g.scheduling == "" {
-		log.Error("tpbpirateproxy Scheduling is null")
-		os.Exit(1)
-	}
-	log.Infof("tpbpirateproxy Scheduling is: [%s]", g.scheduling)
-	c := cron.New()
-	_, _ = c.AddFunc(g.scheduling, func() {
-		videos, err := g.Crawler()
-		if err != nil {
-			log.Error(err)
-			return
-		}
-		// model.ProxySaveVideo2DB(videos...)
-		for _, video := range videos {
-			ch <- video
-		}
-	})
-	c.Start()
 }

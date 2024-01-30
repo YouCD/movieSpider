@@ -8,10 +8,10 @@ MySQL:
 
 Douban:
   # 豆瓣电影想看清单
-  DoubanUrl: "https://movie.douban.com/people/251312920/wish"
+  DoubanUrl:
+    - Url: "https://movie.douban.com/people/251312920/wish"
+    - Url: "https://movie.douban.com/people/271517237/wish"
   Scheduling: "*/10 * * * *"
-  # 豆瓣 Cookie
-  # Cookie: ''
 
 #  排除包含以下关键字的资源
 ExcludeWords:
@@ -22,28 +22,34 @@ ExcludeWords:
   - .dv.
   - .dolby.vision
 Feed:
-  # 代理池 https://github.com/YouCD/IpProxyPool
-  ProxyPool: "http://127.0.0.1:5010"
   BTBT:
     Scheduling: "*/5 * * * *"
   EZTV:
     Scheduling: "*/5 * * * *"
+    MirrorSite: "https://eztvx.to"
   GLODLS:
     Scheduling: "*/3 * * * *"
+    MirrorSite: "https://gtso.cc"
   TGX:
     Scheduling: "*/3 * * * *"
+    MirrorSite: "https://tgx.rs"
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
+      MirrorSite: "https://torlock.123unblock.art"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
+      MirrorSite: "https://torlock.123unblock.art"
   MAGNETDL:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
+      MirrorSite: "https://magnetdl.abcproxy.org "
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
+      MirrorSite: "https://magnetdl.abcproxy.org"
   TPBPIRATEPROXY:
     Scheduling: "*/3 * * * *"
+    MirrorSite: "https://thepiratebay10.info"
 Global:
   LogLevel: info
   Report: true

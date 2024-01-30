@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"fmt"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"testing"
@@ -11,10 +12,11 @@ func init() {
 }
 func Test_eztv_Crawler(t *testing.T) {
 
-	var e = eztv{
-		scheduling: "",
-		url:        urlEztv,
-		web:        "eztv",
+	var e = Eztv{
+		BaseFeeder{
+			web: "eztv",
+			url: fmt.Sprintf("%s/%s", urlBaseEztv, urlRssURIEztv),
+		},
 	}
 	videos, err := e.Crawler()
 

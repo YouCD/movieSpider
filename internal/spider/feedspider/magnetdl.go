@@ -4,35 +4,33 @@ import (
 	"context"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 )
 
 const (
-	urlMagnetdl      = "https://www.magnetdl.com"
-	urlMagnetdlTV    = "https://www.magnetdl.com/download/tv/"
-	urlMagnetdlMovie = "https://www.magnetdl.com/download/movies/"
+	urlBaseMagnetdl        = "https://www.magnetdl.com"
+	urlRssURITVMagnetdl    = "download/tv/"
+	urlRssURIMovieMagnetdl = "download/movies/"
 )
 
-type magnetdl struct {
-	typ        types.VideoType
-	web        string
-	scheduling string
+type Magnetdl struct {
+	typ types.VideoType
+	BaseFeeder
 }
 
 //nolint:gosimple,gocognit,gocritic
-func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
+func (m *Magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 	c := httpclient.NewHTTPClient()
 	//nolint:exhaustive
 	switch m.typ {
 	case types.VideoTypeMovie:
-		req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, urlMagnetdlMovie, nil)
+		log.Infof("%s working, type:%s ,url: %s", strings.ToUpper(m.web), m.typ.String(), m.url)
+		req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, m.url, nil)
 		if err != nil {
 			return nil, errors.WithMessage(err, "magnetdl req")
 		}
@@ -64,7 +62,7 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 
 			val, exists = s.Find("td.n > a").Attr("href")
 			if exists {
-				torrentURL = urlMagnetdl + val
+				torrentURL = urlBaseMagnetdl + val
 			}
 
 			fVideo := new(types.FeedVideo)
@@ -83,7 +81,8 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 			Videos = append(Videos, fVideo)
 		})
 	case types.VideoTypeTV:
-		req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, urlMagnetdlTV, nil)
+		log.Infof("%s working, type:%s ,url: %s", strings.ToUpper(m.web), m.typ.String(), m.url)
+		req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, m.url, nil)
 		if err != nil {
 			return nil, errors.WithMessage(err, "getMovies newRequest")
 		}
@@ -120,7 +119,7 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 			var torrentURL string
 			val, exists = s.Find("td.n > a").Attr("href")
 			if exists {
-				torrentURL = urlMagnetdl + val
+				torrentURL = urlBaseMagnetdl + val
 			}
 
 			fVideo := new(types.FeedVideo)
@@ -141,25 +140,4 @@ func (m *magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 	}
 	//nolint:nakedret
 	return
-}
-
-func (m *magnetdl) Run(ch chan *types.FeedVideo) {
-	if m.scheduling == "" {
-		log.Error("MAGNETDL: Scheduling is null")
-		os.Exit(1)
-	}
-	log.Infof("MAGNETDL: Scheduling is: [%s]", m.scheduling)
-	c := cron.New()
-	_, _ = c.AddFunc(m.scheduling, func() {
-		videos, err := m.Crawler()
-		if err != nil {
-			log.Error(err)
-			return
-		}
-		for _, video := range videos {
-			ch <- video
-		}
-		// model.ProxySaveVideo2DB(videos...)
-	})
-	c.Start()
 }

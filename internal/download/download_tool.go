@@ -56,7 +56,7 @@ func FilterByResolutionInDownloadHistory(videos ...*types.FeedVideo) (list []*ty
 		// 通过清晰度过滤
 		v, err := model.NewMovieDB().FindFeedVideoInDownloadHistory(video)
 		if err != nil {
-			log.Warn(err)
+			log.Debug(err)
 			continue
 		}
 		list = append(list, v)

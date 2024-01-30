@@ -64,7 +64,7 @@ func (m *MovieDB) GetFeedVideoTVByName(doubanID string, names ...string) (videos
 		log.Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", n)
 		// var likeName string
 		// likeName = fmt.Sprintf("%s%%", n)
-		//nolint:exhaustruct,sqlclosecheck,rowserrcheck
+		//nolint:rowserrcheck
 		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and  type="tv" and download=0;`, n).Rows()
 		if err != nil {
 			return nil, errors.WithMessage(err, "查找失败")
