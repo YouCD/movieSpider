@@ -33,14 +33,14 @@ var (
 
 func NewMovieDB() *MovieDB {
 	once.Do(func() {
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8&parseTime=True&loc=Local", config.MySQL.User, config.MySQL.Password, config.MySQL.Host, config.MySQL.Port)
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8&parseTime=True&loc=Local", config.Config.MySQL.User, config.Config.MySQL.Password, config.Config.MySQL.Host, config.Config.MySQL.Port)
 		//nolint:exhaustruct
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Error(err)
 			os.Exit(1)
 		}
-		sql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s  CHARACTER SET utf8mb4 ", config.MySQL.Database)
+		sql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s  CHARACTER SET utf8mb4 ", config.Config.MySQL.Database)
 		// 创建数据库
 		err = db.Exec(sql).Error
 		if err != nil {
@@ -58,7 +58,7 @@ func NewMovieDB() *MovieDB {
 				Colorful: true, // 禁用彩色打印
 			},
 		)
-		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local", config.MySQL.User, config.MySQL.Password, config.MySQL.Host, config.MySQL.Port, config.MySQL.Database) // 连接数据库
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local", config.Config.MySQL.User, config.Config.MySQL.Password, config.Config.MySQL.Host, config.Config.MySQL.Port, config.Config.MySQL.Database) // 连接数据库
 		//nolint:exhaustruct
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 			Logger: newLogger,
@@ -94,7 +94,7 @@ func (m *MovieDB) SaveFeedVideoFromChan() {
 				continue
 			}
 			//  排除 低码率的视频
-			if ok := tools.ExcludeVideo(feedVideo.TorrentName, config.ExcludeWords); ok {
+			if ok := tools.ExcludeVideo(feedVideo.TorrentName, config.Config.ExcludeWords); ok {
 				continue
 			}
 			// log.Infof("%s.%s: %s 开始保存.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)

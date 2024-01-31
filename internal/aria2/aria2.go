@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/zyxar/argo/rpc"
+	"io"
 	"movieSpider/internal/config"
 	"movieSpider/internal/log"
 	"movieSpider/internal/tools"
@@ -39,14 +40,14 @@ type Aria2 struct {
 func NewAria2(label string) (*Aria2, error) {
 	var e error
 	once.Do(func() {
-		for _, v := range config.Aria2cList {
+		for _, v := range config.Config.Aria2cList {
 			if v.Label == label {
 				client, err := rpc.New(context.TODO(), v.URL, v.Token, 0, nil)
 				if err != nil {
 					log.Error(err)
 					e = err
 				}
-				marshal, _ := json.Marshal(config.Aria2cList)
+				marshal, _ := json.Marshal(config.Config.Aria2cList)
 				log.Debug(string(marshal))
 				aria2Client = &Aria2{aria2Client: client, downloadTask: make(map[string]*types.DouBanVideo)}
 			}
@@ -171,7 +172,7 @@ func (a *Aria2) List() (infos []rpc.StatusInfo, err error) {
 func (a *Aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompletedFiles) {
 	// 获取已停止下载的文件
 	sessionInfo, err := a.aria2Client.TellStopped(0, 100)
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		log.Error(err)
 		return nil
 	}
@@ -180,7 +181,7 @@ func (a *Aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompl
 	completedFiles = append(completedFiles, completedFiles1...)
 	// 获取正在下载的文件
 	ActiveSession, err := a.aria2Client.TellActive()
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		log.Error(err)
 		return nil
 	}

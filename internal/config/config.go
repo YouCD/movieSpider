@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/spf13/viper"
-	"io/ioutil"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"os"
@@ -12,122 +11,133 @@ import (
 
 //nolint:tagliatelle
 type btbt struct {
-	Scheduling string `json:"Scheduling"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
 }
 
 //nolint:tagliatelle
 type tgx struct {
-	Scheduling string `json:"Scheduling"`
-	MirrorSite string
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
 }
 
 //nolint:tagliatelle
 type torlock struct {
-	MirrorSite   string
-	Scheduling   string `json:"Scheduling"`
-	ResourceType string `json:"ResourceType"`
-	Typ          types.VideoType
+	MirrorSite   string          `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
+	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required"`
 }
 
 //nolint:tagliatelle
 type eztv struct {
-	Scheduling string `json:"Scheduling"`
-	MirrorSite string
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
 }
 
 //nolint:tagliatelle
 type glodls struct {
-	Scheduling string `json:"Scheduling"`
-	MirrorSite string
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
 }
 
 //nolint:tagliatelle
 type tpbpirateproxy struct {
-	Scheduling string `json:"Scheduling"`
-	MirrorSite string
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
 }
 
 //nolint:tagliatelle
 type magnetdl struct {
-	MirrorSite   string
-	Scheduling   string `json:"Scheduling"`
-	ResourceType string `json:"ResourceType"`
-	Typ          types.VideoType
+	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	MirrorSite   string          `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
+	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required"`
 }
 
 //nolint:tagliatelle
 type downloader struct {
-	Scheduling string `json:"Scheduling"`
-	Aria2Label string `json:"Aria2Label"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	Aria2Label string `json:"Aria2Label" yaml:"Aria2Label" validate:"required"`
+}
+
+//nolint:tagliatelle
+type global struct {
+	LogLevel string `json:"LogLevel" yaml:"LogLevel" validate:"required"`
+	Report   bool   `json:"Report" yaml:"Report" validate:"required"`
+}
+
+//nolint:tagliatelle
+type aria2 struct {
+	URL   string `json:"Url" yaml:"Url" validate:"required"`
+	Token string `json:"Token" yaml:"Token" validate:"required"`
+	Label string `json:"Label" yaml:"Label" validate:"required"`
+}
+
+//nolint:tagliatelle
+type tg struct {
+	BotToken string `json:"BotToken" yaml:"BotToken" validate:"required"`
+	TgIDs    []int  `json:"TgIDs" yaml:"TgIDs" validate:"required"`
+	Proxy    struct {
+		URL string `json:"Url" yaml:"Url" validate:"required"`
+	} `json:"Proxy" yaml:"Proxy" validate:"required"`
+	Enable bool
+}
+
+//nolint:tagliatelle
+type mysql struct {
+	Host     string `json:"Host" yaml:"Host" validate:"required"`
+	Port     int    `json:"Port" yaml:"Port" validate:"required"`
+	Database string `json:"Database" yaml:"Database" validate:"required"`
+	User     string `json:"User" yaml:"User" validate:"required"`
+	Password string `json:"Password" yaml:"Password" validate:"required"`
+}
+
+//nolint:tagliatelle
+type DouBan struct {
+	DouBanList []*DouBan `json:"DouBanList,omitempty" yaml:"DouBanList,omitempty" validate:"required,omitempty"`
+	Scheduling string    `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	URL        string    `json:"Url,omitempty" yaml:"Url,omitempty" validate:"omitempty"`
+}
+
+/*
+//nolint:tagliatelle
+type tmDB struct {
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	APIKey     string `json:"APIKey" yaml:"APIKey" validate:"required"`
+}
+
+*/
+
+//nolint:tagliatelle
+type config struct {
+	// TmDB   *tmDB   `json:"TmDB"`
+	MySQL        *mysql   `json:"MySQL" yaml:"MySQL" validate:"required"`
+	DouBan       *DouBan  `json:"DouBan" yaml:"DouBan" validate:"required"`
+	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
+	Feed         struct {
+		BTBT           *btbt           `json:"BTBT" yaml:"BTBT" validate:"required"`
+		EZTV           *eztv           `json:"EZTV" yaml:"EZTV" validate:"required"`
+		GLODLS         *glodls         `json:"GLODLS" yaml:"GLODLS" validate:"required"`
+		TGX            *tgx            `json:"TGX" yaml:"TGX" validate:"required"`
+		TORLOCK        []*torlock      `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
+		MagnetDL       []*magnetdl     `json:"MagnetDL" yaml:"MagnetDL" validate:"required"`
+		TPBPIRATEPROXY *tpbpirateproxy `json:"TPBPIRATEPROXY" yaml:"TPBPIRATEPROXY" validate:"required"`
+	} `json:"Feed" yaml:"Feed" validate:"required"`
+	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
+	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`
+	Aria2cList []aria2     `json:"Aria2cList" yaml:"Aria2cList" validate:"required"`
+	TG         *tg         `json:"TG" yaml:"TG" validate:"required"`
 }
 
 //nolint:gochecknoglobals
 var (
-	Global         *global
-	Aria2cList     []aria2
-	TG             = new(tg)
-	MySQL          *mysql
-	DouBanList     *DouBan
-	BTBT           *btbt
-	EZTV           *eztv
-	GLODLS         *glodls
-	TPBPIRATEPROXY *tpbpirateproxy
-	TGX            *tgx
-	TORLOCK        []*torlock
-	MAGNETDL       []*magnetdl
-	Downloader     *downloader
-	ProxyPool      string
-	TmDB           *tmDB
-	ExcludeWords   []string
+	Config config
 )
 
-type global struct {
-	LogLevel string
-	Report   bool
-}
-
-type aria2 struct {
-	URL   string
-	Token string
-	Label string
-}
-
-type tg struct {
-	BotToken string
-	TgIDs    []int
-	Proxy    struct {
-		URL    string
-		Enable bool
-	}
-	Enable bool
-}
-
-type mysql struct {
-	Host     string
-	Port     int
-	Database string
-	User     string
-	Password string
-}
-type DouBan struct {
-	DouBanList []*DouBan
-	Scheduling string
-	URL        string
-}
-
-//nolint:tagliatelle
-type tmDB struct {
-	Scheduling string `json:"Scheduling"`
-	APIKey     string
-}
-
-//nolint:forbidigo,gosimple,gocognit,gocyclo,maintidx
 func InitConfig(config string) {
 	v := viper.New()
 	v.SetConfigType("yaml")
 
 	fmt.Printf("config file is %s.\n", config)
-	b, err := ioutil.ReadFile(config)
+	b, err := os.ReadFile(config)
 	if err != nil {
 		fmt.Printf("配置文件读取错误,err:%s\n", err.Error())
 		os.Exit(1)
@@ -139,167 +149,24 @@ func InitConfig(config string) {
 		os.Exit(1)
 	}
 
-	err = v.UnmarshalKey("Global", &Global)
+	err = v.Unmarshal(&Config)
 	if err != nil {
-		fmt.Println("读取Global配置错误")
-		os.Exit(1)
-	}
-	if Global == nil {
-		fmt.Println("配置 Global is nil")
+		fmt.Println("读取配置错误")
 		os.Exit(1)
 	}
 
-	if Global.LogLevel == "debug" {
-		fmt.Println(string(b))
-	}
-	log.NewLogger(Global.LogLevel)
-
-	err = v.UnmarshalKey("Aria2cList", &Aria2cList)
-	if err != nil {
-		fmt.Println("读取Aria2cList配置错误")
-		os.Exit(1)
-	}
-	for index, aria := range Aria2cList {
-		Aria2cList[index].URL = aria.URL + "/jsonrpc"
-	}
-	if Aria2cList == nil {
-		fmt.Println("配置 Aria2cList is nil")
-		os.Exit(1)
-	}
-
-	err = v.UnmarshalKey("TG", &TG)
-	if err != nil {
-		fmt.Println("读取TG配置错误")
-		os.Exit(1)
-	}
-	if TG.BotToken != "" && TG.TgIDs != nil && TG.Proxy.URL != "" {
-		TG.Enable = true
-	}
-
-	err = v.UnmarshalKey("MySQL", &MySQL)
-	if err != nil {
-		fmt.Println("读取MySQL配置错误")
-		os.Exit(1)
-	}
-	if MySQL == nil {
-		fmt.Println("配置 MySQL is nil")
-		os.Exit(1)
-	}
-	if err = v.UnmarshalKey("DouBan", &DouBanList); err != nil {
-		fmt.Println("读取DouBan配置错误")
-		os.Exit(1)
-	}
-
-	if DouBanList == nil {
-		fmt.Println("配置 DouBanList is nil")
-		os.Exit(1)
-	}
-	// btbt
-	if err = v.UnmarshalKey("Feed.BTBT", &BTBT); err != nil {
-		fmt.Println("读取BTBT配置错误")
-		os.Exit(1)
-	}
-	if BTBT == nil {
-		fmt.Println("配置 BTBT is nil")
-		os.Exit(1)
-	}
-	if err = v.UnmarshalKey("Feed.EZTV", &EZTV); err != nil {
-		fmt.Println("读取EZTV配置错误")
-		os.Exit(1)
-	}
-	if EZTV == nil {
-		fmt.Println("配置 EZTV is nil")
-		os.Exit(1)
-	}
-	if err = v.UnmarshalKey("Feed.TPBPIRATEPROXY", &TPBPIRATEPROXY); err != nil {
-		fmt.Println("读取TPBPIRATEPROXY配置错误")
-		os.Exit(1)
-	}
-	if TPBPIRATEPROXY == nil {
-		fmt.Println("配置 TPBPIRATEPROXY is nil")
-		os.Exit(1)
-	}
-	if err = v.UnmarshalKey("Feed.GLODLS", &GLODLS); err != nil {
-		fmt.Println("读取GLODLS配置错误")
-		os.Exit(1)
-	}
-	if GLODLS == nil {
-		fmt.Println("配置 GLODLS is nil")
-		os.Exit(1)
-	}
-
-	if err = v.UnmarshalKey("Feed.TGX", &TGX); err != nil {
-		fmt.Println("读取TGX配置错误")
-		os.Exit(1)
-	}
-	if TGX == nil {
-		fmt.Println("配置 TGX is nil")
-		os.Exit(1)
-	}
-
-	if err = v.UnmarshalKey("Feed.TORLOCK", &TORLOCK); err != nil {
-		fmt.Println("读取TORLOCK配置错误")
-		os.Exit(1)
-	}
-	if TORLOCK == nil {
-		fmt.Println("配置 TORLOCK is nil")
-		os.Exit(1)
-	}
-	for _, v := range TORLOCK {
-		//nolint:exhaustive
-		switch types.Convert2VideoType(v.ResourceType) {
-		case types.VideoTypeMovie:
-			v.Typ = types.VideoTypeMovie
-		case types.VideoTypeTV:
-			v.Typ = types.VideoTypeTV
-		default:
-			v.Typ = types.VideoTypeTV
+	//  设置豆瓣列表的调度时间
+	for _, ban := range Config.DouBan.DouBanList {
+		if ban.Scheduling == "" {
+			ban.Scheduling = Config.DouBan.Scheduling
 		}
 	}
-	if err = v.UnmarshalKey("Feed.MAGNETDL", &MAGNETDL); err != nil {
-		fmt.Println("读取MAGNETDL配置错误")
-		os.Exit(1)
-	}
-	if MAGNETDL == nil {
-		fmt.Println("配置 MAGNETDL is nil")
-		os.Exit(1)
-	}
-	for _, v := range MAGNETDL {
-		switch v.ResourceType {
-		case "movie":
-			v.Typ = types.VideoTypeMovie
-		case "tv":
-			v.Typ = types.VideoTypeTV
-		default:
-			v.Typ = types.VideoTypeTV
-		}
+	// 设置TG 机器人开关
+	if Config.TG != nil {
+		Config.TG.Enable = true
 	}
 
-	if err = v.UnmarshalKey("Feed.ProxyPool", &ProxyPool); err != nil {
-		fmt.Println("读取Feed.ProxyPool配置错误")
-		os.Exit(1)
-	}
-	if ProxyPool == "" {
-		fmt.Println("配置 ProxyPool is null")
-		os.Exit(1)
-	}
-	if err = v.UnmarshalKey("Downloader", &Downloader); err != nil {
-		fmt.Println("读取Downloader配置错误")
-		os.Exit(1)
-	}
-	if Downloader == nil {
-		fmt.Println("配置 Downloader is nil")
-		os.Exit(1)
-	}
-
-	if err = v.UnmarshalKey("TmDB", &TmDB); err != nil {
-		fmt.Println("读取TmDBL配置错误")
-		os.Exit(1)
-	}
-	if err = v.UnmarshalKey("ExcludeWords", &ExcludeWords); err != nil {
-		fmt.Println("读取 ExcludeWords 配置错误")
-		os.Exit(1)
-	}
-
-	return
+	// 打印 日志级别
+	log.NewLogger(Config.Global.LogLevel)
+	log.Debug("日志级别： ", Config.Global.LogLevel)
 }

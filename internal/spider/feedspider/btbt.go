@@ -22,7 +22,6 @@ type Btbt struct {
 }
 
 func NewBtbt(scheduling string) *Btbt {
-	//nolint:forcetypeassert
 	return &Btbt{
 		BaseFeeder{
 			web:        "btbt",

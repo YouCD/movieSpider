@@ -82,30 +82,6 @@ mkdir -p ${MovieSpider_Dir}
 
 
 ## 准备配置文件
-* IpProxyPool
-```
-cat >IpProxyPool/config.yaml<<EOF
-# server configuration
-system:
-  appName: ProxyPool
-  httpAddr: 0.0.0.0
-  httpPort: 5010
-
-database:
-  host: moviespider_mysql
-  port: ${Mysql_Port}
-  dbName: IpProxyPool
-  username: root
-  password: ${Mysql_Password}
-log:
-  filePath: logs
-  fileName: run.log
-  level: debug
-  mode: file
-EOF
-
-```
-
 
 
 * moviespider
@@ -122,33 +98,40 @@ MySQL:
 
 Douban:
   # 豆瓣电影想看清单
-  DoubanUrl: ${DoubanUrl}
+  DoubanUrl: 
+    - Url: ${DoubanUrl}
   Scheduling: "*/10 * * * *"
   # 豆瓣 Cookie
   # Cookie: ''
 Feed:
-  # 代理池 https://github.com/YouCD/IpProxyPool
-  ProxyPool: "http://moviespider_proxy:5010"
   BTBT:
     Scheduling: "*/5 * * * *"
   EZTV:
     Scheduling: "*/5 * * * *"
+    MirrorSite: "https://eztvx.to"
   GLODLS:
     Scheduling: "*/3 * * * *"
+    MirrorSite: "https://gtso.cc"
   TGX:
     Scheduling: "*/3 * * * *"
+    MirrorSite: "https://tgx.rs"
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
+      MirrorSite: "https://torlock.unblockit.date"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
+      MirrorSite: "https://torlock.unblockit.date"
   MAGNETDL:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
+      MirrorSite: "https://magnetdl.abcproxy.org"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
+      MirrorSite: "https://magnetdl.abcproxy.org"
   TPBPIRATEPROXY:
     Scheduling: "*/3 * * * *"
+    MirrorSite: "https://thepiratebay10.info"
 Global:
   LogLevel: info
   Report: true

@@ -20,16 +20,15 @@ type Eztv struct {
 	BaseFeeder
 }
 
-func NewEztv(Scheduling, mirrorSite string) *Eztv {
+func NewEztv(scheduling, mirrorSite string) *Eztv {
 	url := fmt.Sprintf("%s/%s", urlBaseEztv, urlRssURIEztv)
 	if mirrorSite != "" {
 		url = fmt.Sprintf("%s/%s", mirrorSite, urlRssURIEztv)
 	}
-	//nolint:forcetypeassert
 	return &Eztv{BaseFeeder{
 		web:        "eztv",
 		url:        url,
-		scheduling: Scheduling,
+		scheduling: scheduling,
 	}}
 }
 

@@ -6,7 +6,7 @@ import (
 	"movieSpider/internal/job"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
-	feed2 "movieSpider/internal/spider/feedspider"
+	"movieSpider/internal/spider/feedspider"
 	"movieSpider/internal/types"
 )
 
@@ -25,51 +25,51 @@ func (f optionFunc) apply(ms *MovieSpider) {
 //	@Description: 初始化feeds
 //	@param feeds
 //	@return Option
-func WithFeeds(feeds ...feed2.Feeder) Option {
+func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// BTBT
-	feedBTBT := feed2.NewBtbt(config.BTBT.Scheduling)
+	feedBTBT := feedspider.NewBtbt(config.Config.Feed.BTBT.Scheduling)
 
 	// EZTV
-	feedEZTV := feed2.NewEztv(config.EZTV.Scheduling, config.EZTV.MirrorSite)
+	feedEZTV := feedspider.NewEztv(config.Config.Feed.EZTV.Scheduling, config.Config.Feed.EZTV.MirrorSite)
 
 	// GLODLS
-	feedGLODLS := feed2.NewGlodls(config.GLODLS.Scheduling, config.GLODLS.MirrorSite)
+	feedGLODLS := feedspider.NewGlodls(config.Config.Feed.GLODLS.Scheduling, config.Config.Feed.GLODLS.MirrorSite)
 
 	// TGX
-	feedTGXS := feed2.NewTgx(config.TGX.Scheduling, config.TGX.MirrorSite)
+	feedTGXS := feedspider.NewTgx(config.Config.Feed.TGX.Scheduling, config.Config.Feed.TGX.MirrorSite)
 
 	// TORLOCK
-	var feedTorlockMovie feed2.Feeder
-	var feedTorlockTV feed2.Feeder
-	for _, r := range config.TORLOCK {
+	var feedTorlockMovie feedspider.Feeder
+	var feedTorlockTV feedspider.Feeder
+	for _, r := range config.Config.Feed.TORLOCK {
 		if r != nil {
-			if r.Typ == types.VideoTypeTV {
-				feedTorlockTV = feed2.NewTorlock(r.Scheduling, r.Typ, r.MirrorSite)
+			if r.ResourceType == types.VideoTypeTV {
+				feedTorlockTV = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.MirrorSite)
 			}
 			log.Debug(r)
-			if r.Typ == types.VideoTypeMovie {
-				feedTorlockMovie = feed2.NewTorlock(r.Scheduling, r.Typ, r.MirrorSite)
+			if r.ResourceType == types.VideoTypeMovie {
+				feedTorlockMovie = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.MirrorSite)
 			}
 			log.Debug(r)
 		}
 	}
 	// MAGNETDL
-	var feedMagnetdlMovie feed2.Feeder
-	var feedMagnetdlTV feed2.Feeder
-	for _, r := range config.MAGNETDL {
+	var feedMagnetdlMovie feedspider.Feeder
+	var feedMagnetdlTV feedspider.Feeder
+	for _, r := range config.Config.Feed.MagnetDL {
 		if r != nil {
-			if r.Typ == types.VideoTypeTV {
-				feedMagnetdlTV = feed2.NewMagnetdl(r.Scheduling, r.Typ, r.MirrorSite)
+			if r.ResourceType == types.VideoTypeTV {
+				feedMagnetdlTV = feedspider.NewMagnetdl(r.Scheduling, r.ResourceType, r.MirrorSite)
 			}
 			log.Debug(r)
-			if r.Typ == types.VideoTypeMovie {
-				feedMagnetdlMovie = feed2.NewMagnetdl(r.Scheduling, r.Typ, r.MirrorSite)
+			if r.ResourceType == types.VideoTypeMovie {
+				feedMagnetdlMovie = feedspider.NewMagnetdl(r.Scheduling, r.ResourceType, r.MirrorSite)
 			}
 			log.Debug(r)
 		}
 	}
 
-	feedTPBPIRATEPROXY := feed2.NewTpbpirateproxy(config.TPBPIRATEPROXY.Scheduling, config.TPBPIRATEPROXY.MirrorSite)
+	feedTPBPIRATEPROXY := feedspider.NewTpbpirateproxy(config.Config.Feed.TPBPIRATEPROXY.Scheduling, config.Config.Feed.TPBPIRATEPROXY.MirrorSite)
 
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
@@ -115,7 +115,7 @@ func WithReport() Option {
 //	@return Option
 func WithDownload() Option {
 	return optionFunc(func(ms *MovieSpider) {
-		ms.download = download.NewDownloader(config.Downloader.Scheduling)
+		ms.download = download.NewDownloader(config.Config.Downloader.Scheduling)
 		go ms.download.Run()
 	})
 }
@@ -125,7 +125,7 @@ func WithDownload() Option {
 //	@Description: 初始化下载器
 //	@return Option
 func WithReleaseTimeJob() Option {
-	if !config.TG.Enable {
+	if !config.Config.TG.Enable {
 		return optionFunc(func(ms *MovieSpider) {
 			log.Warn("未开启TG通知，无法运行 电影上线 通知job")
 		})

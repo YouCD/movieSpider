@@ -48,7 +48,7 @@ func (r *Report) Run() {
 
 func reportAria2TaskStatistics() {
 	// 下载情况统计
-	aria2Client, err := aria2.NewAria2(config.Downloader.Aria2Label)
+	aria2Client, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		log.Error("Report: err", err)
 		return
@@ -97,7 +97,7 @@ func reportFeedVideoStatistics() {
 
 // aria2 下载记录
 func reportAria2DownloadRecordStatistics() {
-	newAria2, err := aria2.NewAria2(config.Downloader.Aria2Label)
+	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		log.Error("Report: err", err)
 		return

@@ -47,8 +47,8 @@ func NewTorlock(args ...interface{}) *Torlock {
 	}
 }
 
-//nolint:gosimple,gocognit,gocritic
-func (t *Torlock) Crawler() (Videos []*types.FeedVideo, err error) {
+func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
+	var Videos []*types.FeedVideo
 	fp := gofeed.NewParser()
 	fp.Client = httpclient.NewHTTPClient()
 	fp.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
@@ -60,8 +60,8 @@ func (t *Torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 		log.Debugf("%s Data: %#v", strings.ToUpper(t.web), fd.String())
 
 		var videos1 []*types.FeedVideo
-		nameReg := regexp.MustCompile("(.*)\\.([0-9][0-9][0-9][0-9])\\.")
-		yearReg := regexp.MustCompile("(.*)\\.\\(([0-9][0-9][0-9][0-9])\\)\\.")
+		nameReg := regexp.MustCompile(`(.*)\.([0-9][0-9][0-9][0-9])\.`)
+		yearReg := regexp.MustCompile(`(.*)\.\(([0-9][0-9][0-9][0-9])\)\.`)
 		for _, v := range fd.Items {
 			// 片名
 			name := strings.ReplaceAll(v.Title, " ", ".")
@@ -111,7 +111,7 @@ func (t *Torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 			return nil, ErrFeedParseURL
 		}
 		log.Debugf("TORLOCK.tv Data: %#v", fd.String())
-		compileRegex := regexp.MustCompile("(.*)\\.[sS][0-9][0-9]|[Ee][0-9][0-9]?\\.")
+		compileRegex := regexp.MustCompile(`(.*)\.[sS][0-9][0-9]|[Ee][0-9][0-9]?\.`)
 
 		var videos1 []*types.FeedVideo
 
@@ -144,8 +144,7 @@ func (t *Torlock) Crawler() (Videos []*types.FeedVideo, err error) {
 		Videos = t.fetchMagnet(videos2)
 		return Videos, nil
 	}
-	//nolint:nakedret
-	return
+	return nil, nil
 }
 
 func (t *Torlock) fetchMagnet(videos []*types.FeedVideo) (feedVideos []*types.FeedVideo) {

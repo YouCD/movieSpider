@@ -196,7 +196,7 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 	if len(videos) < 1 {
 		return errors.New("没有需要下载的视频")
 	}
-	newAria2, err := aria2.NewAria2(config.Downloader.Aria2Label)
+	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		return errors.WithMessage(err, "aria2 初始化失败")
 	}
@@ -213,7 +213,7 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 		}
 
 		// 如果开启了tg推送 则推送
-		if config.TG.Enable {
+		if config.Config.TG.Enable {
 			go func() {
 				video, err = model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
 				if err != nil {
@@ -286,7 +286,7 @@ func (d *Download) DownloadByName(name, resolution string) (msg string) {
 	}
 
 	// 推送 磁力连接至 aria2
-	newAria2, err := aria2.NewAria2(config.Downloader.Aria2Label)
+	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		log.Error(err)
 	}

@@ -20,15 +20,13 @@ var (
 //	@return *http.Client
 func NewHTTPClient() *http.Client {
 	once.Do(func() {
-		if config.TG.Proxy.Enable {
-			if config.TG.Proxy.URL != "" {
-				proxyURL, _ := url.Parse(config.TG.Proxy.URL)
-				proxy := http.ProxyURL(proxyURL)
-				//nolint:exhaustruct
-				transport := &http.Transport{Proxy: proxy}
-				//nolint:exhaustruct
-				httpClient = &http.Client{Transport: transport}
-			}
+		if config.Config.TG.Proxy.URL != "" {
+			proxyURL, _ := url.Parse(config.Config.TG.Proxy.URL)
+			proxy := http.ProxyURL(proxyURL)
+			//nolint:exhaustruct
+			transport := &http.Transport{Proxy: proxy}
+			//nolint:exhaustruct
+			httpClient = &http.Client{Transport: transport}
 		} else {
 			//nolint:exhaustruct
 			httpClient = &http.Client{Timeout: time.Second * 30}

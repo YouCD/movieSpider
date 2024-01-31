@@ -49,7 +49,7 @@ type TGBot struct {
 func NewTgBot(botToken string, tgIDs []int) *TGBot {
 	once.Do(func() {
 		client := httpclient.NewHTTPClient()
-		bot, err := tgbotapi.NewBotAPIWithClient(config.TG.BotToken, "https://api.telegram.org/bot%s/%s", client)
+		bot, err := tgbotapi.NewBotAPIWithClient(config.Config.TG.BotToken, "https://api.telegram.org/bot%s/%s", client)
 		if err != nil {
 			log.Error(err)
 			os.Exit(-1)
@@ -99,7 +99,7 @@ func (t *TGBot) StartBot() {
 				if !ok {
 					continue
 				}
-				aria2Server, err := aria2.NewAria2(config.Downloader.Aria2Label)
+				aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 				if err != nil {
 					log.Error(err)
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "aria2下载器服务异常")
@@ -158,7 +158,7 @@ func (t *TGBot) StartBot() {
 				if !ok {
 					continue
 				}
-				downloader := download.NewDownloader(config.Downloader.Scheduling)
+				downloader := download.NewDownloader(config.Config.Downloader.Scheduling)
 				downloadMsg := downloader.DownloadByName(pars[1], pars[2])
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, downloadMsg)
 				msg.ReplyToMessageID = update.Message.MessageID
@@ -273,7 +273,7 @@ func inArray(val int, array []int) (ok bool, i int) {
 //
 //nolint:unused
 func (t *TGBot) checkUser(chatID int64, update tgbotapi.Update) bool {
-	ok, _ := inArray(int(chatID), config.TG.TgIDs)
+	ok, _ := inArray(int(chatID), config.Config.TG.TgIDs)
 	if !ok {
 		msg := tgbotapi.NewMessage(chatID, "您没有权限")
 		msg.ReplyToMessageID = update.Message.MessageID
@@ -379,7 +379,7 @@ func (t *TGBot) datePublishedNotify() {
 //	@receiver t
 func (t *TGBot) downloadCompleteNotify() {
 	go func() {
-		aria2Server, err := aria2.NewAria2(config.Downloader.Aria2Label)
+		aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 		if err != nil {
 			log.Error(err)
 			return

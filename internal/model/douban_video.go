@@ -36,7 +36,7 @@ func (m *MovieDB) CreatDouBanVideo(video *types.DouBanVideo) (err error) {
 		if err != nil {
 			log.Error(err)
 		}
-		return nil
+		return ErrDataExist
 	}
 
 	if video.Names == "null" {

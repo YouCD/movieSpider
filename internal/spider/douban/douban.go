@@ -154,12 +154,12 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 
 	for _, video := range videos2 {
 		err = model.NewMovieDB().CreatDouBanVideo(video)
-		if err != nil {
-			log.Error(err)
-			//nolint:nakedret
-			return
+		if err != nil && !errors.Is(err, model.ErrDataExist) {
+			log.Debugf("DouBan %s 已保存", video.Names)
+			continue
+		} else {
+			log.Infof("DouBan %s 已添加", video.Names)
 		}
-		log.Infof("DouBan %s 已保存", video.Names)
 	}
 
 	return videos2

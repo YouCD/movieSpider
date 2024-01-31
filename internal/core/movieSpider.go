@@ -26,7 +26,9 @@ type MovieSpider struct {
 }
 
 //nolint:gochecknoglobals
-var ms = new(MovieSpider)
+var (
+	ms = new(MovieSpider)
+)
 
 // NewMovieSpider
 //
@@ -57,7 +59,7 @@ func (m *MovieSpider) RunWithFeed() {
 				videos, err := feeder.Crawler()
 				if err != nil {
 					if errors.Is(err, feedspider.ErrNoFeedData) {
-						log.Warnf("%s: 没有feed数据, url: %s", strings.ToUpper(feeder.WebName()), feeder.Url())
+						log.Warnf("%s: 没有feed数据, url: %s", strings.ToUpper(feeder.WebName()), feeder.URL())
 						return
 					}
 					log.Error(err)
@@ -68,7 +70,6 @@ func (m *MovieSpider) RunWithFeed() {
 				}
 			})
 			c.Start()
-
 		}(feeder)
 	}
 }
@@ -78,8 +79,8 @@ func (m *MovieSpider) RunWithFeed() {
 //	@Description: 运行tgbot
 //	@receiver m
 func (m *MovieSpider) RunWithTGBot() {
-	if config.TG.Enable {
-		ms.bot = bot.NewTgBot(config.TG.BotToken, config.TG.TgIDs)
+	if config.Config.TG.Enable {
+		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
 		go ms.bot.StartBot()
 	}
 }
@@ -90,7 +91,7 @@ func (m *MovieSpider) RunWithTGBot() {
 //	@receiver m
 func (m *MovieSpider) RunWithFeedSpider() {
 	// Spider
-	m.spiders = append(m.spiders, douban.NewSpiderDouBan(config.DouBanList)...)
+	m.spiders = append(m.spiders, douban.NewSpiderDouBan(config.Config.DouBan)...)
 	for _, s := range m.spiders {
 		go func(spider spider.Spider) {
 			spider.Run()

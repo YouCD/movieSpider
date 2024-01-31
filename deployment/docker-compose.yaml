@@ -1,17 +1,5 @@
 version: '3.1'
 services:
-  moviespider_proxy:
-    build:
-      dockerfile: IpProxyPool_Dockerfile
-      context: ./
-    ports:
-      - "5010:5010"
-    restart: always
-    volumes:
-      - "./IpProxyPool/config.yaml:/app/conf/config.yaml"
-      - "./IpProxyPool/logs:/app/logs"
-    depends_on:
-      - moviespider_mysql
   moviespider_mysql:
     image: mysql:5.7.18
     ports:

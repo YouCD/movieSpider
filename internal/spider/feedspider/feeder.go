@@ -14,7 +14,7 @@ var (
 type Feeder interface {
 	Scheduling() string
 	WebName() string
-	Url() string
+	URL() string
 	Crawler() ([]*types.FeedVideo, error)
 }
 type Crawler func() ([]*types.FeedVideo, error)
@@ -29,7 +29,7 @@ func (b *BaseFeeder) Crawler() ([]*types.FeedVideo, error) {
 	return nil, nil
 }
 
-func (b *BaseFeeder) Url() string {
+func (b *BaseFeeder) URL() string {
 	return b.url
 }
 
