@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
@@ -11,62 +12,62 @@ import (
 
 //nolint:tagliatelle
 type btbt struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
 }
 
 //nolint:tagliatelle
 type tgx struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
-	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
+	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
 }
 
 //nolint:tagliatelle
 type torlock struct {
-	MirrorSite   string          `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
-	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"required"`
-	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required"`
+	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
+	MirrorSite   string          `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
+	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
 }
 
 //nolint:tagliatelle
 type eztv struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
-	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
+	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
 }
 
 //nolint:tagliatelle
 type glodls struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
-	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
+	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
 }
 
 //nolint:tagliatelle
 type tpbpirateproxy struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
-	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
+	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
 }
 
 //nolint:tagliatelle
 type magnetdl struct {
-	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"required"`
-	MirrorSite   string          `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty"`
-	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required"`
+	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
+	MirrorSite   string          `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
+	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
 }
 
 //nolint:tagliatelle
 type downloader struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
 	Aria2Label string `json:"Aria2Label" yaml:"Aria2Label" validate:"required"`
 }
 
 //nolint:tagliatelle
 type global struct {
-	LogLevel string `json:"LogLevel" yaml:"LogLevel" validate:"required"`
+	LogLevel string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
 	Report   bool   `json:"Report" yaml:"Report" validate:"required"`
 }
 
 //nolint:tagliatelle
 type aria2 struct {
-	URL   string `json:"Url" yaml:"Url" validate:"required"`
+	URL   string `json:"Url" yaml:"Url" validate:"required,http_url"`
 	Token string `json:"Token" yaml:"Token" validate:"required"`
 	Label string `json:"Label" yaml:"Label" validate:"required"`
 }
@@ -76,15 +77,15 @@ type tg struct {
 	BotToken string `json:"BotToken" yaml:"BotToken" validate:"required"`
 	TgIDs    []int  `json:"TgIDs" yaml:"TgIDs" validate:"required"`
 	Proxy    struct {
-		URL string `json:"Url" yaml:"Url" validate:"required"`
+		URL string `json:"Url" yaml:"Url" validate:"required,url"`
 	} `json:"Proxy" yaml:"Proxy" validate:"required"`
-	Enable bool
+	Enable bool `json:"-" yaml:"-"`
 }
 
 //nolint:tagliatelle
 type mysql struct {
-	Host     string `json:"Host" yaml:"Host" validate:"required"`
-	Port     int    `json:"Port" yaml:"Port" validate:"required"`
+	Host     string `json:"Host" yaml:"Host" validate:"required,ip"`
+	Port     int    `json:"Port" yaml:"Port" validate:"gte=0,lte=65535"`
 	Database string `json:"Database" yaml:"Database" validate:"required"`
 	User     string `json:"User" yaml:"User" validate:"required"`
 	Password string `json:"Password" yaml:"Password" validate:"required"`
@@ -93,14 +94,14 @@ type mysql struct {
 //nolint:tagliatelle
 type DouBan struct {
 	DouBanList []*DouBan `json:"DouBanList,omitempty" yaml:"DouBanList,omitempty" validate:"required,omitempty"`
-	Scheduling string    `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	Scheduling string    `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
 	URL        string    `json:"Url,omitempty" yaml:"Url,omitempty" validate:"omitempty"`
 }
 
 /*
 //nolint:tagliatelle
 type tmDB struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"required"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
 	APIKey     string `json:"APIKey" yaml:"APIKey" validate:"required"`
 }
 
@@ -169,4 +170,21 @@ func InitConfig(config string) {
 	// 打印 日志级别
 	log.NewLogger(Config.Global.LogLevel)
 	log.Debug("日志级别： ", Config.Global.LogLevel)
+
+	ValidateFc(Config)
+}
+
+func ValidateFc(s interface{}) {
+	validate := validator.New()
+	//nolint:errorlint,forcetypeassert,errorlint
+	if err := validate.Struct(s); err != nil {
+		if _, ok := err.(*validator.InvalidValidationError); ok {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		for _, err := range err.(validator.ValidationErrors) {
+			fmt.Printf("配置项: %s 条件: %s %v 当前值: %#v\n", err.StructField(), err.Tag(), err.Param(), err.Value())
+		}
+		os.Exit(1)
+	}
 }
