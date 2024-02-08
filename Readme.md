@@ -226,11 +226,6 @@ EOF
   A：目前只支持 1080p 2160p等资源
 
 
-* Q：代理池
-
-  A：目前只支持 [IpProxyPool](https://github.com/YouCD/IpProxyPool)
-
-
 
 
 
