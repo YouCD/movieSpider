@@ -21,7 +21,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/willf/bloom v2.0.3+incompatible
-	github.com/youcd/toolkit v0.0.0-20251128071038-97f2c93fad91
+	github.com/youcd/toolkit v0.0.0-20251202014531-e1c06d4f0756
 	github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.31.0

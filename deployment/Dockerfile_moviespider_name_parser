@@ -1,2 +1,0 @@
-FROM ghcr.io/ggml-org/llama.cpp:server
-ADD Qwen3-0.6B-Instruct-2025_10_14_19_30.gguf /models/Qwen3-0.6B-Instruct-2025_10_14_19_30.gguf

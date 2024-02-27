@@ -310,6 +310,8 @@ github.com/youcd/toolkit v0.0.0-20250626035250-e9ddcca0953f h1:QEXgoeWUefgKRlrB6
 github.com/youcd/toolkit v0.0.0-20250626035250-e9ddcca0953f/go.mod h1:Kp1D2RT6WhNNoV3fEZtfw/oUdrGX7XbMUdXyc3QvjBo=
 github.com/youcd/toolkit v0.0.0-20251128071038-97f2c93fad91 h1:b0SLp5zcaDXdaR2nqqnK2rV9KNnW136ZmpcRMTZ/6Q0=
 github.com/youcd/toolkit v0.0.0-20251128071038-97f2c93fad91/go.mod h1:KFsNPFnYAtkiDcZYIEU2er16JY11Zpd5nFFROgm1fPA=
+github.com/youcd/toolkit v0.0.0-20251202014531-e1c06d4f0756 h1:3cXHAQo/+2UkBNSapuLJppMzm7dobXEmM+8fpD9yU+Y=
+github.com/youcd/toolkit v0.0.0-20251202014531-e1c06d4f0756/go.mod h1:KFsNPFnYAtkiDcZYIEU2er16JY11Zpd5nFFROgm1fPA=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063 h1:xCSVbiTicJX7M0l/Uf/91517mou3E57UnzTsp/bol2E=
 github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063/go.mod h1:rXaHR0MNLc/U/lqic2jozgrZDdlpyoxFHgw88oa/kSk=

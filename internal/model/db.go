@@ -114,13 +114,23 @@ func (m *MovieDB) SaveFeedVideoFromChan(ctx context.Context) {
 		}
 	}()
 	go func() {
-		buffer := make([]*types.FeedVideoBase, 0, 30)
+		buffer := make([]*types.FeedVideo, 0, 30)
 		for {
 			select {
 			case item := <-m.feedVideoCh:
 				// 检查 item 是否为 nil
 				if item == nil {
 					log.WithCtx(ctx).Debug("Received nil item from feedVideoCh, skipping")
+					continue
+				}
+				// 应用过滤逻辑
+				feedVideo, err := FilterVideo(item)
+				if err != nil {
+					// 记录但不中断其他项目的处理
+					log.WithCtx(context.Background()).Debugf("Filtering failed for %s: %v", item.TorrentName, err)
+					continue
+				}
+				if feedVideo == nil {
 					continue
 				}
 
@@ -132,44 +142,31 @@ func (m *MovieDB) SaveFeedVideoFromChan(ctx context.Context) {
 				}
 
 				// 添加到缓冲区
-				buffer = append(buffer, item)
+				buffer = append(buffer, feedVideo)
 				log.WithCtx(ctx).Infof("Received item %s from feedVideoCh", item.TorrentName)
 
 				// 当缓冲区达到30个项目时进行处理
 				if len(buffer) >= 30 {
-					m.processFeedVideos(ctx, buffer)
+					m.processFeedVideos(ctx, buffer...)
 					// 重置缓冲区
-					buffer = make([]*types.FeedVideoBase, 0, 30)
+					buffer = make([]*types.FeedVideo, 0, 30)
 				}
 			}
 		}
 	}()
 }
 
-func (m *MovieDB) processFeedVideos(ctx context.Context, items []*types.FeedVideoBase) {
-	// 将TorrentNames收集起来用于批处理
-	torrentNames := make([]string, 0, len(items))
-	itemMap := make(map[string]*types.FeedVideoBase)
-
+func (m *MovieDB) processFeedVideos(ctx context.Context, items ...*types.FeedVideo) {
 	for _, item := range items {
-		torrentNames = append(torrentNames, item.TorrentName)
-		itemMap[item.TorrentName] = item
 		// 先将所有项目加入缓存，防止重复处理
 		m.cache.Set(item.TorrentName, true, 24*time.Hour)
 	}
 
-	// 批量处理这些项目
-	feedVideos, err := FilterVideos(torrentNames)
-	if err != nil {
-		log.WithCtx(ctx).Errorf("Batch filtering failed: %v", err)
-		return
-	}
-
 	// 对于成功过滤的项目，调用nameparser.ModelHandler进行处理
-	torrentNamesToParse := make([]string, 0, len(feedVideos))
+	torrentNamesToParse := make([]string, 0, len(items))
 	feedVideoMap := make(map[string]*types.FeedVideo)
 
-	for _, feedVideo := range feedVideos {
+	for _, feedVideo := range items {
 		torrentNamesToParse = append(torrentNamesToParse, feedVideo.TorrentName)
 		feedVideoMap[feedVideo.TorrentName] = feedVideo
 	}
@@ -218,35 +215,7 @@ func (m *MovieDB) GetDB() *gorm.DB {
 	return m.db
 }
 
-func FilterVideos(items []string) ([]*types.FeedVideo, error) {
-	var feedVideos []*types.FeedVideo
-
-	for _, torrentName := range items {
-		feedVideoBase := &types.FeedVideoBase{
-			TorrentName: torrentName,
-		}
-
-		// 应用过滤逻辑
-		feedVideo, err := FilterVideo(feedVideoBase)
-		if err != nil {
-			// 记录但不中断其他项目的处理
-			log.WithCtx(context.Background()).Debugf("Filtering failed for %s: %v", torrentName, err)
-			continue
-		}
-
-		if feedVideo != nil {
-			feedVideos = append(feedVideos, feedVideo)
-		}
-	}
-
-	return feedVideos, nil
-}
-
 func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
-	//  如果是空值，跳过
-	if feedVideoBase == nil {
-		return nil, ErrFeedVideoIsNil
-	}
 	//  排除 低码率的视频
 	if ok := tools.ExcludeVideo(feedVideoBase.TorrentName, config.Config.ExcludeWords); ok {
 		//nolint:err113
