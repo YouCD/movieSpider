@@ -1,6 +1,8 @@
 package tmdb
 
 import (
+	"encoding/json"
+	"fmt"
 	"movieSpider/internal/config"
 	"movieSpider/internal/log"
 	"movieSpider/internal/model"
@@ -19,7 +21,7 @@ func TestTmDB_FindByImdbID(t1 *testing.T) {
 	if err != nil {
 		t1.Logf("%+v", err)
 	}
-	t := NewSpiderTmDB(config.TmDB.Scheduling, config.TmDB.APIKey)
+	t := NewSpiderTmDB(config.Config.TmDB.Scheduling, config.Config.TmDB.APIKey)
 	//log.Infof("len(videos)  %d  %v   ", len(videos), videos)
 	for _, video := range videos {
 		//log.Infof("video   %s   %s    %s ", video.Type, video.Names, video.ImdbID)
@@ -29,9 +31,14 @@ func TestTmDB_FindByImdbID(t1 *testing.T) {
 			log.Errorf("FindByImdbID() error = %v", err)
 			continue
 		}
-
+		marshal, err := json.Marshal(got)
+		if err != nil {
+			log.Errorf("json.Marshal() error = %v", err)
+			continue
+		}
 		switch types.Convert2VideoType(video.Type) {
 		case types.VideoTypeTV:
+			fmt.Println(string(marshal))
 
 			if len(got.TvEpisodeResults) > 0 {
 				tv, err := t.GetTVDetailByID(got.TvEpisodeResults[0].ShowID, false)
@@ -118,7 +125,7 @@ func isEnglishString(str string) bool {
 
 func TestTmDB_Crawler(t1 *testing.T) {
 
-	t := NewSpiderTmDB(config.TmDB.Scheduling, config.TmDB.APIKey)
+	t := NewSpiderTmDB(config.Config.TmDB.Scheduling, config.Config.TmDB.APIKey)
 
 	t.Crawler()
 

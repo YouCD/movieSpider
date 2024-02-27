@@ -79,7 +79,6 @@ type tg struct {
 	Proxy    struct {
 		URL string `json:"Url" yaml:"Url" validate:"required,url"`
 	} `json:"Proxy" yaml:"Proxy" validate:"required"`
-	Enable bool `json:"-" yaml:"-"`
 }
 
 //nolint:tagliatelle
@@ -125,7 +124,7 @@ type config struct {
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
 	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`
 	Aria2cList []aria2     `json:"Aria2cList" yaml:"Aria2cList" validate:"required"`
-	TG         *tg         `json:"TG" yaml:"TG" validate:"required"`
+	TG         *tg         `json:"TG" yaml:"TG" validate:"omitempty"`
 }
 
 //nolint:gochecknoglobals
@@ -161,10 +160,6 @@ func InitConfig(config string) {
 		if ban.Scheduling == "" {
 			ban.Scheduling = Config.DouBan.Scheduling
 		}
-	}
-	// 设置TG 机器人开关
-	if Config.TG != nil {
-		Config.TG.Enable = true
 	}
 
 	// 打印 日志级别

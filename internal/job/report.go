@@ -40,8 +40,8 @@ func (r *Report) Run() {
 		reportFeedVideoStatistics()
 		// aria下载列表统计
 		reportAria2TaskStatistics()
-		//
-		reportAria2DownloadRecordStatistics()
+		// aria2 下载队列
+		reportAria2DownloadQueue()
 	})
 	c.Start()
 }
@@ -60,13 +60,8 @@ func reportAria2TaskStatistics() {
 
 	downloadTable := tablewriter.NewWriter(os.Stdout)
 	downloadTable.SetHeader([]string{"GID", "大小", "已完成", "文件名"})
-	downloadTableData := [][]string{}
-
 	for _, file := range files {
-		downloadTableData = append(downloadTableData, []string{file.GID, file.Size, file.Completed, file.FileName})
-	}
-	for _, v := range downloadTableData {
-		downloadTable.Append(v)
+		downloadTable.Append([]string{file.GID, file.Size, file.Completed, file.FileName})
 	}
 
 	log.Info("\n\n当前下载信息: ")
@@ -77,26 +72,24 @@ func reportFeedVideoStatistics() {
 	count, err := model.NewMovieDB().CountFeedVideo()
 	if err != nil {
 		log.Error("Report: err", err)
+		return
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Web", "Count"})
-	tableData := [][]string{}
 	var Total int
 	for _, reportCount := range count {
 		Total += reportCount.Count
-		tableData = append(tableData, []string{reportCount.Web, strconv.Itoa(reportCount.Count)})
+		table.Append([]string{reportCount.Web, strconv.Itoa(reportCount.Count)})
 	}
-	for _, v := range tableData {
-		table.Append(v)
-	}
+
 	table.SetFooter([]string{"总数", strconv.Itoa(Total)})
 	log.Info("\n\n下载统计: ")
 	table.Render()
 }
 
-// aria2 下载记录
-func reportAria2DownloadRecordStatistics() {
+// aria2 下载队列
+func reportAria2DownloadQueue() {
 	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		log.Error("Report: err", err)
@@ -104,17 +97,15 @@ func reportAria2DownloadRecordStatistics() {
 	}
 	task := newAria2.GetDownloadTask()
 	if len(task) == 0 {
+		log.Info("Report: aria2 下载队列为空")
 		return
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Gid", "Names", "Type"})
-	tableData := [][]string{}
-
 	for k, v := range task {
-		tableData = append(tableData, []string{k, v.Names, v.Type})
+		table.Append([]string{k, v.Name, v.Type})
 	}
-
-	log.Info("\n\n下载记录: ")
+	log.Info("\n\n下载队列: ")
 	table.Render()
 }

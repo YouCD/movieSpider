@@ -5,6 +5,7 @@ import (
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
+	"movieSpider/internal/types"
 	"testing"
 	"time"
 )
@@ -27,17 +28,17 @@ func Test_download_DownloadByName(t *testing.T) {
 		scheduling: "*/1 * * * *",
 	}
 
-	newAria2, err := aria2.NewAria2(config.Downloader.Aria2Label)
+	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		t.Error(err)
 	}
-
+	downLoadChan := make(chan *types.DownloadNotifyVideo)
 	go func() {
 		for {
 			time.Sleep(time.Second * 1)
-			subscribeCh := newAria2.Subscribe()
+			newAria2.Subscribe(downLoadChan)
 			select {
-			case v, ok := <-subscribeCh:
+			case v, ok := <-downLoadChan:
 				if ok {
 					fmt.Println("subscribe", v)
 				}
@@ -49,7 +50,6 @@ func Test_download_DownloadByName(t *testing.T) {
 }
 
 func Test_download_DownloadByName1(t *testing.T) {
-
 	d := &Download{
 		scheduling: "tt.fields.scheduling",
 	}
@@ -66,7 +66,7 @@ func Test_download_downloadTvTask(t *testing.T) {
 		t.Error(err)
 	}
 	fmt.Println("done")
-	select {}
+	//select {}
 }
 
 func TestDownload_downloadMovieTask(t *testing.T) {

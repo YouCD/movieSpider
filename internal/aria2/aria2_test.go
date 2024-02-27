@@ -7,14 +7,15 @@ import (
 	"testing"
 )
 
-var newAria2 = &Aria2{}
-
 func init() {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
-	newAria2, _ = NewAria2(config.Downloader.Aria2Label)
-
 }
 func downloadCompleteNotify() {
+	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
+	if err != nil {
+		fmt.Println("err  ", err)
+		return
+	}
 
 	for {
 		subscribeCh := newAria2.Subscribe()
@@ -33,7 +34,7 @@ func downloadCompleteNotify() {
 }
 
 func Test_aria2_DownloadList(t *testing.T) {
-	newAria2, err := NewAria2(config.Downloader.Aria2Label)
+	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		t.Error(err)
 	}
@@ -71,7 +72,7 @@ func Test_aria2_DownloadList(t *testing.T) {
 	//}
 	//url := `magnet:?xt=urn:btih:0ceaa977f733050a60c0164488f70fdad14ac4d9&dn=Extraction.2.2023.2160p.NF.WEB-DL.DDP5.1.Atmos.DV.H.265-FLUX&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2740%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&tr=udp%3A%2F%2Fopentor.org%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.demonii.si%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.tracker.cl%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.cyberia.is%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.moeking.me%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.me%3A2740%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2790%2Fannounce`
 	urls := []string{
-		`magnet:?xt=urn:btih:BF6266404D800D2ACFFB143708DD3A9E93C1D938&dn=The.Flash.2014.S09E11.1080p.HEVC.x265-MeGusta%5Beztv.re%5D.mkv&tr=udp%3A%2F%2Fglotorrents.pw%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftorrent.gresille.org%3A80%2Fannounce&tr=udp%3A%2F%2F9.rarbg.me%3A2710%2Fannounce&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337`}
+		`http://z9.shunchangjc.com:8080/110/%E7%BA%A2%E8%89%B2%E8%AD%A6%E6%88%922%E6%A0%B8%E6%88%98%E4%BA%893.0%E4%B9%8B%E9%A3%8E%E4%BA%91%E5%86%8D%E8%B5%B7.rar?tk=UmNzATY1MjN5IzN0IjYmVmM4QWO4Q2NjBzYwQjYhNGN852b852Yu42dvR2cyxXMzUTNwYDOwcTM`}
 	for _, url := range urls {
 
 		gid, err := newAria2.DownloadByMagnet(url)
@@ -86,7 +87,7 @@ func Test_aria2_DownloadList(t *testing.T) {
 
 func Test_aria2_CompletedFiles(t *testing.T) {
 
-	newAria2, err := NewAria2(config.Downloader.Aria2Label)
+	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		t.Error(err)
 	}
@@ -115,6 +116,10 @@ func Test_aria2_CompletedFiles(t *testing.T) {
 func Test_aria2_getAllActiveGID(t *testing.T) {
 	// 03b5a009333b8158 种子
 	// 90d7c6958629d5a0 磁力
+	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
+	if err != nil {
+		t.Error(err)
+	}
 	info, err := newAria2.aria2Client.TellStatus("187a69be1bfeec9e", "files", "gid", "status", "errorMessage", "belongsTo", "following", "followedBy")
 	if err != nil {
 		t.Error(err)
@@ -130,13 +135,17 @@ func Test_aria2_DownloadByMagnet(t *testing.T) {
 	urls := []string{
 		`magnet:?xt=urn:btih:AEBCD2368F6E5C992B1332B9164AE53B6AF85553&dn=The.Flash.2014.S09E01.1080p.WEB.H264-GGWP%5BTGx%5D&tr=udp://open.stealth.si:80/announce&tr=udp://tracker.tiny-vps.com:6969/announce&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://tracker.torrent.eu.org:451/announce&tr=udp://explodie.org:6969/announce&tr=udp://tracker.cyberia.is:6969/announce&tr=udp://ipv4.tracker.harry.lu:80/announce&tr=udp://p4p.arenabg.com:1337/announce&tr=udp://tracker.birkenwald.de:6969/announce&tr=udp://tracker.moeking.me:6969/announce&tr=udp://opentor.org:2710/announce&tr=udp://tracker.dler.org:6969/announce&tr=udp://9.rarbg.me:2970/announce&tr=https://tracker.foreverpirates.co:443/announce&tr=http://vps02.net.orel.ru:80/announce`,
 	}
+	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	for _, url := range urls {
-
-		gid, err := newAria2.DownloadByMagnet(url)
+		gid, err := newAria2.DownloadByURL(url)
 		if err != nil {
 			t.Error(err)
+			return
 		}
 		fmt.Println("gidgidgidgid             ", gid)
-
 	}
 }

@@ -125,7 +125,7 @@ func WithDownload() Option {
 //	@Description: 初始化下载器
 //	@return Option
 func WithReleaseTimeJob() Option {
-	if !config.Config.TG.Enable {
+	if config.Config.TG == nil {
 		return optionFunc(func(ms *MovieSpider) {
 			log.Warn("未开启TG通知，无法运行 电影上线 通知job")
 		})

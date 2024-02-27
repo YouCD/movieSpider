@@ -63,22 +63,28 @@ type msgType struct {
 //	@receiver t
 //	@param msg
 func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, notify notifyType) {
+	video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.FeedVideo.DoubanID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
 	// 处理原始信息
 	var rowData types.RowData
-	err := json.Unmarshal([]byte(v.Video.RowData), &rowData)
+	err = json.Unmarshal([]byte(video.RowData), &rowData)
 	if err != nil {
 		log.Error(err)
 	}
 	// 处理电影名
 	var names []string
-	err = json.Unmarshal([]byte(v.Video.Names), &names)
+	err = json.Unmarshal([]byte(video.Names), &names)
 	if err != nil {
 		log.Error(err)
 	}
 	// 定义模板 结构体
 	var msg = msgType{
 		Name:          names[0],
-		DatePublished: v.Video.DatePublished,
+		DatePublished: video.DatePublished,
 		MovieURI:      rowData.URL,
 		Director:      rowData.Director,
 		Actor:         rowData.Actor,

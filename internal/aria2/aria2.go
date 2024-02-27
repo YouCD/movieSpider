@@ -25,7 +25,7 @@ var (
 
 type Aria2 struct {
 	aria2Client  rpc.Client
-	downloadTask map[string]*types.DouBanVideo
+	downloadTask map[string]*types.FeedVideo
 	mtx          sync.Mutex
 }
 
@@ -41,15 +41,23 @@ func NewAria2(label string) (*Aria2, error) {
 	var e error
 	once.Do(func() {
 		for _, v := range config.Config.Aria2cList {
+			var URL string
+			if strings.HasSuffix(v.URL, "jsonrpc") {
+				URL = v.URL
+			} else {
+				URL = fmt.Sprintf("%s/jsonrpc", v.URL)
+			}
+
 			if v.Label == label {
-				client, err := rpc.New(context.TODO(), v.URL, v.Token, 0, nil)
+				client, err := rpc.New(context.TODO(), URL, v.Token, 0, nil)
 				if err != nil {
 					log.Error(err)
 					e = err
+					return
 				}
 				marshal, _ := json.Marshal(config.Config.Aria2cList)
 				log.Debug(string(marshal))
-				aria2Client = &Aria2{aria2Client: client, downloadTask: make(map[string]*types.DouBanVideo)}
+				aria2Client = &Aria2{aria2Client: client, downloadTask: make(map[string]*types.FeedVideo)}
 			}
 		}
 	})
@@ -140,7 +148,7 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 	}
 */
 
-func (a *Aria2) DownloadByWithVideo(v *types.DouBanVideo, url string) (gid string, err error) {
+func (a *Aria2) DownloadByWithVideo(v *types.FeedVideo, url string) (gid string, err error) {
 	gid, err = a.DownloadByMagnet(url)
 	if err != nil {
 		return "", err
@@ -229,32 +237,32 @@ func (a *Aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ..
 //	@receiver a
 //	@param douBanVideo
 //	@param gid
-func (a *Aria2) AddDownloadTask(douBanVideo *types.DouBanVideo, gid string) {
+func (a *Aria2) AddDownloadTask(feedVideo *types.FeedVideo, gid string) {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
-	a.downloadTask[gid] = douBanVideo
+	a.downloadTask[gid] = feedVideo
 }
-func (a *Aria2) GetDownloadTask() map[string]*types.DouBanVideo {
+func (a *Aria2) GetDownloadTask() map[string]*types.FeedVideo {
 	return a.downloadTask
 }
 
-func (a *Aria2) Subscribe() chan *types.DownloadNotifyVideo {
-	downLoadChan := make(chan *types.DownloadNotifyVideo)
+func (a *Aria2) Subscribe(downLoadChan chan *types.DownloadNotifyVideo) {
 	go func() {
 		a.mtx.Lock()
-		for gid, video := range a.downloadTask {
+		for gid, feedVideo := range a.downloadTask {
 			info, err := a.aria2Client.TellStatus(gid, "files", "status")
 			if err != nil {
 				log.Error(err)
+				continue
 			}
 			// active  waiting   paused   error   complete   removed
 			if info.Status == "complete" {
 				file, size := getMaxSizeFile(info.Files)
 				downLoadChan <- &types.DownloadNotifyVideo{
-					Video: video,
-					File:  file,
-					Size:  tools.ByteCountBinary(int64(size)),
-					Gid:   gid,
+					FeedVideo: feedVideo,
+					File:      file,
+					Size:      tools.ByteCountBinary(int64(size)),
+					Gid:       gid,
 				}
 				delete(a.downloadTask, gid)
 			}
@@ -262,8 +270,8 @@ func (a *Aria2) Subscribe() chan *types.DownloadNotifyVideo {
 		close(downLoadChan)
 		a.mtx.Unlock()
 	}()
-	return downLoadChan
 }
+
 func getMaxSizeFile(files []rpc.FileInfo) (string, int) {
 	var maxSizeFile int
 	var f rpc.FileInfo

@@ -38,8 +38,9 @@ type ReportCompletedFiles struct {
 	FileName  string
 }
 type DownloadNotifyVideo struct {
-	Video *DouBanVideo
-	File  string
-	Size  string
-	Gid   string
+	FeedVideo   *FeedVideo
+	DouBanVideo *DouBanVideo
+	File        string
+	Size        string
+	Gid         string
 }

@@ -201,29 +201,20 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 		return errors.WithMessage(err, "aria2 初始化失败")
 	}
 	for _, v := range videos {
-		video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
-		if err != nil {
-			log.Error(err)
-		}
-
-		gid, err := newAria2.DownloadByWithVideo(video, v.Magnet)
+		gid, err := newAria2.DownloadByWithVideo(v, v.Magnet)
 		if err != nil {
 			log.Error(err)
 			continue
 		}
 
 		// 如果开启了tg推送 则推送
-		if config.Config.TG.Enable {
+		if config.Config.TG != nil {
 			go func() {
-				video, err = model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
-				if err != nil {
-					log.Error(err)
-				}
 				//nolint:exhaustruct
 				bus.DownloadNotifyChan <- &types.DownloadNotifyVideo{
-					Video: video,
-					File:  v.TorrentName,
-					Gid:   gid,
+					FeedVideo: v,
+					File:      v.TorrentName,
+					Gid:       gid,
 				}
 			}()
 		}
@@ -292,12 +283,7 @@ func (d *Download) DownloadByName(name, resolution string) (msg string) {
 	}
 
 	for _, v := range videos {
-		video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
-		if err != nil {
-			log.Error(err)
-		}
-
-		gid, err := newAria2.DownloadByWithVideo(video, v.Magnet)
+		gid, err := newAria2.DownloadByWithVideo(v, v.Magnet)
 		if err != nil {
 			log.Error(err)
 			continue

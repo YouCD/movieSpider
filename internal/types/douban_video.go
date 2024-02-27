@@ -2,8 +2,10 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"movieSpider/internal/tools"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -82,9 +84,21 @@ func (d *DouBanVideo) FormatName(names string) string {
 				}
 				continue
 			}
-			eRegex := regexp.MustCompile("(.*)\\.Season\\.\\d+")
+			eRegex := regexp.MustCompile(`(.*)\.Season\.\d+`)
 			EmatchArr := eRegex.FindStringSubmatch(name)
 			if len(EmatchArr) > 1 {
+				// 将Season 替换为 S
+				name = strings.ReplaceAll(name, "Season", "S")
+				eRegex1 := regexp.MustCompile(`(.*)\.S\.(\d+)`)
+				EmatchArr1 := eRegex1.FindStringSubmatch(name)
+				if len(EmatchArr1) > 2 {
+					atoi, err := strconv.Atoi(EmatchArr1[2])
+					if err == nil {
+						n = append(n, fmt.Sprintf("%s.S%.2d", EmatchArr1[1], atoi))
+						continue
+					}
+				}
+
 				n = append(n, EmatchArr[1])
 				continue
 			}

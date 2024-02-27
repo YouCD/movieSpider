@@ -10,6 +10,7 @@ import (
 	"movieSpider/internal/download"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
+	"movieSpider/internal/model"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"os"
@@ -48,7 +49,7 @@ type TGBot struct {
 //	@return *TGBot
 func NewTgBot(botToken string, tgIDs []int) *TGBot {
 	once.Do(func() {
-		client := httpclient.NewHTTPClient()
+		client := httpclient.NewHTTPProxyClient()
 		bot, err := tgbotapi.NewBotAPIWithClient(config.Config.TG.BotToken, "https://api.telegram.org/bot%s/%s", client)
 		if err != nil {
 			log.Error(err)
@@ -361,10 +362,15 @@ func (t *TGBot) downloadNotify() {
 func (t *TGBot) datePublishedNotify() {
 	go func() {
 		for {
-			video, ok := <-bus.DatePublishedChan
+			v, ok := <-bus.DatePublishedChan
 			if ok {
+				video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
+				if err != nil {
+					log.Error(err)
+				}
+
 				t.SendDatePublishedOrDownloadMsg(&types.DownloadNotifyVideo{
-					Video: video,
+					DouBanVideo: video,
 				}, notifyTypeDatePublished)
 			} else {
 				return
@@ -387,10 +393,11 @@ func (t *TGBot) downloadCompleteNotify() {
 		for {
 			time.Sleep(time.Second * 1)
 			t.mtx.Lock()
-			subscribeCh := aria2Server.Subscribe()
+			downLoadChan := make(chan *types.DownloadNotifyVideo)
+			aria2Server.Subscribe(downLoadChan)
 			//nolint:gosimple
 			select {
-			case video, ok := <-subscribeCh:
+			case video, ok := <-downLoadChan:
 				if ok {
 					t.SendDatePublishedOrDownloadMsg(video, notifyTypeDownloadComplete)
 					t.mtx.Unlock()

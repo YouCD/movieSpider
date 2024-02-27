@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"movieSpider/internal/config"
-	httpClient2 "movieSpider/internal/httpClient"
+	httpClient2 "movieSpider/internal/httpclient"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"net/http"
@@ -67,14 +67,14 @@ func TestDouBan_Crawler1(t *testing.T) {
 
 func TestNewSpiderDouBan(t *testing.T) {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
-	marshal, err := json.Marshal(config.DouBanList)
+	marshal, err := json.Marshal(config.Config.DouBan)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	t.Log(string(marshal))
 
-	douBan := NewSpiderDouBan(config.DouBanList)
+	douBan := NewSpiderDouBan(config.Config.DouBan)
 	t.Log(douBan)
 
 }

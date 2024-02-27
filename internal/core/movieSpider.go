@@ -79,7 +79,7 @@ func (m *MovieSpider) RunWithFeed() {
 //	@Description: 运行tgbot
 //	@receiver m
 func (m *MovieSpider) RunWithTGBot() {
-	if config.Config.TG.Enable {
+	if config.Config.TG != nil {
 		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
 		go ms.bot.StartBot()
 	}
