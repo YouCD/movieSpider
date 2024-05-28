@@ -135,7 +135,10 @@ Feed:
 Global:
   LogLevel: info
   Report: true
-
+  # 网络代理
+#  Proxy:
+#    Url: socks5://127.0.0.1:1080
+#    Enable: false
 # Downloader 下载
 Downloader:
   Scheduling: "*/60 * * * *"
@@ -150,10 +153,6 @@ Aria2cList:
 
 # 如果没有Telegram 就请忽略
 #TG:
-  # Telegram 网络代理
-#  Proxy:
-#    Url: socks5://127.0.0.1:1080
-#    Enable: false
   # Telegram 机器人 token
 #  BotToken: "TOKEN"
 #   能正常访问机器人的Telegram用户

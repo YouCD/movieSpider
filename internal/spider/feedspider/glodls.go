@@ -8,8 +8,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
 	httpClient2 "movieSpider/internal/httpclient"
-	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"net/http"
 	"net/url"
@@ -37,7 +37,6 @@ func NewGlodls(scheduling, mirrorSite string) *Glodls {
 		urlBase = mirrorSite
 	}
 
-	//nolint:exhaustruct
 	return &Glodls{
 		urlBase,
 		BaseFeeder{
@@ -114,7 +113,7 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideo, err error) {
 		}
 		//nolint:errchkjson
 		bytes, _ := json.Marshal(v)
-		//nolint:exhaustruct
+
 		fVideo.RowData = sql.NullString{String: string(bytes)}
 
 		videosA = append(videosA, fVideo)

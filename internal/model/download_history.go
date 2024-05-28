@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/types"
 	"strings"
 	"time"
@@ -54,7 +54,7 @@ func (m *MovieDB) UpdateOrAddDownloadHistory(history *types.DownloadHistory) (er
 	// 如果存在，就更新
 	if exist {
 		history.Timestamp = time.Now().Unix()
-		//nolint:exhaustruct
+
 		return m.db.Model(&types.DownloadHistory{}).Where("id=?", id).Updates(history).Error
 	}
 	// 如果不存在，就插入
@@ -71,7 +71,7 @@ func (m *MovieDB) checkDownloadHistory(history *types.DownloadHistory) (id int, 
 	if history == nil {
 		return 0, false
 	}
-	//nolint:exhaustruct
+
 	m.db.Model(&types.DownloadHistory{}).Select("id").Where("name=? and type=?  and season=? and episode=?", history.Name, history.Type, history.Season, history.Episode).Scan(&id)
 	// 扫描
 	if id == 0 {
@@ -101,7 +101,7 @@ func (m *MovieDB) FindFeedVideoInDownloadHistory(v *types.FeedVideo) (*types.Fee
 		return nil, fmt.Errorf("不能将种子: %#v 转换为 downloadHistory", v.TorrentName)
 	}
 	// 查找
-	//nolint:exhaustruct
+
 	err = m.db.Model(&types.DownloadHistory{}).Where("name=? and season=? and episode=?", downloadHistory.Name, downloadHistory.Season, downloadHistory.Episode).Scan(&d).Error
 	if err != nil {
 		// log.Error(downloadHistory.TorrentName, err)

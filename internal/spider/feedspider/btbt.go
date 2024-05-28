@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/httpclient"
-	"movieSpider/internal/log"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
 	"net/http"
@@ -97,7 +97,7 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
 			continue
 		}
 		v.TorrentName = v.Name
-		//nolint:exhaustruct
+
 		v.RowData = sql.NullString{String: downloadURL}
 		Videos2 = append(Videos2, v)
 		wg.Done()

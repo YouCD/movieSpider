@@ -3,12 +3,12 @@ package core
 import (
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/bot"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
 	"movieSpider/internal/job"
-	"movieSpider/internal/log"
 	"movieSpider/internal/spider"
 	"movieSpider/internal/spider/douban"
 	"movieSpider/internal/spider/feedspider"

@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/core"
-	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"os"
 )
@@ -16,7 +16,7 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 //
-//nolint:exhaustruct,gochecknoglobals
+//nolint:gochecknoglobals
 var rootCmd = &cobra.Command{
 	Use:   Name,
 	Short: Name + "电影助手，自动获取电影种子信息，自动刮取豆瓣电影想看列表，自动下载",

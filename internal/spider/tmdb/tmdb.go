@@ -6,9 +6,9 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 	"io"
 	"movieSpider/internal/httpclient"
-	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"net/http"
@@ -42,7 +42,6 @@ func NewSpiderTmDB(scheduling, apikey string) *TmDB {
 	}
 }
 
-//nolint:exhaustruct
 func (t *TmDB) FindByImdbID(imdbID string) (*types.TmDBFindByImdbIDData, error) {
 	res := types.TmDBFindByImdbIDData{}
 

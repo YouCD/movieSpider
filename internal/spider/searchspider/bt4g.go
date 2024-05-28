@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mmcdole/gofeed"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"net/url"
@@ -67,7 +67,7 @@ func (b *BT4g) Search() (videos []*types.FeedVideo, err error) {
 		fVideo.Type = "other"
 		//nolint:errchkjson
 		bytes, _ := json.Marshal(v)
-		//nolint:exhaustruct
+
 		fVideo.RowData = sql.NullString{String: string(bytes)}
 		videos = append(videos, fVideo)
 	}

@@ -3,9 +3,9 @@ package job
 import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
-	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"os"
 	"strconv"

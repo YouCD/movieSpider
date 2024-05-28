@@ -16,33 +16,16 @@ var (
 
 // NewHTTPClient
 //
-//	@Description: 初始化普通http client
+//	@Description: 初始化http client
 //	@return *http.Client
 func NewHTTPClient() *http.Client {
 	once.Do(func() {
-		//nolint:exhaustruct
-		httpClient = &http.Client{Timeout: time.Second * 60}
-	})
-
-	return httpClient
-}
-
-// NewHTTPProxyClient
-//
-//	@Description: 创建代理http client
-//	@return *http.Client
-func NewHTTPProxyClient() *http.Client {
-	once.Do(func() {
-		if config.Config.TG.Proxy.URL != "" {
-			proxyURL, _ := url.Parse(config.Config.TG.Proxy.URL)
+		httpClient = &http.Client{Timeout: time.Second * 30}
+		if config.Config.Global.Proxy.URL != "" {
+			proxyURL, _ := url.Parse(config.Config.Global.Proxy.URL)
 			proxy := http.ProxyURL(proxyURL)
-			//nolint:exhaustruct
 			transport := &http.Transport{Proxy: proxy}
-			//nolint:exhaustruct
-			httpClient = &http.Client{Transport: transport}
-		} else {
-			//nolint:exhaustruct
-			httpClient = &http.Client{Timeout: time.Second * 30}
+			httpClient = &http.Client{Transport: transport, Timeout: time.Minute}
 		}
 	})
 

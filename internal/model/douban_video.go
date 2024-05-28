@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
 	"math/rand"
-	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"time"
 )
@@ -44,7 +44,7 @@ func (m *MovieDB) CreatDouBanVideo(video *types.DouBanVideo) (err error) {
 		//nolint:nakedret
 		return
 	}
-	//nolint:exhaustruct
+
 	err = m.db.Model(&types.DouBanVideo{}).Create(video).Error
 
 	if err != nil {
@@ -64,7 +64,7 @@ func (m *MovieDB) CreatDouBanVideo(video *types.DouBanVideo) (err error) {
 func (m *MovieDB) RandomOneDouBanVideo() (video *types.DouBanVideo, err error) {
 	//nolint:wastedassign
 	video = new(types.DouBanVideo)
-	//nolint:exhaustruct,rowserrcheck
+	//nolint:rowserrcheck
 	rows, err := m.db.Model(&types.DouBanVideo{}).Select(" id,names,douban_id,playable").Where("imdb_id = ''").Rows()
 	if err != nil {
 		return nil, errors.WithMessage(err, "RandomOneDouBanVideo")
@@ -98,7 +98,6 @@ func (m *MovieDB) RandomOneDouBanVideo() (video *types.DouBanVideo, err error) {
 //	@return video
 //	@return err
 func (m *MovieDB) FetchOneDouBanVideoByDouBanID(douBanID string) (video *types.DouBanVideo, err error) {
-	//nolint:exhaustruct
 	err = m.db.Model(&types.DouBanVideo{}).Where("douban_id=?", douBanID).Scan(&video).Error
 	if err != nil {
 		return nil, err
@@ -118,7 +117,7 @@ func (m *MovieDB) UpdateDouBanVideo(video *types.DouBanVideo) (err error) {
 		return errors.New("空数据")
 	}
 	video.Timestamp = time.Now().Unix()
-	//nolint:exhaustruct
+
 	err = m.db.Model(&types.DouBanVideo{}).Where("douban_id = ?", video.DoubanID).Updates(video).Error
 	if err != nil {
 		return errors.WithMessage(err, video.Names)
@@ -135,7 +134,7 @@ func (m *MovieDB) UpdateDouBanVideo(video *types.DouBanVideo) (err error) {
 //	@return err
 func (m *MovieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*types.DouBanVideo][]string, err error) {
 	nameList = make(map[*types.DouBanVideo][]string)
-	//nolint:exhaustruct,rowserrcheck
+	//nolint:rowserrcheck
 	rows, err := m.db.Model(&types.DouBanVideo{}).Where("type = ?", typ.String()).Rows()
 	if err != nil {
 		return
@@ -167,7 +166,7 @@ func (m *MovieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*typ
 func (m *MovieDB) FetchThisYearVideo() ([]*types.DouBanVideo, error) {
 	thisYear := time.Now().Format("2006")
 	var videos []*types.DouBanVideo
-	//nolint:exhaustruct,perfsprint
+	//nolint:perfsprint
 	err := m.db.Model(&types.DouBanVideo{}).Where("date_published like  ?", fmt.Sprintf("%s%%", thisYear)).Find(&videos).Error
 	if err != nil {
 		return nil, err

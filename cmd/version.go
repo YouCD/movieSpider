@@ -14,7 +14,7 @@ var (
 	buildUser string
 )
 
-//nolint:exhaustruct,gochecknoglobals,forbidigo
+//nolint:gochecknoglobals,forbidigo
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version info of " + Name,

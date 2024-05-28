@@ -3,11 +3,12 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-playground/validator/v10"
-	"github.com/spf13/viper"
-	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"os"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/spf13/viper"
+	"github.com/youcd/toolkit/log"
 )
 
 //nolint:tagliatelle
@@ -63,6 +64,9 @@ type downloader struct {
 type global struct {
 	LogLevel string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
 	Report   bool   `json:"Report" yaml:"Report" validate:"required"`
+	Proxy    struct {
+		URL string `json:"Url" yaml:"Url" validate:"required,url"`
+	} `json:"Proxy" yaml:"Proxy" validate:"required"`
 }
 
 //nolint:tagliatelle
@@ -76,9 +80,6 @@ type aria2 struct {
 type tg struct {
 	BotToken string `json:"BotToken" yaml:"BotToken" validate:"required"`
 	TgIDs    []int  `json:"TgIDs" yaml:"TgIDs" validate:"required"`
-	Proxy    struct {
-		URL string `json:"Url" yaml:"Url" validate:"required,url"`
-	} `json:"Proxy" yaml:"Proxy" validate:"required"`
 }
 
 //nolint:tagliatelle
@@ -163,7 +164,8 @@ func InitConfig(config string) {
 	}
 
 	// 打印 日志级别
-	log.NewLogger(Config.Global.LogLevel)
+	log.Init(true)
+	log.SetLogLevel(Config.Global.LogLevel)
 	log.Debug("日志级别： ", Config.Global.LogLevel)
 
 	ValidateFc(Config)

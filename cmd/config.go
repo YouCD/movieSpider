@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"os"
 )
 
@@ -62,7 +62,9 @@ Feed:
 Global:
   LogLevel: info
   Report: true
-
+# 网络代理
+#  Proxy:
+#    Url: socks5://127.0.0.1:1080
 # Downloader 下载
 Downloader:
   Scheduling: "*/60 * * * *"
@@ -77,9 +79,6 @@ Aria2cList:
 
 # 如果没有Telegram 就请忽略
 #TG:
-  # Telegram 网络代理
-#  Proxy:
-#    Url: socks5://127.0.0.1:1080
   # Telegram 机器人 token
 #  BotToken: "TOKEN"
 #   能正常访问机器人的Telegram用户
@@ -90,7 +89,7 @@ Aria2cList:
 	outFile string
 )
 
-//nolint:exhaustruct,gochecknoglobals,forbidigo
+//nolint:gochecknoglobals, forbidigo
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: fmt.Sprintf("generate %s config file.", Name),

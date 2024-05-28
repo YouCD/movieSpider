@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
-	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/spider/searchspider"
 	"movieSpider/internal/types"
@@ -21,7 +21,6 @@ type Download struct {
 }
 
 func NewDownloader(scheduling string) *Download {
-	//nolint:exhaustruct
 	return &Download{scheduling: scheduling}
 }
 
@@ -210,7 +209,6 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 		// 如果开启了tg推送 则推送
 		if config.Config.TG != nil {
 			go func() {
-				//nolint:exhaustruct
 				bus.DownloadNotifyChan <- &types.DownloadNotifyVideo{
 					FeedVideo: v,
 					File:      v.TorrentName,

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"net/url"

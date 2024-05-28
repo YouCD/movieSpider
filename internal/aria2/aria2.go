@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
 	"github.com/zyxar/argo/rpc"
 	"io"
 	"movieSpider/internal/config"
-	"movieSpider/internal/log"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"strconv"
@@ -35,8 +35,6 @@ type Aria2 struct {
 //	@param label
 //	@return *Aria2
 //	@return error
-//
-//nolint:exhaustruct
 func NewAria2(label string) (*Aria2, error) {
 	var e error
 	once.Do(func() {

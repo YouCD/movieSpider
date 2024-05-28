@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"strings"

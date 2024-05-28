@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mmcdole/gofeed"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/types"
 	"regexp"
 	"strings"
@@ -72,7 +72,7 @@ func (f *Eztv) Crawler() (videos []*types.FeedVideo, err error) {
 		//nolint:errchkjson
 		bytes, _ := json.Marshal(v)
 		fVideo.Type = strings.ToLower(v.Categories[0])
-		//nolint:exhaustruct
+
 		fVideo.RowData = sql.NullString{String: string(bytes)}
 
 		videos = append(videos, fVideo)

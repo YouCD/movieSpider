@@ -1,7 +1,7 @@
 package download
 
 import (
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"strings"

@@ -2,7 +2,7 @@ package model
 
 import (
 	"github.com/pkg/errors"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/types"
 	"strings"
 )

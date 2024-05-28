@@ -2,8 +2,8 @@ package aria2
 
 import (
 	"fmt"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/config"
-	"movieSpider/internal/log"
 	"testing"
 )
 

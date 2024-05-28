@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/mmcdole/gofeed"
 	"github.com/pkg/errors"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
 	"regexp"
@@ -113,7 +113,7 @@ func (t *Tgx) Crawler() (videos []*types.FeedVideo, err error) {
 		fVideo.TorrentURL = v.Link
 		//nolint:errchkjson
 		bytes, _ := json.Marshal(v)
-		//nolint:exhaustruct
+
 		fVideo.RowData = sql.NullString{String: string(bytes)}
 		videos1 = append(videos1, fVideo)
 	}

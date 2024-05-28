@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/types"
 	"strings"
 	"time"
@@ -17,7 +17,7 @@ import (
 //	@return videos
 //	@return err
 func (m *MovieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVideo, err error) {
-	//nolint:exhaustruct,sqlclosecheck,rowserrcheck
+	//nolint:sqlclosecheck, rowserrcheck
 	rows, err := m.db.Model(&types.FeedVideo{}).Select(" id,name").Where(" name like ?", fmt.Sprintf("%%%s%%", name)).Rows()
 	if err != nil {
 		return nil, errors.WithMessage(err, "FindLikeTVFromFeedVideo")
@@ -43,7 +43,6 @@ func (m *MovieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVide
 //	@param resource
 //	@return err
 func (m *MovieDB) UpdateFeedVideoNameByID(id int32, name string, resource types.VideoType) (err error) {
-	//nolint:exhaustruct
 	err = m.db.Model(&types.FeedVideo{}).Where("id=?", id).Updates(types.FeedVideo{Name: name, Type: resource.String()}).Error
 	if err != nil {
 		return err
@@ -98,7 +97,7 @@ func (m *MovieDB) GetFeedVideoTVByName(doubanID string, names ...string) (videos
 				likeName = fmt.Sprintf("%%%s%%", n)
 			}
 		*/
-		//nolint:exhaustruct,rowserrcheck,perfsprint
+		//nolint:rowserrcheck, perfsprint
 		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download !=1 and type="movie" `, fmt.Sprintf("%s%%", n)).Rows()
 		// rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and download !=1 and  type !="movie" `, n).Rows()
 		if err != nil {
@@ -129,7 +128,7 @@ func (m *MovieDB) GetFeedVideoTVByName(doubanID string, names ...string) (videos
 //	@return err
 func (m *MovieDB) UpdateFeedVideoDownloadByID(id int32, isDownload int) (err error) {
 	// 定义sql
-	//nolint:exhaustruct
+
 	err = m.db.Model(&types.FeedVideo{}).Where("id=?", id).Updates(types.FeedVideo{Download: isDownload}).Error
 	if err != nil {
 		return err
@@ -144,7 +143,7 @@ func (m *MovieDB) UpdateFeedVideoDownloadByID(id int32, isDownload int) (err err
 //	@return counts
 //	@return err
 func (m *MovieDB) CountFeedVideo() (counts []*types.ReportCount, err error) {
-	//nolint:exhaustruct,rowserrcheck,sqlclosecheck
+	//nolint:rowserrcheck, sqlclosecheck
 	rows, err := m.db.Model(&types.FeedVideo{}).Select("count(*)  as count ,web ").Group("web").Order("count").Rows()
 	if err != nil {
 		return nil, errors.WithMessage(err, "查找失败")
@@ -175,7 +174,7 @@ func (m *MovieDB) GetFeedVideoMovieByName(names ...string) (videos []*types.Feed
 		// var likeName string
 		// likeName = fmt.Sprintf("%%%s%%", n)
 		// 只查找 没有下载过 && 类型为movie数据   and download=0
-		//nolint:exhaustruct,rowserrcheck
+		//nolint:rowserrcheck
 		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and  type="movie" `, n).Rows()
 		if err != nil {
 			return nil, errors.WithMessage(err, "查找失败")
@@ -207,7 +206,7 @@ func (m *MovieDB) GetFeedVideoMovieByName(names ...string) (videos []*types.Feed
 				likeName = fmt.Sprintf("%%%s%%", n)
 			}
 		*/
-		//nolint:exhaustruct,rowserrcheck
+		//nolint:rowserrcheck
 		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download=0 and type="movie"`, n).Rows()
 		// rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download=0 and type!="tv"`, n).Rows()
 		if err != nil {
@@ -233,7 +232,7 @@ func (m *MovieDB) GetFeedVideoMovieByNameAndDoubanID(doubanID string, names ...s
 	log.Debugf("GetFeedVideoMovieByName 开始第一次查找Movie数据: %s.", names)
 	for _, n := range names {
 		//  只查找 没有下载过 && 类型为movie数据   and download=0
-		//nolint:exhaustruct,rowserrcheck
+		//nolint:rowserrcheck
 		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and  type="movie" `, n).Rows()
 		if err != nil {
 			return nil, errors.WithMessage(err, "查找失败")
@@ -261,7 +260,7 @@ func (m *MovieDB) GetFeedVideoMovieByNameAndDoubanID(doubanID string, names ...s
 		// } else {
 		// 	likeName = fmt.Sprintf("%%%s%%", n)
 		// }
-		//nolint:exhaustruct,rowserrcheck
+		//nolint:rowserrcheck
 		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name  = ? and magnet!="" and download!=1  and type="movie"`, n).Rows()
 		if err != nil {
 			return nil, errors.WithMessage(err, "查找失败")
@@ -294,7 +293,7 @@ func (m *MovieDB) CreatFeedVideo(video *types.FeedVideo) (err error) {
 	}
 	video.Timestamp = time.Now().Unix()
 	video.RowData.Valid = true
-	//nolint:exhaustruct
+
 	err = m.db.Model(types.FeedVideo{}).Create(video).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "Duplicate entry") {
@@ -316,7 +315,7 @@ func (m *MovieDB) CreatFeedVideo(video *types.FeedVideo) (err error) {
 //	@return err
 func (m *MovieDB) UpdateFeedVideo(video *types.FeedVideo) (err error) {
 	video.Name = video.FormatName(video.Name)
-	//nolint:exhaustruct
+
 	err = m.db.Model(&types.FeedVideo{}).Where("id=?", video.ID).Updates(video).Error
 	if err != nil {
 		return err

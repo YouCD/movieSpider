@@ -4,12 +4,12 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
 	"movieSpider/internal/httpclient"
-	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
@@ -49,13 +49,13 @@ type TGBot struct {
 //	@return *TGBot
 func NewTgBot(botToken string, tgIDs []int) *TGBot {
 	once.Do(func() {
-		client := httpclient.NewHTTPProxyClient()
+		client := httpclient.NewHTTPClient()
 		bot, err := tgbotapi.NewBotAPIWithClient(config.Config.TG.BotToken, "https://api.telegram.org/bot%s/%s", client)
 		if err != nil {
 			log.Error(err)
 			os.Exit(-1)
 		}
-		//nolint:exhaustruct
+
 		tgBotClient = &TGBot{
 			botToken: botToken, IDs: tgIDs, bot: bot,
 		}
@@ -357,7 +357,7 @@ func (t *TGBot) downloadNotify() {
 //	@Description: 上映通知
 //	@receiver t
 //
-//nolint:exhaustruct
+
 func (t *TGBot) datePublishedNotify() {
 	go func() {
 		for {

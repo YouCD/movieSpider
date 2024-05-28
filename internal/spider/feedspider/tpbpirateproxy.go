@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mmcdole/gofeed"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/types"
 	"regexp"
 	"strings"
@@ -96,7 +96,7 @@ func (t *Tpbpirateproxy) Crawler() (videos []*types.FeedVideo, err error) {
 		}
 		//nolint:errchkjson
 		bytes, _ := json.Marshal(v)
-		//nolint:exhaustruct
+
 		fVideo.RowData = sql.NullString{String: string(bytes)}
 
 		videosA = append(videosA, fVideo)

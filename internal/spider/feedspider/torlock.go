@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/httpclient"
-	"movieSpider/internal/log"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
 	"regexp"
@@ -74,7 +74,7 @@ func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
 			// 原始数据
 			//nolint:errchkjson
 			bytes, _ := json.Marshal(v)
-			//nolint:exhaustruct
+
 			fVideo.RowData = sql.NullString{String: string(bytes)}
 
 			// 片名
@@ -126,7 +126,7 @@ func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
 			// 原始数据
 			//nolint:errchkjson
 			bytes, _ := json.Marshal(v)
-			//nolint:exhaustruct
+
 			fVideo.RowData = sql.NullString{String: string(bytes)}
 			fVideo.Web = t.web
 			// 片名

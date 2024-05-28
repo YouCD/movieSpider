@@ -2,7 +2,7 @@ package searchspider
 
 import (
 	"fmt"
-	"movieSpider/internal/log"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/types"
 	"net/url"
 	"os"

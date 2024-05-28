@@ -1,10 +1,10 @@
 package core
 
 import (
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
 	"movieSpider/internal/job"
-	"movieSpider/internal/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/spider/feedspider"
 	"movieSpider/internal/types"
