@@ -64,8 +64,8 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 	}
 	var summaryVideo []*types.DouBanVideo
 
-	doc.Find("#content > div.grid-16-8.clearfix > div.article > div.grid-view> div").Each(func(i int, s *goquery.Selection) {
-		s.Each(func(i int, selection *goquery.Selection) {
+	doc.Find("#content > div.grid-16-8.clearfix > div.article > div.grid-view> div").Each(func(_ int, s *goquery.Selection) {
+		s.Each(func(_ int, selection *goquery.Selection) {
 			doubanVideo := new(types.DouBanVideo)
 			// 片名
 			nameStr := selection.Find("div.info> ul > li.title > a > em ").Text()

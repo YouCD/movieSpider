@@ -45,7 +45,7 @@ func NewAria2(label string) (*Aria2, error) {
 			if strings.HasSuffix(v.URL, "jsonrpc") {
 				URL = v.URL
 			} else {
-				URL = fmt.Sprintf("%s/jsonrpc", v.URL)
+				URL = v.URL + "/jsonrpc"
 			}
 
 			if v.Label == label {
@@ -267,7 +267,6 @@ func (a *Aria2) Subscribe(downLoadChan chan *types.DownloadNotifyVideo) {
 				delete(a.downloadTask, gid)
 			}
 		}
-		close(downLoadChan)
 		a.mtx.Unlock()
 	}()
 }

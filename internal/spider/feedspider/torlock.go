@@ -3,7 +3,6 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
 	"movieSpider/internal/httpclient"
@@ -33,9 +32,9 @@ func NewTorlock(args ...interface{}) *Torlock {
 		urlBase = args[2].(string)
 	}
 
-	url := fmt.Sprintf("%s/television/rss.xml", urlBase)
+	url := urlBase + "/television/rss.xml"
 	if resourceType == types.VideoTypeMovie {
-		url = fmt.Sprintf("%s/movies/rss.xml", urlBase)
+		url = urlBase + "/movies/rss.xml"
 	}
 	return &Torlock{
 		typ: resourceType,

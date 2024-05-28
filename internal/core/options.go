@@ -95,7 +95,7 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 func WithConfigFile(configFile string) Option {
 	config.InitConfig(configFile)
 	model.NewMovieDB()
-	return optionFunc(func(ms *MovieSpider) {})
+	return optionFunc(func(_ *MovieSpider) {})
 }
 
 // WithReport
@@ -126,7 +126,7 @@ func WithDownload() Option {
 //	@return Option
 func WithReleaseTimeJob() Option {
 	if config.Config.TG == nil {
-		return optionFunc(func(ms *MovieSpider) {
+		return optionFunc(func(_ *MovieSpider) {
 			log.Warn("未开启TG通知，无法运行 电影上线 通知job")
 		})
 	}

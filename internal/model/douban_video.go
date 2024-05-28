@@ -167,7 +167,7 @@ func (m *MovieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*typ
 func (m *MovieDB) FetchThisYearVideo() ([]*types.DouBanVideo, error) {
 	thisYear := time.Now().Format("2006")
 	var videos []*types.DouBanVideo
-	//nolint:exhaustruct
+	//nolint:exhaustruct,perfsprint
 	err := m.db.Model(&types.DouBanVideo{}).Where("date_published like  ?", fmt.Sprintf("%s%%", thisYear)).Find(&videos).Error
 	if err != nil {
 		return nil, err

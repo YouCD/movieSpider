@@ -33,6 +33,7 @@ func Test_download_DownloadByName(t *testing.T) {
 		t.Error(err)
 	}
 	downLoadChan := make(chan *types.DownloadNotifyVideo)
+	defer close(downLoadChan)
 	go func() {
 		for {
 			time.Sleep(time.Second * 1)

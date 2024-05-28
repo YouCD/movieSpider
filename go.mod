@@ -1,11 +1,12 @@
 module movieSpider
 
-go 1.18
+go 1.21
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/anacrolix/torrent v1.47.0
 	github.com/duke-git/lancet/v2 v2.2.5
+	github.com/go-playground/validator/v10 v10.17.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/mmcdole/gofeed v1.1.3
 	github.com/olekukonko/tablewriter v0.0.5
@@ -28,7 +29,6 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.17.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

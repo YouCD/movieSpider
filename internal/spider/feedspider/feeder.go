@@ -1,13 +1,13 @@
 package feedspider
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 	"movieSpider/internal/types"
 )
 
 var (
-	ErrNoFeedData   = fmt.Errorf("no feed data")
-	ErrFeedParseURL = fmt.Errorf("feed url解析失败")
+	ErrNoFeedData   = errors.New("no feed data")
+	ErrFeedParseURL = errors.New("feed url解析失败")
 )
 
 //nolint:inamedparam

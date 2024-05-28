@@ -49,10 +49,10 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
 
 	// 洗出  下载电影的页面
 	var Videos1 []*types.FeedVideo
-	doc.Find("[valign='middle'].subject").Each(func(i int, s *goquery.Selection) {
-		s.Each(func(i int, selection *goquery.Selection) {
+	doc.Find("[valign='middle'].subject").Each(func(_ int, s *goquery.Selection) {
+		s.Each(func(_ int, selection *goquery.Selection) {
 			fVideo := new(types.FeedVideo)
-			selection.Find("a:nth-child(6)").Each(func(i int, selection *goquery.Selection) {
+			selection.Find("a:nth-child(6)").Each(func(_ int, selection *goquery.Selection) {
 				name := splitTitle(selection.Text())
 				u, ok := selection.Attr("href")
 				if ok {
@@ -65,7 +65,7 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
 			})
 
 			// 年份
-			selection.Find("a:nth-child(2)").Each(func(i int, selection *goquery.Selection) {
+			selection.Find("a:nth-child(2)").Each(func(_ int, selection *goquery.Selection) {
 				fVideo.Year = trim(selection.Text())
 			})
 			//nolint:goconst
@@ -162,7 +162,7 @@ func moviePageURL(pageURL string) (url string, err error) {
 		return "", errors.WithMessagef(err, "BTBT: 电影页没有数据: %s", pageURL)
 	}
 
-	doc.Find("#body > div > table:nth-child(2) > tbody > tr:nth-child(1) > td.post_td > div.attachlist > table > tbody > tr:nth-child(3) > td:nth-child(1) > a").Each(func(i int, selection *goquery.Selection) {
+	doc.Find("#body > div > table:nth-child(2) > tbody > tr:nth-child(1) > td.post_td > div.attachlist > table > tbody > tr:nth-child(3) > td:nth-child(1) > a").Each(func(_ int, selection *goquery.Selection) {
 		u, ok := selection.Attr("href")
 		if ok {
 			url = urlParser(u, pageURL)
@@ -183,7 +183,7 @@ func torrentDownloadURL(url string) (newURL string, err error) {
 		return "", errors.WithMessage(err, "torrentDownloadURL goquery")
 	}
 
-	doc.Find("#body > div > dl > dd:nth-child(14) > a").Each(func(i int, selection *goquery.Selection) {
+	doc.Find("#body > div > dl > dd:nth-child(14) > a").Each(func(_ int, selection *goquery.Selection) {
 		u, ok := selection.Attr("href")
 		if ok {
 			newURL = urlParser(u, url)

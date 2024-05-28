@@ -69,7 +69,7 @@ func (m *Magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 		selector := "#content > div.fill-table > table > tbody > tr"
 		compileRegex := regexp.MustCompile("(.*)\\.([0-9][0-9][0-9][0-9])\\.")
 		//#content > div.fill-table > table > tbody > tr:nth-child(1) > td.n > a
-		doc.Find(selector).Each(func(i int, s *goquery.Selection) {
+		doc.Find(selector).Each(func(_ int, s *goquery.Selection) {
 			// 片名
 			name := strings.ReplaceAll(s.Text(), " ", ".")
 			// magnet 链接
@@ -121,7 +121,7 @@ func (m *Magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 		selector := "#content > div.fill-table > table > tbody > tr"
 		compileRegex := regexp.MustCompile("(.*)\\.[sS][0-9][0-9]|[Ee][0-9][0-9]?\\.")
 		//#content > div.fill-table > table > tbody > tr:nth-child(1) > td.n > a
-		doc.Find(selector).Each(func(i int, s *goquery.Selection) {
+		doc.Find(selector).Each(func(_ int, s *goquery.Selection) {
 			// 片名
 			name := strings.ReplaceAll(s.Text(), " ", ".")
 

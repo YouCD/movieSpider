@@ -17,8 +17,8 @@ var (
 //nolint:exhaustruct,gochecknoglobals,forbidigo
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: fmt.Sprintf("Print the version info of %s", Name),
-	Run: func(cmd *cobra.Command, args []string) {
+	Short: "Print the version info of " + Name,
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Printf("Version:   %s\n", Version)
 		fmt.Printf("CommitID:  %s\n", commitID)
 		fmt.Printf("BuildTime: %s\n", buildTime)

@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	"movieSpider/internal/log"
 	"os"
 )
@@ -95,12 +94,12 @@ Aria2cList:
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: fmt.Sprintf("generate %s config file.", Name),
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		if outFile == "" {
 			fmt.Println(cfgTmp)
 		}
 		if outFile != "" {
-			err := ioutil.WriteFile(outFile, []byte(cfgTmp), 0644)
+			err := os.WriteFile(outFile, []byte(cfgTmp), 0644)
 			if err != nil {
 				log.Error(err)
 				os.Exit(-1)

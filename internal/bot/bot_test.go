@@ -14,7 +14,7 @@ func init() {
 	model.NewMovieDB()
 }
 func TestTGBot_SendDatePublishedMsg(t1 *testing.T) {
-	t := NewTgBot(config.TG.BotToken, config.TG.TgIDs)
+	t := NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
 	go t.StartBot()
 	obj := &types.DouBanVideo{
 		ID:            99119,
@@ -30,7 +30,9 @@ func TestTGBot_SendDatePublishedMsg(t1 *testing.T) {
 	newAria2, _ := aria2.NewAria2(config.Downloader.Aria2Label)
 
 	newAria2.AddDownloadTask(obj, "6378562f5e923563")
-	video := <-newAria2.Subscribe()
+	downLoadChan := make(chan *types.DownloadNotifyVideo)
+	defer close(downLoadChan)
+	newAria2.Subscribe(downLoadChan)
 	log.Errorf("%v", video)
 	select {}
 }

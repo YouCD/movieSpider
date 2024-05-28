@@ -2,10 +2,16 @@ package model
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"movieSpider/internal/log"
 	"movieSpider/internal/types"
 	"strings"
 	"time"
+)
+
+var (
+	ErrVideoIsNil   = errors.New("video is nil")
+	ErrHistoryIsNil = errors.New("history is nil")
 )
 
 // AddDownloadHistory
@@ -17,7 +23,7 @@ import (
 func (m *MovieDB) AddDownloadHistory(history *types.DownloadHistory) (err error) {
 	if history == nil {
 		//nolint:goerr113
-		return fmt.Errorf("history 不能为nil")
+		return ErrHistoryIsNil
 	}
 	history.Timestamp = time.Now().Unix()
 
@@ -42,7 +48,7 @@ func (m *MovieDB) AddDownloadHistory(history *types.DownloadHistory) (err error)
 func (m *MovieDB) UpdateOrAddDownloadHistory(history *types.DownloadHistory) (err error) {
 	if history == nil {
 		//nolint:goerr113
-		return fmt.Errorf("history 不能为nil")
+		return ErrHistoryIsNil
 	}
 	id, exist := m.checkDownloadHistory(history)
 	// 如果存在，就更新
@@ -84,7 +90,7 @@ func (m *MovieDB) checkDownloadHistory(history *types.DownloadHistory) (id int, 
 func (m *MovieDB) FindFeedVideoInDownloadHistory(v *types.FeedVideo) (*types.FeedVideo, error) {
 	if v == nil {
 		//nolint:goerr113
-		return nil, fmt.Errorf("video 不能为nil")
+		return nil, ErrVideoIsNil
 	}
 
 	var d *types.DownloadHistory

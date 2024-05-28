@@ -87,7 +87,6 @@ func (t *TGBot) StartBot() {
 	log.Infof("Authorized on account %s", t.bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
 	updates := t.bot.GetUpdatesChan(u)
 	for update := range updates {
 		index := 1
@@ -384,7 +383,9 @@ func (t *TGBot) datePublishedNotify() {
 //	@Description: 下载完成通知
 //	@receiver t
 func (t *TGBot) downloadCompleteNotify() {
+	downLoadChan := make(chan *types.DownloadNotifyVideo)
 	go func() {
+		defer close(downLoadChan)
 		aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 		if err != nil {
 			log.Error(err)
@@ -393,15 +394,12 @@ func (t *TGBot) downloadCompleteNotify() {
 		for {
 			time.Sleep(time.Second * 1)
 			t.mtx.Lock()
-			downLoadChan := make(chan *types.DownloadNotifyVideo)
 			aria2Server.Subscribe(downLoadChan)
 			//nolint:gosimple
 			select {
 			case video, ok := <-downLoadChan:
 				if ok {
 					t.SendDatePublishedOrDownloadMsg(video, notifyTypeDownloadComplete)
-					t.mtx.Unlock()
-				} else {
 					t.mtx.Unlock()
 				}
 			}

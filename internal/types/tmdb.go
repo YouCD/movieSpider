@@ -96,7 +96,7 @@ type movieItem struct {
 	Overview         string  `json:"overview"`
 	PosterPath       string  `json:"poster_path"`
 	MediaType        string  `json:"media_type"`
-	GenreIds         []int   `json:"genre_ids"`
+	GenreIDs         []int   `json:"genre_ids"`
 	Popularity       float64 `json:"popularity"`
 	ReleaseDate      string  `json:"release_date"`
 	Video            bool    `json:"video"`
@@ -115,7 +115,7 @@ type tvResultsItme struct {
 	Overview         string   `json:"overview"`
 	PosterPath       string   `json:"poster_path"`
 	MediaType        string   `json:"media_type"`
-	GenreIds         []int    `json:"genre_ids"`
+	GenreIDs         []int    `json:"genre_ids"`
 	Popularity       float64  `json:"popularity"`
 	FirstAirDate     string   `json:"first_air_date"`
 	VoteAverage      float64  `json:"vote_average"`
