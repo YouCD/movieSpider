@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/mmcdole/gofeed"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
 	"regexp"
 	"strings"
 	"sync"
+
+	"github.com/mmcdole/gofeed"
+	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
 )
 
 const (

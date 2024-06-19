@@ -66,7 +66,7 @@ type global struct {
 	Report   bool   `json:"Report" yaml:"Report" validate:"required"`
 	Proxy    struct {
 		URL string `json:"Url" yaml:"Url" validate:"required,url"`
-	} `json:"Proxy" yaml:"Proxy" validate:"required"`
+	} `json:"Proxy" yaml:"Proxy" validate:"omitempty"`
 }
 
 //nolint:tagliatelle
