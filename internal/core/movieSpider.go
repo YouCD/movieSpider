@@ -1,9 +1,6 @@
 package core
 
 import (
-	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/bot"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
@@ -14,6 +11,10 @@ import (
 	"movieSpider/internal/spider/feedspider"
 	"os"
 	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 )
 
 type MovieSpider struct {
@@ -62,7 +63,7 @@ func (m *MovieSpider) RunWithFeed() {
 						log.Warnf("%s: 没有feed数据, url: %s", strings.ToUpper(feeder.WebName()), feeder.URL())
 						return
 					}
-					log.Error(err)
+					log.Errorf("web: %s ,err: %s", feeder.WebName(), err)
 					return
 				}
 				for _, video := range videos {

@@ -27,6 +27,7 @@ linters:
     - gofumpt
     - cyclop
     - depguard
+    - execinquery
     - gosmopolitan
     - wsl
     - mnd

@@ -3,14 +3,15 @@ package feedspider
 import (
 	"context"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/types"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
 )
 
 const (
@@ -102,7 +103,7 @@ func (m *Magnetdl) Crawler() (Videos []*types.FeedVideo, err error) {
 			Videos = append(Videos, fVideo)
 		})
 	case types.VideoTypeTV:
-		log.Infof("%s working, type:%s ,url: %s", strings.ToUpper(m.web), m.typ.String(), m.url)
+		log.Infof("%s working, type:%s, url: %s", strings.ToUpper(m.web), m.typ.String(), m.url)
 		req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, m.url, nil)
 		if err != nil {
 			return nil, errors.WithMessage(err, "getMovies newRequest")

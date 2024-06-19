@@ -1,6 +1,6 @@
 module movieSpider
 
-go 1.21
+go 1.22.3
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
@@ -18,7 +18,6 @@ require (
 	github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063
 	gorm.io/driver/mysql v1.5.6
 	gorm.io/gorm v1.25.9
-
 )
 
 require (
