@@ -1,13 +1,15 @@
 package core
 
 import (
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
 	"movieSpider/internal/job"
 	"movieSpider/internal/model"
 	"movieSpider/internal/spider/feedspider"
 	"movieSpider/internal/types"
+	"strings"
+
+	"github.com/youcd/toolkit/log"
 )
 
 //nolint:inamedparam
@@ -27,16 +29,24 @@ func (f optionFunc) apply(ms *MovieSpider) {
 //	@return Option
 func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// BTBT
-	feedBTBT := feedspider.NewBtbt(config.Config.Feed.BTBT.Scheduling)
+	feedBTBT := feedspider.NewBtbt(config.Config.Feed.BTBT.Scheduling, config.Config.Feed.BTBT.Url)
 
 	// EZTV
-	feedEZTV := feedspider.NewEztv(config.Config.Feed.EZTV.Scheduling, config.Config.Feed.EZTV.MirrorSite)
+	feedEZTV := feedspider.NewEztv(config.Config.Feed.EZTV.Scheduling, config.Config.Feed.EZTV.Url)
 
 	// GLODLS
-	feedGLODLS := feedspider.NewGlodls(config.Config.Feed.GLODLS.Scheduling, config.Config.Feed.GLODLS.MirrorSite)
+	feedGLODLS := feedspider.NewGlodls(config.Config.Feed.GLODLS.Scheduling, config.Config.Feed.GLODLS.Url)
 
 	// TGX
-	feedTGXS := feedspider.NewTgx(config.Config.Feed.TGX.Scheduling, config.Config.Feed.TGX.MirrorSite)
+	var TGXRss feedspider.Feeder
+	var TGXDump feedspider.Feeder
+	for _, tgx := range config.Config.Feed.TGX {
+		if strings.HasSuffix(tgx.Url, "tgx24hdump.txt.gz") {
+			TGXDump = feedspider.NewTgxDump(tgx.Scheduling, tgx.Url)
+		} else {
+			TGXRss = feedspider.NewTgx(tgx.Scheduling, tgx.Url)
+		}
+	}
 
 	// TORLOCK
 	var feedTorlockMovie feedspider.Feeder
@@ -44,11 +54,11 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	for _, r := range config.Config.Feed.TORLOCK {
 		if r != nil {
 			if r.ResourceType == types.VideoTypeTV {
-				feedTorlockTV = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.MirrorSite)
+				feedTorlockTV = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.Url)
 			}
 			log.Debug(r)
 			if r.ResourceType == types.VideoTypeMovie {
-				feedTorlockMovie = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.MirrorSite)
+				feedTorlockMovie = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.Url)
 			}
 			log.Debug(r)
 		}
@@ -59,24 +69,25 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	for _, r := range config.Config.Feed.MagnetDL {
 		if r != nil {
 			if r.ResourceType == types.VideoTypeTV {
-				feedMagnetdlTV = feedspider.NewMagnetdl(r.Scheduling, r.ResourceType, r.MirrorSite)
+				feedMagnetdlTV = feedspider.NewMagnetdl(r.Scheduling, r.ResourceType, r.Url)
 			}
 			log.Debug(r)
 			if r.ResourceType == types.VideoTypeMovie {
-				feedMagnetdlMovie = feedspider.NewMagnetdl(r.Scheduling, r.ResourceType, r.MirrorSite)
+				feedMagnetdlMovie = feedspider.NewMagnetdl(r.Scheduling, r.ResourceType, r.Url)
 			}
 			log.Debug(r)
 		}
 	}
 
-	feedTPBPIRATEPROXY := feedspider.NewTpbpirateproxy(config.Config.Feed.TPBPIRATEPROXY.Scheduling, config.Config.Feed.TPBPIRATEPROXY.MirrorSite)
+	feedTPBPIRATEPROXY := feedspider.NewTpbpirateproxy(config.Config.Feed.TPBPIRATEPROXY.Scheduling, config.Config.Feed.TPBPIRATEPROXY.Url)
 
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
 			feedBTBT,
 			feedEZTV,
 			feedGLODLS,
-			feedTGXS,
+			TGXDump,
+			TGXRss,
 			feedTorlockMovie,
 			feedTorlockTV,
 			feedMagnetdlMovie,

@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/core"
 	"movieSpider/internal/model"
 	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/youcd/toolkit/log"
 )
 
 //nolint:gochecknoglobals
@@ -50,6 +51,5 @@ func Execute() {
 //nolint:gochecknoinits
 func init() {
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(configCmd)
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config.file", "f", "", "指定配置文件")
 }

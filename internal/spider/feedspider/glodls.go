@@ -5,10 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/mmcdole/gofeed"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
 	httpClient2 "movieSpider/internal/httpclient"
 	"movieSpider/internal/types"
 	"net/http"
@@ -17,11 +13,11 @@ import (
 	"strings"
 	"sync"
 	"time"
-)
 
-const (
-	urlBaseGlodls   = "http://gtso.cc"
-	urlRssURIGlodls = "rss.php?cat=1,41"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/mmcdole/gofeed"
+	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
 )
 
 type Glodls struct {
@@ -29,19 +25,19 @@ type Glodls struct {
 	BaseFeeder
 }
 
-func NewGlodls(scheduling, mirrorSite string) *Glodls {
-	urlBase := urlBaseGlodls
-	urlStr := fmt.Sprintf("%s/%s", urlBaseGlodls, urlRssURIGlodls)
-	if mirrorSite != "" {
-		urlStr = fmt.Sprintf("%s/%s", mirrorSite, urlRssURIGlodls)
-		urlBase = mirrorSite
+func NewGlodls(scheduling, siteURL string) *Glodls {
+	parse, err := url.Parse(siteURL)
+	if err != nil {
+		log.Errorf("url.Parse err: %v", err)
+		return nil
 	}
 
+	urlBase := parse.Scheme + "://" + parse.Host
 	return &Glodls{
 		urlBase,
 		BaseFeeder{
 			web:        "glodls",
-			url:        urlStr,
+			url:        siteURL,
 			scheduling: scheduling,
 		},
 	}

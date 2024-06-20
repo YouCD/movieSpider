@@ -3,31 +3,22 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
-	"github.com/mmcdole/gofeed"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/types"
 	"regexp"
 	"strings"
-)
 
-const (
-	urlBaseEztv   = "https://eztv.io"
-	urlRssURIEztv = "ezrss.xml"
+	"github.com/mmcdole/gofeed"
+	"github.com/youcd/toolkit/log"
 )
 
 type Eztv struct {
 	BaseFeeder
 }
 
-func NewEztv(scheduling, mirrorSite string) *Eztv {
-	url := fmt.Sprintf("%s/%s", urlBaseEztv, urlRssURIEztv)
-	if mirrorSite != "" {
-		url = fmt.Sprintf("%s/%s", mirrorSite, urlRssURIEztv)
-	}
+func NewEztv(scheduling, siteURL string) *Eztv {
 	return &Eztv{BaseFeeder{
 		web:        "eztv",
-		url:        url,
+		url:        siteURL,
 		scheduling: scheduling,
 	}}
 }

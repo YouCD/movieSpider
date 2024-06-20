@@ -2,11 +2,6 @@ package model
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	log1 "log"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
@@ -16,6 +11,12 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type MovieDB struct {
@@ -34,7 +35,6 @@ var (
 func NewMovieDB() *MovieDB {
 	once.Do(func() {
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8&parseTime=True&loc=Local", config.Config.MySQL.User, config.Config.MySQL.Password, config.Config.MySQL.Host, config.Config.MySQL.Port)
-
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Error(err)

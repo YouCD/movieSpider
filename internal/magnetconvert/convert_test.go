@@ -2,12 +2,13 @@ package magnetconvert
 
 import (
 	"fmt"
-	"github.com/anacrolix/torrent/metainfo"
 	"testing"
+
+	"github.com/anacrolix/torrent/metainfo"
 )
 
 func TestConvertFileToMagnet(t *testing.T) {
-	Magnet, err := FileToMagnet("/tmp/a.torrent")
+	Magnet, err := FileToMagnet("/home/ycd/Downloads/Rome.Open.City.1945.CC.1080p.BluRay.x265.10bit.FLAC.1.0-SONYHD[1LOU.ME].torrent")
 	if err != nil {
 		t.Error(err)
 	}

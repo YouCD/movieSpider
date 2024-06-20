@@ -4,9 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
-	"github.com/zyxar/argo/rpc"
 	"io"
 	"movieSpider/internal/config"
 	"movieSpider/internal/tools"
@@ -15,6 +12,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
+	"github.com/zyxar/argo/rpc"
 )
 
 //nolint:gochecknoglobals
@@ -39,11 +40,9 @@ func NewAria2(label string) (*Aria2, error) {
 	var e error
 	once.Do(func() {
 		for _, v := range config.Config.Aria2cList {
-			var URL string
+			URL := v.URL + "/jsonrpc"
 			if strings.HasSuffix(v.URL, "jsonrpc") {
 				URL = v.URL
-			} else {
-				URL = v.URL + "/jsonrpc"
 			}
 
 			if v.Label == label {

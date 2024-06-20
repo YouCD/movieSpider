@@ -3,11 +3,12 @@ package magnetconvert
 import (
 	"context"
 	"fmt"
-	"github.com/anacrolix/torrent/metainfo"
-	"github.com/pkg/errors"
 	"io"
 	httpClient2 "movieSpider/internal/httpclient"
 	"net/http"
+
+	"github.com/anacrolix/torrent/metainfo"
+	"github.com/pkg/errors"
 )
 
 // FileToMagnet
@@ -22,19 +23,12 @@ func FileToMagnet(file string) (string, error) {
 		//nolint:goerr113
 		return "", fmt.Errorf("cannot read the metainfo from file: %s. %s", file, err.Error())
 	}
-
-	info, err := mi.UnmarshalInfo()
+	m2, err := mi.MagnetV2()
 	if err != nil {
 		//nolint:goerr113
-		return "", fmt.Errorf("cannot unmarshal the metainfo from file: %s. %s", file, err.Error())
+		return "", fmt.Errorf("转换失败，err: %w", err)
 	}
-	hs := mi.HashInfoBytes()
-
-	if info.Name == "" {
-		return "", nil
-	}
-
-	return mi.Magnet(&hs, &info).String(), nil
+	return m2.String(), nil
 }
 
 // IO2Magnet
@@ -48,18 +42,11 @@ func IO2Magnet(r io.Reader) (string, error) {
 	if err != nil {
 		return "", errors.New("读取磁链meta信息错误")
 	}
-
-	info, err := mi.UnmarshalInfo()
+	m2, err := mi.MagnetV2()
 	if err != nil {
-		return "", errors.New("磁链解析错误")
+		return "", fmt.Errorf("转换失败，err: %w", err)
 	}
-	hs := mi.HashInfoBytes()
-
-	if info.Name == "" {
-		return "", nil
-	}
-
-	return mi.Magnet(&hs, &info).String(), nil
+	return m2.String(), nil
 }
 
 // FetchMagnet
@@ -76,17 +63,16 @@ func FetchMagnet(url string) (magnet string, err error) {
 	client := httpClient2.NewHTTPClient()
 	resp, err := client.Do(request)
 	if err != nil {
-		return "", errors.WithMessage(err, "TGx: 磁链获取错误")
+		return "", fmt.Errorf("磁链获取错误,err: %w", err)
 	}
 	if resp == nil {
-		return "", errors.New("TGx: response is nil")
+		return "", errors.New("response is nil")
 	}
 	defer resp.Body.Close()
 
 	magnet, err = IO2Magnet(resp.Body)
 	if err != nil {
-		return "", errors.New("TGx: 磁链转换错误")
+		return "", fmt.Errorf("磁链转换错误,err: %w", err)
 	}
-
 	return magnet, nil
 }

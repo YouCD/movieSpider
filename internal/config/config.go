@@ -11,46 +11,47 @@ import (
 	"github.com/youcd/toolkit/log"
 )
 
-//nolint:tagliatelle
+//nolint:tagliatelle,revive
 type btbt struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
+	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
 }
 
-//nolint:tagliatelle
+//nolint:tagliatelle,revive
 type tgx struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
+	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
 }
 
-//nolint:tagliatelle
+//nolint:tagliatelle,revive
 type torlock struct {
 	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	MirrorSite   string          `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
+	Url          string          `json:"Url" yaml:"Url" validate:"http_url"`
 	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
 }
 
-//nolint:tagliatelle
+//nolint:tagliatelle,revive
 type eztv struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
+	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
 }
 
-//nolint:tagliatelle
+//nolint:tagliatelle,revive
 type glodls struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
+	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
 }
 
-//nolint:tagliatelle
+//nolint:tagliatelle,revive
 type tpbpirateproxy struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	MirrorSite string `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
+	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
 }
 
-//nolint:tagliatelle
+//nolint:tagliatelle,revive
 type magnetdl struct {
 	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	MirrorSite   string          `json:"MirrorSite,omitempty" yaml:"MirrorSite,omitempty" validate:"omitempty,http_url"`
+	Url          string          `json:"Url" yaml:"Url" validate:"http_url"`
 	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
 }
 
@@ -117,7 +118,7 @@ type config struct {
 		BTBT           *btbt           `json:"BTBT" yaml:"BTBT" validate:"required"`
 		EZTV           *eztv           `json:"EZTV" yaml:"EZTV" validate:"required"`
 		GLODLS         *glodls         `json:"GLODLS" yaml:"GLODLS" validate:"required"`
-		TGX            *tgx            `json:"TGX" yaml:"TGX" validate:"required"`
+		TGX            []*tgx          `json:"TGX" yaml:"TGX" validate:"required"`
 		TORLOCK        []*torlock      `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
 		MagnetDL       []*magnetdl     `json:"MagnetDL" yaml:"MagnetDL" validate:"required"`
 		TPBPIRATEPROXY *tpbpirateproxy `json:"TPBPIRATEPROXY" yaml:"TPBPIRATEPROXY" validate:"required"`

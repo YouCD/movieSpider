@@ -66,6 +66,15 @@ func (m *MovieSpider) RunWithFeed() {
 					log.Errorf("web: %s ,err: %s", feeder.WebName(), err)
 					return
 				}
+				if len(videos) == 0 {
+					log.Warnf("web: %s ,url: %s ,videos is empty", feeder.WebName(), feeder.URL())
+					return
+				}
+				if videos[0].Magnet == "" {
+					log.Warnf("web: %s ,url: %s ,Magnet is empty", feeder.WebName(), feeder.URL())
+					return
+				}
+
 				for _, video := range videos {
 					bus.FeedVideoChan <- video
 				}

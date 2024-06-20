@@ -3,33 +3,23 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
-	"github.com/mmcdole/gofeed"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/types"
 	"regexp"
 	"strings"
-)
 
-const (
-	urlBaseTpbpirateProxy   = "https://thepiratebay.party"
-	urlRssURITpbpirateProxy = "rss/top100/200"
+	"github.com/mmcdole/gofeed"
+	"github.com/youcd/toolkit/log"
 )
 
 type Tpbpirateproxy struct {
 	BaseFeeder
 }
 
-func NewTpbpirateproxy(scheduling, mirrorSite string) *Tpbpirateproxy {
-	url := fmt.Sprintf("%s/%s", urlBaseTpbpirateProxy, urlRssURITpbpirateProxy)
-	if mirrorSite != "" {
-		url = fmt.Sprintf("%s/%s", mirrorSite, urlRssURITpbpirateProxy)
-	}
-
+func NewTpbpirateproxy(scheduling, siteURL string) *Tpbpirateproxy {
 	return &Tpbpirateproxy{
 		BaseFeeder{
 			web:        "tpbpirateproxy",
-			url:        url,
+			url:        siteURL,
 			scheduling: scheduling,
 		},
 	}

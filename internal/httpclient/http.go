@@ -20,7 +20,7 @@ var (
 //	@return *http.Client
 func NewHTTPClient() *http.Client {
 	once.Do(func() {
-		httpClient = &http.Client{Timeout: time.Second * 30}
+		httpClient = &http.Client{Timeout: time.Second * 60}
 		if config.Config.Global.Proxy.URL != "" {
 			proxyURL, _ := url.Parse(config.Config.Global.Proxy.URL)
 			proxy := http.ProxyURL(proxyURL)

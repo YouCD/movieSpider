@@ -3,19 +3,16 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/mmcdole/gofeed"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
 	"regexp"
 	"strings"
 	"sync"
-)
 
-const (
-	urlBaseTorlock = "https://www.torlock.com"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/mmcdole/gofeed"
+	"github.com/youcd/toolkit/log"
 )
 
 type Torlock struct {
@@ -23,25 +20,13 @@ type Torlock struct {
 	BaseFeeder
 }
 
-//nolint:forcetypeassert
-func NewTorlock(args ...interface{}) *Torlock {
-	resourceType := args[1].(types.VideoType)
-
-	urlBase := urlBaseTorlock
-	if len(args) == 3 && args[2] != 0 {
-		urlBase = args[2].(string)
-	}
-
-	url := urlBase + "/television/rss.xml"
-	if resourceType == types.VideoTypeMovie {
-		url = urlBase + "/movies/rss.xml"
-	}
+func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string) *Torlock {
 	return &Torlock{
 		typ: resourceType,
 		BaseFeeder: BaseFeeder{
 			web:        "torlock",
-			url:        url,
-			scheduling: args[0].(string),
+			url:        siteURL,
+			scheduling: scheduling,
 		},
 	}
 }

@@ -6,43 +6,66 @@ MySQL:
   User: root
   Password: P@ssw0rd
 
-Douban:
+DouBan:
   # 豆瓣电影想看清单
-  DoubanUrl: https://movie.douban.com/people/251312920/wish
   Scheduling: "*/10 * * * *"
-  # 豆瓣 Cookie
-  # Cookie: ''
+  DouBanList:
+    - Url: "https://movie.douban.com/people/251312920/wish"
+    - Url: "https://movie.douban.com/people/271517237/wish"
+TmDB:
+  # themoviedb
+  Scheduling: "*/10 * * * *"
+  APIKey: "d15fb9a9093bbda2a1a926e85629a80e"
+
+ExcludeWords:
+  - 720p
+  - dvsux
+  - 480p
+  - hdr
+  - .dv.
+  - .dolby.vision
+
 Feed:
-  # 代理池 https://github.com/YouCD/IpProxyPool
-  ProxyPool: "http://moviespider_proxy:5010"
   BTBT:
     Scheduling: "*/5 * * * *"
+    Url: "https://www.btbtt12.com/forum-index-fid-951.htm"
   EZTV:
     Scheduling: "*/5 * * * *"
+    Url: "https://eztvx.to/ezrss.xml"
   GLODLS:
     Scheduling: "*/3 * * * *"
+    Url: "https://glodls.to/rss.php?cat=1,41"
   TGX:
-    Scheduling: "*/3 * * * *"
-  RARBG:
     - Scheduling: "*/3 * * * *"
-      ResourceType: movie
-    - Scheduling: "*/2 * * * *"
-      ResourceType: tv
+      Url: "https://tgx.rs/rss"
+    # 24小时归档数据
+    - Scheduling: "0 1 * * *"
+      Url: "https://tgx.rs/cache/tgx24hdump.txt.gz"
+
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
+      Url: "https://www.torlock.com/movies/rss.xml"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
+      Url: "https://www.torlock.com/television/rss.xml"
   MAGNETDL:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
+      Url: "https://www.magnetdl.com/download/movies/"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
+      Url: "https://www.magnetdl.com/download/tv/"
   TPBPIRATEPROXY:
-    Scheduling: "*/3 * * * *"
+    Scheduling: "*/3 * * * *d"
+    Url: "https://thepiratebay.party/rss/top100/200"
+
 Global:
   LogLevel: info
   Report: true
+    # 网络代理
+    #Proxy:
+  #  Url: socks5://127.0.0.1:20170
 
 # Downloader 下载
 Downloader:
@@ -58,10 +81,6 @@ Aria2cList:
 
 # 如果没有Telegram 就请忽略
 #TG:
-  # Telegram 网络代理
-#  Proxy:
-#    Url: socks5://127.0.0.1:1080
-#    Enable: false
   # Telegram 机器人 token
 #  BotToken: "TOKEN"
 #   能正常访问机器人的Telegram用户

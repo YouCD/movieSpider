@@ -3,9 +3,6 @@ package feedspider
 import (
 	"context"
 	"database/sql"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
@@ -13,19 +10,21 @@ import (
 	"net/url"
 	"strings"
 	"sync"
-)
 
-const urlBtbt = "https://www.btbtt12.com/forum-index-fid-951.htm"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
+)
 
 type Btbt struct {
 	BaseFeeder
 }
 
-func NewBtbt(scheduling string) *Btbt {
+func NewBtbt(scheduling string, siteURL string) *Btbt {
 	return &Btbt{
 		BaseFeeder{
 			web:        "btbt",
-			url:        urlBtbt,
+			url:        siteURL,
 			scheduling: scheduling,
 		},
 	}

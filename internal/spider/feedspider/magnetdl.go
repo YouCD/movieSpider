@@ -2,7 +2,6 @@ package feedspider
 
 import (
 	"context"
-	"fmt"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/types"
 	"net/http"
@@ -25,22 +24,12 @@ type Magnetdl struct {
 	BaseFeeder
 }
 
-func NewMagnetdl(scheduling string, typ types.VideoType, mirrorSite string) *Magnetdl {
-	resourceType := typ
-	urlBase := urlBaseMagnetdl
-	if mirrorSite != "" {
-		urlBase = mirrorSite
-	}
-
-	url := fmt.Sprintf("%s/%s", urlBase, urlRssURITVMagnetdl)
-	if resourceType == types.VideoTypeMovie {
-		url = fmt.Sprintf("%s/%s", urlBase, urlRssURIMovieMagnetdl)
-	}
+func NewMagnetdl(scheduling string, resourceType types.VideoType, siteURL string) *Magnetdl {
 	return &Magnetdl{
 		resourceType,
 		BaseFeeder{
 			web:        "magnetdl",
-			url:        url,
+			url:        siteURL,
 			scheduling: scheduling,
 		},
 	}

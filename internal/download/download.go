@@ -25,12 +25,10 @@ func NewDownloader(scheduling string) *Download {
 }
 
 func (d *Download) downloadTask() {
-	err := d.downloadMovieTask()
-	if err != nil {
+	if err := d.downloadMovieTask(); err != nil {
 		log.Error(err)
 	}
-	err = d.downloadTvTask()
-	if err != nil {
+	if err := d.downloadTvTask(); err != nil {
 		log.Error(err)
 	}
 }

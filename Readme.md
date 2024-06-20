@@ -106,32 +106,36 @@ Douban:
 Feed:
   BTBT:
     Scheduling: "*/5 * * * *"
+    Url: "https://www.btbtt12.com/forum-index-fid-951.htm"
   EZTV:
     Scheduling: "*/5 * * * *"
-    MirrorSite: "https://eztvx.to"
+    Url: "https://eztvx.to/ezrss.xml"
   GLODLS:
     Scheduling: "*/3 * * * *"
-    MirrorSite: "https://gtso.cc"
+    Url: "https://glodls.to/rss.php?cat=1,41"
   TGX:
-    Scheduling: "*/3 * * * *"
-    MirrorSite: "https://tgx.rs"
+    - Scheduling: "*/3 * * * *"
+      Url: "https://tgx.rs/rss"
+    # 24小时归档数据
+    - Scheduling: "0 1 * * *"
+      Url: "https://tgx.rs/cache/tgx24hdump.txt.gz"
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      MirrorSite: "https://torlock.unblockit.date"
+      Url: "https://www.torlock.com/movies/rss.xml"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-      MirrorSite: "https://torlock.unblockit.date"
+      Url: "https://www.torlock.com/television/rss.xml"
   MAGNETDL:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      MirrorSite: "https://magnetdl.abcproxy.org"
+      Url: "https://www.magnetdl.com/download/movies/"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-      MirrorSite: "https://magnetdl.abcproxy.org"
+      Url: "https://www.magnetdl.com/download/tv/"
   TPBPIRATEPROXY:
-    Scheduling: "*/3 * * * *"
-    MirrorSite: "https://thepiratebay10.info"
+    Scheduling: "*/3 * * * *d"
+    Url: "https://thepiratebay.party/rss/top100/200"
 Global:
   LogLevel: info
   Report: true

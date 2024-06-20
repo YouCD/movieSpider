@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
 	"math/rand"
 	"movieSpider/internal/types"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/youcd/toolkit/log"
 )
 
 // CreatDouBanVideo
@@ -82,7 +83,7 @@ func (m *MovieDB) RandomOneDouBanVideo() (video *types.DouBanVideo, err error) {
 	if len(videos) == 0 {
 		return nil, errors.New("RandomOneDouBanVideo data is null")
 	}
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 	//nolint:gosec
 	index := rand.Intn(len(videos))
 	video = videos[index]

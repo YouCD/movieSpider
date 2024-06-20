@@ -2,9 +2,6 @@ package bot
 
 import (
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
@@ -14,11 +11,13 @@ import (
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/youcd/toolkit/log"
 )
 
 //nolint:gochecknoglobals,unused
@@ -132,24 +131,6 @@ func (t *TGBot) StartBot() {
 					continue
 				}
 				t.SendReportFeedVideosMsg(update.Message.Chat.ID, int64(update.Message.MessageID))
-				/*
-					count, err := model.NewMovieDB().CountFeedVideo()
-					if err != nil {
-						log.Error(err)
-						continue
-					}
-					var s string
-					var Total int
-					for _, reportCount := range count {
-						Total += reportCount.Count
-						s += fmt.Sprintf("%s: %d ", reportCount.Web, reportCount.Count)
-					}
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Total: %d  %s", Total, s))
-					msg.ReplyToMessageID = update.Message.MessageID
-					if _, err := t.bot.Send(msg); err != nil {
-						log.Error(err)
-					}
-				*/
 
 			// movie_download 指令
 			case strings.Contains(update.Message.Text, CMDMoveDownload):
@@ -182,67 +163,6 @@ func (t *TGBot) SendStrMsg(msg string) {
 			log.Error(err)
 		}
 	}
-}
-
-//
-
-// getMovieID
-//
-//	@Description: 获取电影id
-//	@param str
-//	@return int
-//	@return error
-//
-//nolint:unused
-func getMovieID(str string) (int, error) {
-	sile := strings.Split(str, " ")
-	if len(sile) < 2 {
-		return 0, errors.New("getMovieID id is 0")
-	}
-	movieID, err := strconv.Atoi(sile[2])
-	if err != nil {
-		return 0, errors.WithMessage(err, "转换失败")
-	}
-	return movieID, nil
-}
-
-// getMovieInlineKeyboardMarkup
-//
-//	@Description: 获取电影内联键盘
-//	@return *tgbotapi.InlineKeyboardMarkup
-//
-//nolint:unused
-func getMovieInlineKeyboardMarkup() *tgbotapi.InlineKeyboardMarkup {
-	if *pageNum <= 1 {
-		if *pageNum == 1 {
-			Markup := tgbotapi.NewInlineKeyboardMarkup(
-				tgbotapi.NewInlineKeyboardRow(
-					tgbotapi.NewInlineKeyboardButtonData("上一页", "0"),
-					tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("下一页(第%d页)", *pageNum+1), strconv.Itoa(*pageNum+1)),
-				),
-			)
-			return &Markup
-		}
-		if *pageNum == 0 {
-			Markup := tgbotapi.NewInlineKeyboardMarkup(
-				tgbotapi.NewInlineKeyboardRow(
-					tgbotapi.NewInlineKeyboardButtonData("上一页", "1"),
-					tgbotapi.NewInlineKeyboardButtonData("下一页(第2页)", "2"),
-				),
-			)
-			return &Markup
-		}
-	} else if *pageNum > 1 {
-		Markup := tgbotapi.NewInlineKeyboardMarkup(
-			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("上一页(第%d页)", *pageNum-1), strconv.Itoa(*pageNum-1)),
-				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("下一页(第%d页)", *pageNum+1), strconv.Itoa(*pageNum+1)),
-			),
-		)
-		return &Markup
-	}
-
-	return nil
 }
 
 // inArray

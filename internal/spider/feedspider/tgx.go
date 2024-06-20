@@ -3,7 +3,6 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
 	"regexp"
@@ -15,29 +14,16 @@ import (
 	"github.com/youcd/toolkit/log"
 )
 
-const (
-	urlBaseTgx   = "https://tgx.rs"
-	urlRssURITgx = "rss"
-)
-
 type Tgx struct {
 	BaseFeeder
 }
 
-//nolint:forcetypeassert
-func NewTgx(args ...interface{}) *Tgx {
-	var url string
-	if len(args) == 0 {
-		url = fmt.Sprintf("%s/%s", urlBaseTgx, urlRssURITgx)
-	} else if args[1] != "" {
-		url = fmt.Sprintf("%s/%s", args[1], urlRssURITgx)
-	}
-
+func NewTgx(scheduling, siteURL string) *Tgx {
 	return &Tgx{
 		BaseFeeder{
 			web:        "tgx",
-			url:        url,
-			scheduling: args[0].(string),
+			url:        siteURL,
+			scheduling: scheduling,
 		},
 	}
 }
