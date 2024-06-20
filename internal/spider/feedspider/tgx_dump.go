@@ -75,7 +75,7 @@ func (t *TgxDump) Crawler() (videos []*types.FeedVideo, err error) {
 		wg.Add(1)
 		go func(split []string) {
 			defer wg.Done()
-			video := new(types.FeedVideo)
+			video := new(types.FeedVideo) //nolint
 			if strings.Contains(strings.ToLower(split[2]), "tv") || strings.Contains(strings.ToLower(split[2]), "movies") {
 				if video = t.parser2Video(split[1], split[2], line, split[4]); video != nil {
 					mu.Lock()
@@ -83,7 +83,6 @@ func (t *TgxDump) Crawler() (videos []*types.FeedVideo, err error) {
 					mu.Unlock()
 				}
 			}
-
 		}(split)
 	}
 	if err := scanner.Err(); err != nil {
