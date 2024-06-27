@@ -2,9 +2,6 @@ package download
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
@@ -13,6 +10,10 @@ import (
 	"movieSpider/internal/types"
 	"os"
 	"sync"
+
+	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 )
 
 type Download struct {

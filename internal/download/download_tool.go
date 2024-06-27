@@ -1,10 +1,11 @@
 package download
 
 import (
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"strings"
+
+	"github.com/youcd/toolkit/log"
 )
 
 // SotByResolution

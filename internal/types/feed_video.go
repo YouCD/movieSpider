@@ -33,7 +33,6 @@ func (f *FeedVideo) VideoType() VideoType {
 
 var (
 	nameReg = regexp.MustCompile("【.*】.*?[.*](.*)") //  去除 【xxxx】
-
 )
 
 //nolint:gosimple
@@ -59,6 +58,11 @@ func (f *FeedVideo) FormatName(name string) string {
 	compileRegex := regexp.MustCompile("(.*)\\.(\\(?\\d{4}\\)?)\\.")
 	matchArr := compileRegex.FindStringSubmatch(name)
 	if len(matchArr) == 0 {
+		compileRegex2 := regexp.MustCompile(`(.*)\.[S|s]\d\d[E|e]\d\d`)
+		matchArr2 := compileRegex2.FindStringSubmatch(name)
+		if len(matchArr2) > 1 {
+			return matchArr2[1]
+		}
 		return name
 	}
 	name = matchArr[1]
@@ -75,7 +79,7 @@ var (
 
 func (f *FeedVideo) Convert2DownloadHistory() *DownloadHistory {
 	var downloadHistory DownloadHistory
-	downloadHistory.Name = f.Name
+	downloadHistory.Name = f.FormatName(f.Name)
 	downloadHistory.TorrentName = f.TorrentName
 	downloadHistory.Type = f.Type
 	downloadHistory.DoubanID = f.DoubanID
