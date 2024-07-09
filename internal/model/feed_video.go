@@ -298,7 +298,6 @@ func (m *MovieDB) CreatFeedVideo(video *types.FeedVideo) (err error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "Duplicate entry") {
 			log.Debugf("CreatFeedVideo 数据已存在 video: %#v", video)
-			//nolint:revive
 			return fmt.Errorf("name: %s type: %s. err:%w", video.Name, video.Type, ErrDataExist)
 		}
 		return fmt.Errorf("%s err:%w", video.Name, err)

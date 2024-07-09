@@ -51,13 +51,13 @@ Feed:
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
       Url: "https://www.torlock.com/television/rss.xml"
-  MAGNETDL:
+  Web1337x:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      Url: "https://www.magnetdl.com/download/movies/"
+      Url: "https://1337x.to/popular-movies"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-      Url: "https://www.magnetdl.com/download/tv/"
+      Url: "https://1337x.to/popular-tv"
   TPBPIRATEPROXY:
     Scheduling: "*/3 * * * *"
     Url: "https://thepiratebay.party/rss/top100/200"

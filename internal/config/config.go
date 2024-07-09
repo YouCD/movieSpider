@@ -43,13 +43,6 @@ type glodls struct {
 	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
 }
 
-//nolint:tagliatelle,revive
-type magnetdl struct {
-	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	Url          string          `json:"Url" yaml:"Url" validate:"http_url"`
-	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
-}
-
 //nolint:tagliatelle
 type downloader struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
@@ -108,6 +101,13 @@ type thePirateBay struct {
 	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
 }
 
+//nolint:tagliatelle,revive
+type web1337x struct {
+	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
+	Url          string          `json:"Url" yaml:"Url" validate:"http_url"`
+	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
+}
+
 //nolint:tagliatelle
 type config struct {
 	// TmDB   *tmDB   `json:"TmDB"`
@@ -120,7 +120,7 @@ type config struct {
 		GLODLS       *glodls       `json:"GLODLS" yaml:"GLODLS" validate:"required"`
 		TGX          []*tgx        `json:"TGX" yaml:"TGX" validate:"required"`
 		TORLOCK      []*torlock    `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
-		MagnetDL     []*magnetdl   `json:"MagnetDL" yaml:"MagnetDL" validate:"required"`
+		Web1337x     []*web1337x   `json:"Web1337x" yaml:"Web1337x" validate:"required"`
 		ThePirateBay *thePirateBay `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
 	} `json:"Feed" yaml:"Feed" validate:"required"`
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`

@@ -14,7 +14,7 @@ func init() {
 
 func TestNewTgxWeb(t *testing.T) {
 	web := NewTgxWeb("*/3 * * * *", "https://tgx.rs/torrents.php?c3=1&c42=1&c41=1&c11=1&search=&lang=0&nox=2#resultss")
-	//web := NewTgxWeb("*/3 * * * *", "https://www.btbtt12.com/forum-index-fid-951.htm")
+	//webHost := NewTgxWeb("*/3 * * * *", "https://www.btbtt12.com/forum-index-fid-951.htm")
 	videos, err := web.Crawler()
 	if err != nil {
 		t.Error(err)

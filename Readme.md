@@ -13,9 +13,10 @@
 * ~~[rarbg](http://rarbg.to/)~~
 * [TGx](https://tgx.rs)
 * [torlock](https://www.torlock.com)
-* [magnetdl](https://www.magnetdl.com)
+* ~~[magnetdl](https://www.magnetdl.com)~~
 * ~~[TpbpirateProxy](https://thepiratebay.party/rss//top100/200)~~
 * [ThePirateBay](https://thepiratebay.org/search.php?q=top100:200)
+* [1337x](https://1337x.to/)
 
 ## 使用TG
 

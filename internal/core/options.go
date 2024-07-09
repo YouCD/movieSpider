@@ -67,17 +67,17 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			log.Debug(r)
 		}
 	}
-	// MAGNETDL
-	var feedMagnetdlMovie feedspider.Feeder
-	var feedMagnetdlTV feedspider.Feeder
-	for _, r := range config.Config.Feed.MagnetDL {
+	// 1337x
+	var feed1337xMovie feedspider.Feeder
+	var feed1337xTV feedspider.Feeder
+	for _, r := range config.Config.Feed.Web1337x {
 		if r != nil {
 			if r.ResourceType == types.VideoTypeTV {
-				feedMagnetdlTV = feedspider.NewMagnetdl(r.Scheduling, r.ResourceType, r.Url)
+				feed1337xTV = feedspider.NewWeb1337x(r.Scheduling, r.ResourceType, r.Url)
 			}
 			log.Debug(r)
 			if r.ResourceType == types.VideoTypeMovie {
-				feedMagnetdlMovie = feedspider.NewMagnetdl(r.Scheduling, r.ResourceType, r.Url)
+				feed1337xMovie = feedspider.NewWeb1337x(r.Scheduling, r.ResourceType, r.Url)
 			}
 			log.Debug(r)
 		}
@@ -95,8 +95,8 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			TgxWeb,
 			feedTorlockMovie,
 			feedTorlockTV,
-			feedMagnetdlMovie,
-			feedMagnetdlTV,
+			feed1337xMovie,
+			feed1337xTV,
 			feedThePirateBay,
 		)
 		ms.feeds = append(ms.feeds, feeds...)

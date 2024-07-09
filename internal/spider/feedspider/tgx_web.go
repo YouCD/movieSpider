@@ -19,14 +19,14 @@ import (
 )
 
 type TgxWeb struct {
-	web string
+	webHost string
 	BaseFeeder
 }
 
 func NewTgxWeb(scheduling, siteURL string) *TgxWeb {
 	parse, _ := url.Parse(siteURL)
 	return &TgxWeb{
-		web: fmt.Sprintf("%s://%s", parse.Scheme, parse.Host),
+		webHost: fmt.Sprintf("%s://%s", parse.Scheme, parse.Host),
 		BaseFeeder: BaseFeeder{
 			web:        "tgx_web",
 			url:        siteURL,
@@ -89,12 +89,12 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
 		video := &types.FeedVideo{
 			Name:        name,
 			TorrentName: name,
-			TorrentURL:  t.web + u,
+			TorrentURL:  t.webHost + u,
 			Magnet:      "",
 			Year:        year,
 			Type:        typ,
 			RowData:     sql.NullString{},
-			Web:         t.web,
+			Web:         t.webHost,
 			DoubanID:    "",
 		}
 		videosTemp = append(videosTemp, video)
@@ -106,13 +106,13 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
 		wg.Add(1)
 		go func(v *types.FeedVideo) {
 			defer wg.Done()
-			magnet, match := t.fetchMagnet(video.TorrentURL)
+			magnet, match := t.fetchMagnet(v.TorrentURL)
 			if !match {
-				log.Warnf("magnet is empty: %s", video.TorrentURL)
+				log.Warnf("magnet is empty: %s", v.TorrentURL)
 				return
 			}
-			video.Magnet = magnet
-			videos = append(videos, video)
+			v.Magnet = magnet
+			videos = append(videos, v)
 		}(video)
 	}
 	wg.Wait()
