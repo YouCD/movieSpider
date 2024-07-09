@@ -1,19 +1,19 @@
 MySQL:
   # 这个地址是docker里面的地址
+  #  Host: 192.168.1.188
   Host: 127.0.0.1
   Port: 3306
   Database: movie
   User: root
   Password: P@ssw0rd
 
-Douban:
+DouBan:
   # 豆瓣电影想看清单
-  DoubanUrl:
+  Scheduling: "*/10 * * * *"
+  DouBanList:
     - Url: "https://movie.douban.com/people/251312920/wish"
     - Url: "https://movie.douban.com/people/271517237/wish"
-  Scheduling: "*/10 * * * *"
 
-#  排除包含以下关键字的资源
 ExcludeWords:
   - 720p
   - dvsux
@@ -21,38 +21,56 @@ ExcludeWords:
   - hdr
   - .dv.
   - .dolby.vision
+
 Feed:
   BTBT:
     Scheduling: "*/5 * * * *"
+    Url: "https://www.btbtt12.com/forum-index-fid-951.htm"
   EZTV:
     Scheduling: "*/5 * * * *"
-    MirrorSite: "https://eztvx.to"
+    Url: "https://eztvx.to/ezrss.xml"
   GLODLS:
     Scheduling: "*/3 * * * *"
-    MirrorSite: "https://gtso.cc"
+    Url: "https://glodls.to/rss.php?cat=1,41"
   TGX:
-    Scheduling: "*/3 * * * *"
-    MirrorSite: "https://tgx.rs"
+    - Scheduling: "*/3 * * * *"
+      Url: "https://tgx.rs/rss"
+      Name: rss
+    # 24小时归档数据
+    - Scheduling: "0 1 * * *"
+      Url: "https://tgx.rs/cache/tgx24hdump.txt.gz"
+      Name: dump
+    - Scheduling: "*/3 * * * *"
+      Url: "https://tgx.rs/torrents.php?c3=1&c42=1&c41=1&c11=1&search=&lang=0&nox=2#resultss"
+      Name: web
+
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      MirrorSite: "https://torlock.123unblock.art"
+      Url: "https://www.torlock.com/movies/rss.xml"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-      MirrorSite: "https://torlock.123unblock.art"
+      Url: "https://www.torlock.com/television/rss.xml"
   MAGNETDL:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      MirrorSite: "https://magnetdl.abcproxy.org "
+      Url: "https://www.magnetdl.com/download/movies/"
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-      MirrorSite: "https://magnetdl.abcproxy.org"
+      Url: "https://www.magnetdl.com/download/tv/"
   TPBPIRATEPROXY:
     Scheduling: "*/3 * * * *"
-    MirrorSite: "https://thepiratebay10.info"
+    Url: "https://thepiratebay.party/rss/top100/200"
+  ThePirateBay:
+    Scheduling: "*/3 * * * *"
+    Url: "https://thepiratebay.org/search.php?q=top100:200"
+
 Global:
   LogLevel: info
   Report: true
+    # 网络代理
+    #Proxy:
+  #  Url: socks5://127.0.0.1:20170
 
 # Downloader 下载
 Downloader:
@@ -67,10 +85,7 @@ Aria2cList:
     Label: home
 
 # 如果没有Telegram 就请忽略
-#TG:
-  # Telegram 网络代理
-#  Proxy:
-#    Url: socks5://127.0.0.1:1080
+TG:
   # Telegram 机器人 token
 #  BotToken: "TOKEN"
 #   能正常访问机器人的Telegram用户

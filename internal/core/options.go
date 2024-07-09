@@ -40,11 +40,15 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// TGX
 	var TGXRss feedspider.Feeder
 	var TGXDump feedspider.Feeder
+	var TgxWeb feedspider.Feeder
 	for _, tgx := range config.Config.Feed.TGX {
-		if strings.HasSuffix(tgx.Url, "tgx24hdump.txt.gz") {
-			TGXDump = feedspider.NewTgxDump(tgx.Scheduling, tgx.Url)
-		} else {
+		switch strings.ToLower(tgx.Name) {
+		case "rss":
 			TGXRss = feedspider.NewTgx(tgx.Scheduling, tgx.Url)
+		case "dump":
+			TGXDump = feedspider.NewTgxDump(tgx.Scheduling, tgx.Url)
+		case "web":
+			TgxWeb = feedspider.NewTgxWeb(tgx.Scheduling, tgx.Url)
 		}
 	}
 
@@ -79,7 +83,7 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 		}
 	}
 
-	feedTPBPIRATEPROXY := feedspider.NewTpbpirateproxy(config.Config.Feed.TPBPIRATEPROXY.Scheduling, config.Config.Feed.TPBPIRATEPROXY.Url)
+	feedThePirateBay := feedspider.NewThePirateBay(config.Config.Feed.ThePirateBay.Scheduling, config.Config.Feed.ThePirateBay.Url)
 
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
@@ -88,11 +92,12 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			feedGLODLS,
 			TGXDump,
 			TGXRss,
+			TgxWeb,
 			feedTorlockMovie,
 			feedTorlockTV,
 			feedMagnetdlMovie,
 			feedMagnetdlTV,
-			feedTPBPIRATEPROXY,
+			feedThePirateBay,
 		)
 		ms.feeds = append(ms.feeds, feeds...)
 	})

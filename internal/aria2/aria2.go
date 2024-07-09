@@ -84,7 +84,7 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 	// 添加磁链
 	MateGid, err := a.aria2Client.AddURI([]string{magnet})
 	if err != nil {
-		return "", errors.WithMessage(err, "AddURI")
+		return "", fmt.Errorf("AddURI err:%w", err)
 	}
 
 	// 超时时间

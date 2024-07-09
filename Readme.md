@@ -14,7 +14,8 @@
 * [TGx](https://tgx.rs)
 * [torlock](https://www.torlock.com)
 * [magnetdl](https://www.magnetdl.com)
-* [TpbpirateProxy](https://thepiratebay.party/rss//top100/200)
+* ~~[TpbpirateProxy](https://thepiratebay.party/rss//top100/200)~~
+* [ThePirateBay](https://thepiratebay.org/search.php?q=top100:200)
 
 ## 使用TG
 

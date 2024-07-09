@@ -21,6 +21,7 @@ type btbt struct {
 type tgx struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
 	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
+	Name       string `json:"Name" yaml:"Name" validate:"required"`
 }
 
 //nolint:tagliatelle,revive
@@ -38,12 +39,6 @@ type eztv struct {
 
 //nolint:tagliatelle,revive
 type glodls struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
-}
-
-//nolint:tagliatelle,revive
-type tpbpirateproxy struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
 	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
 }
@@ -107,6 +102,11 @@ type tmDB struct {
 }
 
 */
+//nolint:tagliatelle,revive
+type thePirateBay struct {
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
+	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
+}
 
 //nolint:tagliatelle
 type config struct {
@@ -115,13 +115,13 @@ type config struct {
 	DouBan       *DouBan  `json:"DouBan" yaml:"DouBan" validate:"required"`
 	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
 	Feed         struct {
-		BTBT           *btbt           `json:"BTBT" yaml:"BTBT" validate:"required"`
-		EZTV           *eztv           `json:"EZTV" yaml:"EZTV" validate:"required"`
-		GLODLS         *glodls         `json:"GLODLS" yaml:"GLODLS" validate:"required"`
-		TGX            []*tgx          `json:"TGX" yaml:"TGX" validate:"required"`
-		TORLOCK        []*torlock      `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
-		MagnetDL       []*magnetdl     `json:"MagnetDL" yaml:"MagnetDL" validate:"required"`
-		TPBPIRATEPROXY *tpbpirateproxy `json:"TPBPIRATEPROXY" yaml:"TPBPIRATEPROXY" validate:"required"`
+		BTBT         *btbt         `json:"BTBT" yaml:"BTBT" validate:"required"`
+		EZTV         *eztv         `json:"EZTV" yaml:"EZTV" validate:"required"`
+		GLODLS       *glodls       `json:"GLODLS" yaml:"GLODLS" validate:"required"`
+		TGX          []*tgx        `json:"TGX" yaml:"TGX" validate:"required"`
+		TORLOCK      []*torlock    `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
+		MagnetDL     []*magnetdl   `json:"MagnetDL" yaml:"MagnetDL" validate:"required"`
+		ThePirateBay *thePirateBay `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
 	} `json:"Feed" yaml:"Feed" validate:"required"`
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
 	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`
