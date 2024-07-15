@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	log1 "log"
 	"movieSpider/internal/bus"
@@ -12,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/youcd/toolkit/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

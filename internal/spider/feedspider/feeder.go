@@ -1,7 +1,7 @@
 package feedspider
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 	"movieSpider/internal/types"
 )
 

@@ -3,10 +3,6 @@ package tmdb
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
-	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
-	"github.com/youcd/toolkit/log"
 	"io"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/model"
@@ -15,6 +11,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/duke-git/lancet/v2/slice"
+	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 )
 
 const (
@@ -89,18 +89,18 @@ func (t *TmDB) GetTVDetailByID(id int, zhCN bool) (*types.TmDBTVDetailData, erro
 func (t *TmDB) request(urlStr string, result interface{}) error {
 	resp, err := t.client.Get(urlStr)
 	if err != nil {
-		return errors.WithMessage(err, "请求失败")
+		return fmt.Errorf("请求失败,err:%w", err)
 	}
 	defer resp.Body.Close()
 	all, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return errors.WithMessage(err, "读取body失败")
+		return fmt.Errorf("读取body失败,err:%w", err)
 	}
 
 	err = json.Unmarshal(all, result)
 	if err != nil {
 		log.Debug(err)
-		return errors.WithMessage(err, "解析json失败")
+		return fmt.Errorf("解析json失败,err:%w", err)
 	}
 
 	return nil

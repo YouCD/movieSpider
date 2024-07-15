@@ -1,10 +1,8 @@
 package searchspider
 
 import (
+	"errors"
 	"fmt"
-	"github.com/mmcdole/gofeed"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"net/url"
@@ -12,6 +10,9 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+
+	"github.com/mmcdole/gofeed"
+	"github.com/youcd/toolkit/log"
 )
 
 const urlKnaben = "https://rss.knaben.eu"
@@ -36,17 +37,21 @@ func NewFeedKnaben(name string, resolution types.Resolution) *Knaben {
 	return &Knaben{url: kURL, resolution: resolution, web: "Knaben"}
 }
 
+var (
+	ErrNoFeedData = errors.New("没有feed数据")
+)
+
 //nolint:nakedret
 func (k *Knaben) Search() (videos []*types.FeedVideo, err error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(k.url)
 	if fd == nil {
-		return nil, errors.New("KNABEN: 没有feed数据")
+		return nil, ErrNoFeedData
 	}
 	log.Debugf("KNABEN: Config %#v", fd)
 	log.Debugf("KNABEN: Data %#v", fd.String())
 	if len(fd.Items) == 0 {
-		return nil, errors.New("KNABEN: 没有feed数据")
+		return nil, ErrNoFeedData
 	}
 	for _, v := range fd.Items {
 		// 片名

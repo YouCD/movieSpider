@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"movieSpider/internal/bot"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
@@ -12,7 +13,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 	"github.com/youcd/toolkit/log"
 )

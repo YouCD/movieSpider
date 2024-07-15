@@ -1,6 +1,7 @@
 package download
 
 import (
+	"errors"
 	"fmt"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/bus"
@@ -11,7 +12,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 	"github.com/youcd/toolkit/log"
 )
@@ -45,7 +45,7 @@ func (d *Download) downloadTvTask() (err error) {
 	log.Info("Downloader tv working...")
 	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.VideoTypeTV)
 	if err != nil {
-		return errors.WithMessage(err, "FetchDouBanVideoByType")
+		return fmt.Errorf("FetchDouBanVideoByType,err: %w", err)
 	}
 
 	//  FilterMap 暂存 电视剧名相同的视频
@@ -122,7 +122,7 @@ func (d *Download) downloadMovieTask() (err error) {
 	log.Info("Downloader movie working...")
 	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.VideoTypeMovie)
 	if err != nil {
-		return errors.WithMessage(err, "FetchDouBanVideoByType")
+		return fmt.Errorf("FetchDouBanVideoByType,err: %w", err)
 	}
 
 	//  FilterMap 暂存 电视剧名相同的视频
@@ -134,7 +134,7 @@ func (d *Download) downloadMovieTask() (err error) {
 		// 获取 feedVideo movie
 		videoList, err := model.NewMovieDB().GetFeedVideoMovieByNameAndDoubanID(douBanVideo.DoubanID, names...)
 		if err != nil {
-			return errors.WithMessage(err, "douBanVideo: "+douBanVideo.Names)
+			return fmt.Errorf("GetFeedVideoMovieByNameAndDoubanID,err: %w", err)
 		}
 		if len(videoList) == 0 {
 			log.Debugf("douBanVideo: %s 已全部下载完毕，或该影片没有更新.", douBanVideo.Names)
@@ -184,6 +184,10 @@ func (d *Download) downloadMovieTask() (err error) {
 	return err
 }
 
+var (
+	ErrVideoIsNil = errors.New("video is nil")
+)
+
 // aria2Download
 //
 //	@Description: 通过aria2下载
@@ -192,11 +196,11 @@ func (d *Download) downloadMovieTask() (err error) {
 //	@return err
 func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 	if len(videos) < 1 {
-		return errors.New("没有需要下载的视频")
+		return ErrVideoIsNil
 	}
 	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
-		return errors.WithMessage(err, "aria2 初始化失败")
+		return fmt.Errorf("aria2 初始化失败,err: %w", err)
 	}
 	for _, v := range videos {
 		gid, err := newAria2.DownloadByWithVideo(v, v.Magnet)

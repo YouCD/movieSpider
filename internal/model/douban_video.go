@@ -3,12 +3,12 @@ package model
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"movieSpider/internal/types"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -20,7 +20,7 @@ import (
 //	@return err
 func (m *MovieDB) CreatDouBanVideo(video *types.DouBanVideo) (err error) {
 	if video == nil {
-		return errors.New("video 不能为nil")
+		return ErrVideoIsNil
 	}
 	v, err := m.FetchOneDouBanVideoByDouBanID(video.DoubanID)
 	if err != nil {
@@ -49,7 +49,7 @@ func (m *MovieDB) CreatDouBanVideo(video *types.DouBanVideo) (err error) {
 	err = m.db.Model(&types.DouBanVideo{}).Create(video).Error
 
 	if err != nil {
-		return errors.WithMessage(err, video.Names)
+		return fmt.Errorf("CreatDouBanVideo 数据已添加. video: %#v, err: %w", video, err)
 	}
 	log.Debugf("CreatDouBanVideo 数据已添加. video: %#v", video)
 	//nolint:nakedret
@@ -68,7 +68,7 @@ func (m *MovieDB) RandomOneDouBanVideo() (video *types.DouBanVideo, err error) {
 	//nolint:rowserrcheck
 	rows, err := m.db.Model(&types.DouBanVideo{}).Select(" id,names,douban_id,playable").Where("imdb_id = ''").Rows()
 	if err != nil {
-		return nil, errors.WithMessage(err, "RandomOneDouBanVideo")
+		return nil, fmt.Errorf("RandomOneDouBanVideo, err:%w", err)
 	}
 	defer rows.Close()
 	var videos []*types.DouBanVideo
@@ -76,12 +76,12 @@ func (m *MovieDB) RandomOneDouBanVideo() (video *types.DouBanVideo, err error) {
 		var v types.DouBanVideo
 		err = rows.Scan(&v.ID, &v.Names, &v.DoubanID, &v.Playable)
 		if err != nil {
-			return nil, errors.WithMessage(err, "RandomOneDouBanVideo")
+			return nil, fmt.Errorf("RandomOneDouBanVideo, err:%w", err)
 		}
 		videos = append(videos, &v)
 	}
 	if len(videos) == 0 {
-		return nil, errors.New("RandomOneDouBanVideo data is null")
+		return nil, ErrVideoIsNil
 	}
 	rand.NewSource(time.Now().UnixNano())
 	//nolint:gosec
@@ -115,13 +115,13 @@ func (m *MovieDB) FetchOneDouBanVideoByDouBanID(douBanID string) (video *types.D
 //	@return err
 func (m *MovieDB) UpdateDouBanVideo(video *types.DouBanVideo) (err error) {
 	if video == nil {
-		return errors.New("空数据")
+		return ErrVideoIsNil
 	}
 	video.Timestamp = time.Now().Unix()
 
 	err = m.db.Model(&types.DouBanVideo{}).Where("douban_id = ?", video.DoubanID).Updates(video).Error
 	if err != nil {
-		return errors.WithMessage(err, video.Names)
+		return fmt.Errorf("更新失败, video: %#v, err: %w", video, err)
 	}
 	return
 }

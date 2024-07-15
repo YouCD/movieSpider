@@ -1,10 +1,11 @@
 package model
 
 import (
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
+	"errors"
 	"movieSpider/internal/types"
 	"strings"
+
+	"github.com/youcd/toolkit/log"
 )
 
 // ProxySaveVideo2DB

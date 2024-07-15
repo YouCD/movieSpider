@@ -11,8 +11,9 @@ import (
 
 	"github.com/youcd/toolkit/log"
 
+	"errors"
+
 	"github.com/PuerkitoBio/goquery"
-	"github.com/pkg/errors"
 
 	"github.com/chromedp/chromedp"
 )
@@ -57,7 +58,7 @@ func (t *ThePirateBay) Crawler() ([]*types.FeedVideo, error) {
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
-		return nil, errors.WithMessage(err, "goquery.NewDocumentFromReader goquery")
+		return nil, fmt.Errorf("goquery.NewDocumentFromReader err: %w", err)
 	}
 
 	var videos []*types.FeedVideo

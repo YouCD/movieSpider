@@ -3,6 +3,7 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
 	"regexp"
@@ -10,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/mmcdole/gofeed"
-	"github.com/pkg/errors"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -110,7 +110,7 @@ func (t *Tgx) Crawler() (videos []*types.FeedVideo, err error) {
 		magnet, err := magnetconvert.FetchMagnet(video.TorrentURL)
 		if err != nil {
 			wg.Done()
-			return nil, errors.WithMessage(err, "FetchMagnet")
+			return nil, fmt.Errorf("FetchMagnet: %w", err)
 		}
 		video.Magnet = magnet
 		videos = append(videos, video)

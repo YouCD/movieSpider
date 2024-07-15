@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/pkg/errors"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -55,7 +54,7 @@ func (w *Web1337x) crawler() ([]*types.FeedVideo, error) {
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(data))
 	if err != nil {
-		return nil, errors.WithMessage(err, "getMovies goquery")
+		return nil, fmt.Errorf("getMovies goquery, err:%w", err)
 	}
 
 	selector := "body > main > div > div > div.featured-list > div > table > tbody > tr"

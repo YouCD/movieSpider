@@ -16,7 +16,6 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
-	"github.com/pkg/errors"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -138,27 +137,27 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideo, err error) {
 func (g *Glodls) fetchMagnet(url string) (magnet string, err error) {
 	request, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
 	if err != nil {
-		return "", errors.Wrap(err, "GLODLS: 创建新的请求")
+		return "", fmt.Errorf("GLODLS: 请求错误，err:%w", err)
 	}
 	httpClient := httpClient2.NewHTTPClient()
 	httpClient.Timeout = 20 * time.Second
 	resp, err := httpClient.Do(request)
 	if err != nil {
-		return "", errors.Wrap(err, "GLODLS: 请求错误")
+		return "", fmt.Errorf("GLODLS: 请求错误，err:%w", err)
 	}
 	if resp == nil {
-		return "", errors.New("GLODLS: response is nil")
+		return "", fmt.Errorf("GLODLS: response is nil，err:%w", err)
 	}
 	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return "", errors.Wrap(err, "GLODLS: Document 查找出错")
+		return "", fmt.Errorf("GLODLS: Document 查找出错，err:%w", err)
 	}
 	selector := "#downloadbox > table > tbody > tr > td:nth-child(1) > a:nth-child(2)"
 	magnet, exists := doc.Find(selector).Attr("href")
 	if !exists {
-		return "", errors.Wrap(err, "GLODLS: 查找href出错")
+		return "", fmt.Errorf("GLODLS: 查找href出错，err:%w", err)
 	}
 	return magnet, nil
 }

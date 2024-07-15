@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/pkg/errors"
-
 	"github.com/youcd/toolkit/log"
 
 	"github.com/chromedp/chromedp"
@@ -55,7 +53,7 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlStr))
 	if err != nil {
-		return nil, errors.WithMessage(err, "goquery.NewDocumentFromReader goquery")
+		return nil, fmt.Errorf("goquery.NewDocumentFromReader goquery, err:%w", err)
 	}
 
 	videosTemp := make([]*types.FeedVideo, 0)
@@ -94,7 +92,7 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
 			Year:        year,
 			Type:        typ,
 			RowData:     sql.NullString{},
-			Web:         t.webHost,
+			Web:         t.web,
 			DoubanID:    "",
 		}
 		videosTemp = append(videosTemp, video)

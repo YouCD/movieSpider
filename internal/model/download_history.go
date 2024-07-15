@@ -1,12 +1,13 @@
 package model
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/types"
 	"strings"
 	"time"
+
+	"github.com/youcd/toolkit/log"
 )
 
 var (

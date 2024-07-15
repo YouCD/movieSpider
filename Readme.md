@@ -6,7 +6,7 @@
 
 支持的`Torrent`站点
 * [bt4g](https://bt4g.org)
-* [btbt](https://www.btbtt12.com/)
+* [btbt](https://www.1lou.me/forum-1.htm)
 * [eztv](https://eztv.re)
 * [glodls](https://glodls.to)
 * [knaben](https://rss.knaben.eu)

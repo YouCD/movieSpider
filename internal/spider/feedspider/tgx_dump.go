@@ -17,8 +17,6 @@ import (
 	"sync"
 
 	"github.com/youcd/toolkit/log"
-
-	"github.com/pkg/errors"
 )
 
 type TgxDump struct {
@@ -39,17 +37,17 @@ func (t *TgxDump) Crawler() (videos []*types.FeedVideo, err error) {
 	c := httpclient.NewHTTPClient()
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, t.url, nil)
 	if err != nil {
-		return nil, errors.WithMessage(err, "TgxDump new request")
+		return nil, fmt.Errorf("TgxDump new request, err: %w", err)
 	}
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, errors.WithMessage(err, "TgxDump resp")
+		return nil, fmt.Errorf("TgxDump resp, err: %w", err)
 	}
 	defer resp.Body.Close()
 
 	reader, err := gzip.NewReader(resp.Body)
 	if err != nil {
-		return nil, errors.WithMessage(err, "TgxDump reader")
+		return nil, fmt.Errorf("TgxDump reader, err: %w", err)
 	}
 
 	var (
@@ -86,7 +84,7 @@ func (t *TgxDump) Crawler() (videos []*types.FeedVideo, err error) {
 		}(split)
 	}
 	if err := scanner.Err(); err != nil {
-		return nil, errors.WithMessage(err, "TgxDump scanner")
+		return nil, fmt.Errorf("TgxDump scanner err: %w", err)
 	}
 	wg.Wait()
 	return videos, nil

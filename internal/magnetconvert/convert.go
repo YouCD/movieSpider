@@ -7,8 +7,14 @@ import (
 	httpClient2 "movieSpider/internal/httpclient"
 	"net/http"
 
+	"errors"
+
 	"github.com/anacrolix/torrent/metainfo"
-	"github.com/pkg/errors"
+)
+
+var (
+	ErrRespIsNil  = errors.New("response is nil")
+	ErrMagnetMeta = errors.New("读取磁链meta信息错误")
 )
 
 // FileToMagnet
@@ -40,7 +46,7 @@ func FileToMagnet(file string) (string, error) {
 func IO2Magnet(r io.Reader) (string, error) {
 	mi, err := metainfo.Load(r)
 	if err != nil {
-		return "", errors.New("读取磁链meta信息错误")
+		return "", ErrMagnetMeta
 	}
 	m2, err := mi.MagnetV2()
 	if err != nil {
@@ -58,7 +64,7 @@ func IO2Magnet(r io.Reader) (string, error) {
 func FetchMagnet(url string) (magnet string, err error) {
 	request, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
 	if err != nil {
-		return "", errors.WithMessage(err, "TGx: 磁链获取错误")
+		return "", fmt.Errorf("TGx: 磁链获取错误,err: %w", err)
 	}
 	client := httpClient2.NewHTTPClient()
 	resp, err := client.Do(request)
@@ -66,7 +72,7 @@ func FetchMagnet(url string) (magnet string, err error) {
 		return "", fmt.Errorf("磁链获取错误,err: %w", err)
 	}
 	if resp == nil {
-		return "", errors.New("response is nil")
+		return "", ErrRespIsNil
 	}
 	defer resp.Body.Close()
 

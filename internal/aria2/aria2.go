@@ -3,6 +3,7 @@ package aria2
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"movieSpider/internal/config"
@@ -13,7 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/youcd/toolkit/log"
 	"github.com/zyxar/argo/rpc"
 )
@@ -77,6 +77,10 @@ func (a *Aria2) DownloadByURL(url string) (gid string, err error) {
 	return a.aria2Client.AddURI([]string{url})
 }
 
+var (
+	ErrTellStatus = errors.New("TellStatus 超时")
+)
+
 func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
@@ -94,13 +98,13 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 		select {
 		case <-timeout:
 			// 达到超时时间，执行相应的逻辑
-			return "", errors.New("TellStatus 超时")
+			return "", ErrTellStatus
 		default:
 			time.Sleep(1 * time.Second)
 			info, err := a.aria2Client.TellStatus(MateGid, "files", "gid", "status", "errorMessage", "errorCode", "followedBy")
 			if err != nil {
 				log.Error(err)
-				return "", errors.WithMessage(err, "TellStatus")
+				return "", fmt.Errorf("TellStatus err:%w", err)
 			}
 			// active  waiting   paused   error   complete   removed
 			if info.Status == "complete" {
@@ -116,6 +120,7 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 				}
 				msg := fmt.Sprintf("code: %s, msg: %s", info.ErrorCode, info.ErrorMessage)
 				log.Error(msg)
+				//nolint:err113
 				return "", errors.New(msg)
 			}
 		}

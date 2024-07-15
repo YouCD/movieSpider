@@ -4,12 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/config"
 	httpClient2 "movieSpider/internal/httpclient"
+	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/model"
 	"movieSpider/internal/spider"
 	"movieSpider/internal/types"
@@ -19,6 +16,12 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"errors"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 )
 
 const movieURLPrefix = "https://movie.douban.com/subject/"
@@ -173,23 +176,23 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 func (d *DouBan) newRequest(url string) (document *goquery.Document, err error) {
 	request, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
 	if err != nil {
-		return nil, errors.WithMessage(err, "newRequest")
+		return nil, fmt.Errorf("newRequest, err:%w", err)
 	}
 	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36")
 	request.Header.Set("Cookie", `bid=TfBEKp4BWMc; dbcl2="251312920:rkR4Ujzy3W8"; ck=5MvF; ll="118267"; _pk_ref.100001.4cf6=%5B%22%22%2C%22%22%2C1708572426%2C%22https%3A%2F%2Faccounts.douban.com%2F%22%5D; _pk_id.100001.4cf6=aecc8277cdf140cf.1708572426.; _pk_ses.100001.4cf6=1; __utma=30149280.1796252786.1708572426.1708572426.1708572426.1; __utmb=30149280.0.10.1708572426; __utmc=30149280; __utmz=30149280.1708572426.1.1.utmcsr=accounts.douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/; __utma=223695111.1879872192.1708572426.1708572426.1708572426.1; __utmb=223695111.0.10.1708572426; __utmc=223695111; __utmz=223695111.1708572426.1.1.utmcsr=accounts.douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/; push_noty_num=0; push_doumail_num=0; frodotk_db="202dcb43b7ae3817608961cb270aa845"; _vwo_uuid_v2=D8A0FB067F659FDB23642E61CBF1F722B|11e34d62d2eb48d088514b92792fc6b5`)
 	client := httpClient2.NewHTTPClient()
 	resp, err := client.Do(request)
 	if err != nil {
-		return nil, errors.WithMessage(err, "client.Do")
+		return nil, fmt.Errorf("client.Do, err:%w", err)
 	}
 	if resp == nil {
-		return nil, errors.New("未能正常获取豆瓣数据")
+		return nil, magnetconvert.ErrRespIsNil
 	}
 	defer resp.Body.Close()
 
 	document, err = goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return nil, errors.WithMessage(err, "goquery.NewDocumentFromReader")
+		return nil, fmt.Errorf("goquery.NewDocumentFromReader, err:%w", err)
 	}
 	return
 }
@@ -206,7 +209,7 @@ func (d *DouBan) newRequest(url string) (document *goquery.Document, err error) 
 func (d *DouBan) zhToUnicode(raw []byte) ([]byte, error) {
 	str, err := strconv.Unquote(strings.Replace(strconv.Quote(string(raw)), `\\u`, `\u`, -1))
 	if err != nil {
-		return nil, errors.WithMessage(err, "zhToUnicode")
+		return nil, fmt.Errorf("zhToUnicode, err:%w", err)
 	}
 	return []byte(str), nil
 }
