@@ -1,9 +1,5 @@
-version: '3.1'
 services:
   moviespider_proxy:
-    build:
-      dockerfile: https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_proxy
-      context: .
     image: moviespider_proxy
     ports:
       - "5010:5010"
@@ -43,9 +39,6 @@ services:
       - 6888:6888/udp
 
   moviespider_core:
-    build:
-      dockerfile: https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_Dockerfile
-      context: .
     restart: always
     links:
       - moviespider_mysql

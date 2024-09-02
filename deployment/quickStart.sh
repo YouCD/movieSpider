@@ -26,6 +26,9 @@ export Aria2_ConfigDir=$PWD/aria2/config
 export Aria2_DataDir=$PWD/aria2/data
 export Aria2_Port=6800
 export MovieSpider_Dir=$PWD/movieSpider
+export IpProxyPool_Dir=$PWD/IpProxyPool
+export UID=$UID
+export GID=$GID
 export DoubanUrl=https://movie.douban.com/people/251312920/wish
 
 
@@ -34,6 +37,7 @@ export DoubanUrl=https://movie.douban.com/people/251312920/wish
 sleep 5
 echo -e "\033[73m[*] 创建目录： ${MovieSpider_Dir}"
 mkdir -p ${MovieSpider_Dir}
+mkdir -p ${IpProxyPool_Dir}
 clear
 
 
@@ -152,9 +156,12 @@ clear
 
 
 #sleep 5
-echo "开始下载docker-compose.yaml以及相关的Dockerfile"
+echo "开始 构建镜像"
+docker build  -f https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_proxy_Dockerfile -t moviespider_proxy .
+docker build  -f https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_Dockerfile -t moviespider_Dockerfile .
+
+echo "开始 下载docker-compose.yaml 以及相关的配置文件"
 wget -q https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/docker-compose.yaml
-wget -q https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_proxy
-wget -q https://raw.githubusercontent.com/YouCD/IpProxyPool/main/conf/config.yaml -O ${MovieSpider_Dir}/config.yaml
+wget -q https://raw.githubusercontent.com/YouCD/IpProxyPool/main/conf/config.yaml -O ${IpProxyPool_Dir}/config.yaml
 echo "启动 moviespider"
 docker-compose -p moviespider up
