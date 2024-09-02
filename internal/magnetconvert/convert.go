@@ -66,8 +66,7 @@ func FetchMagnet(url string) (magnet string, err error) {
 	if err != nil {
 		return "", fmt.Errorf("TGx: 磁链获取错误,err: %w", err)
 	}
-	client := httpClient2.NewHTTPClient()
-	resp, err := client.Do(request)
+	resp, err := httpClient2.HTTPClient.Do(request)
 	if err != nil {
 		return "", fmt.Errorf("磁链获取错误,err: %w", err)
 	}

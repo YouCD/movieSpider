@@ -38,7 +38,7 @@ func NewSpiderTmDB(scheduling, apikey string) *TmDB {
 		url:        url,
 		apikey:     apikey,
 		scheduling: scheduling,
-		client:     httpclient.NewHTTPClient(),
+		client:     httpclient.NewProxyHTTPClient(url),
 	}
 }
 

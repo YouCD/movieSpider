@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mmcdole/gofeed"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -18,12 +17,15 @@ type Tgx struct {
 	BaseFeeder
 }
 
-func NewTgx(scheduling, siteURL string) *Tgx {
+func NewTgx(scheduling, siteURL string, useIPProxy bool) *Tgx {
 	return &Tgx{
 		BaseFeeder{
-			web:        "tgx",
-			url:        siteURL,
-			scheduling: scheduling,
+			web: "tgx",
+			BaseFeed: types.BaseFeed{
+				Url:        siteURL,
+				Scheduling: scheduling,
+				UseIPProxy: useIPProxy,
+			},
 		},
 	}
 }
@@ -42,8 +44,7 @@ func inSkipCategories(categories string) bool {
 }
 
 func (t *Tgx) Crawler() (videos []*types.FeedVideo, err error) {
-	fp := gofeed.NewParser()
-	fd, err := fp.ParseURL(t.url)
+	fd, err := t.FeedParser().ParseURL(t.Url)
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}

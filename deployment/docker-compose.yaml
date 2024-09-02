@@ -1,5 +1,18 @@
 version: '3.1'
 services:
+  moviespider_proxy:
+    build:
+      dockerfile: https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_proxy
+      context: .
+    image: moviespider_proxy
+    ports:
+      - "5010:5010"
+    restart: always
+    volumes:
+      - "./IpProxyPool/config.yaml:/app/conf/config.yaml"
+      - "./IpProxyPool/logs:/app/logs"
+    depends_on:
+      - moviespider_mysql
   moviespider_mysql:
     image: mysql:5.7.18
     ports:
@@ -31,7 +44,7 @@ services:
 
   moviespider_core:
     build:
-      dockerfile: moviespider_Dockerfile
+      dockerfile: https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_Dockerfile
       context: .
     restart: always
     links:

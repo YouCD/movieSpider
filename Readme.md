@@ -89,62 +89,85 @@ mkdir -p ${MovieSpider_Dir}
 * moviespider
 
 ```shell
-cat >${MovieSpider_Dir}/config.yaml<<EOF
+cat > ${MovieSpider_Dir}/config.yaml<<'EOF'
 MySQL:
   # 这个地址是docker里面的地址
-  Host: moviespider_mysql
-  Port: ${Mysql_Port}
+  Host: 127.0.0.1
+  Port: 3306
   Database: movie
   User: root
-  Password: ${Mysql_Password}
+  Password: P@ssw0rd
 
-Douban:
+DouBan:
   # 豆瓣电影想看清单
-  DoubanUrl: 
-    - Url: ${DoubanUrl}
   Scheduling: "*/10 * * * *"
-  # 豆瓣 Cookie
-  # Cookie: ''
+  DouBanList:
+    - Url: "https://movie.douban.com/people/251312920/wish"
+    - Url: "https://movie.douban.com/people/271517237/wish"
+
+ExcludeWords:
+  - 720p
+  - dvsux
+  - 480p
+  #- hdr
+  - .dv.
+  - .dolby.vision
+
 Feed:
   BTBT:
     Scheduling: "*/5 * * * *"
-    Url: "https://www.btbtt12.com/forum-index-fid-951.htm"
+    Url: "https://www.1lou.me/forum-1.htm"
   EZTV:
     Scheduling: "*/5 * * * *"
     Url: "https://eztvx.to/ezrss.xml"
   GLODLS:
     Scheduling: "*/3 * * * *"
     Url: "https://glodls.to/rss.php?cat=1,41"
+    UseIPProxy: true
   TGX:
     - Scheduling: "*/3 * * * *"
       Url: "https://tgx.rs/rss"
+      Name: rss
     # 24小时归档数据
     - Scheduling: "0 1 * * *"
       Url: "https://tgx.rs/cache/tgx24hdump.txt.gz"
+      Name: dump
+    - Scheduling: "*/3 * * * *"
+      Url: "https://tgx.rs/torrents.php?c3=1&c42=1&c41=1&c11=1&search=&lang=0&nox=2#resultss"
+      Name: web
+
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
       Url: "https://www.torlock.com/movies/rss.xml"
+      UseIPProxy: true
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
       Url: "https://www.torlock.com/television/rss.xml"
-  MAGNETDL:
+      UseIPProxy: true
+  Web1337x:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      Url: "https://www.magnetdl.com/download/movies/"
+      Url: "https://1337x.to/popular-movies"
+      UseIPProxy: true
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-      Url: "https://www.magnetdl.com/download/tv/"
+      Url: "https://1337x.to/popular-tv"
+      UseIPProxy: true
   TPBPIRATEPROXY:
-    Scheduling: "*/3 * * * *d"
+    Scheduling: "*/3 * * * *"
     Url: "https://thepiratebay.party/rss/top100/200"
+  ThePirateBay:
+    Scheduling: "*/3 * * * *"
+    Url: "https://thepiratebay.org/search.php?q=top100:200"
+    UseIPProxy: true
+
 Global:
   LogLevel: info
   Report: true
-  # 网络代理
-#  Proxy:
-#    Url: socks5://127.0.0.1:1080
-#    Enable: false
+  # 免费的网络代理池 https://github.com/YouCD/IpProxyPool
+  IPProxyPool: "http://127.0.0.1:3001"
+
 # Downloader 下载
 Downloader:
   Scheduling: "*/60 * * * *"
@@ -153,16 +176,18 @@ Downloader:
 
 # Aria2 下载服务器
 Aria2cList:
-  - Url: "http://moviespider_aria2:6800"
-    Token: ${Aria2_Password}
+  - Url: "http://127.0.0.1e:6800"
+    Token: P@ssw0rd
     Label: home
 
 # 如果没有Telegram 就请忽略
-#TG:
+TG:
   # Telegram 机器人 token
 #  BotToken: "TOKEN"
 #   能正常访问机器人的Telegram用户
 #  TgIDs: [ 123456 ]
+  # 独立的代理地址
+#  ProxyUrl: socks5://192.168.1.188:20170
 EOF
 
 ```

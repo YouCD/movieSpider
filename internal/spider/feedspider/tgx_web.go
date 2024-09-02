@@ -21,14 +21,13 @@ type TgxWeb struct {
 	BaseFeeder
 }
 
-func NewTgxWeb(scheduling, siteURL string) *TgxWeb {
+func NewTgxWeb(scheduling, siteURL string, useIPProxy bool) *TgxWeb {
 	parse, _ := url.Parse(siteURL)
 	return &TgxWeb{
 		webHost: fmt.Sprintf("%s://%s", parse.Scheme, parse.Host),
 		BaseFeeder: BaseFeeder{
-			web:        "tgx_web",
-			url:        siteURL,
-			scheduling: scheduling,
+			web:      "tgx_web",
+			BaseFeed: types.BaseFeed{Url: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy},
 		},
 	}
 }
@@ -36,11 +35,12 @@ func NewTgxWeb(scheduling, siteURL string) *TgxWeb {
 func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
 	timeCtx, cancel := context.WithTimeout(context.TODO(), 300*time.Second)
 	defer cancel()
-	newContext, _ := chromedp.NewContext(timeCtx)
-	log.Debug(t.url)
+	newContext, _ := chromedp.NewContext(timeCtx, chromedp.WithLogf(log.Infof))
+	// defer newContext.Done()
+	log.Debug(t.Url)
 	var htmlStr string
 	err := chromedp.Run(newContext,
-		chromedp.Navigate(t.url),
+		chromedp.Navigate(t.Url),
 		chromedp.WaitVisible(`.tgxtable`),
 		chromedp.Sleep(time.Second*10),
 		chromedp.InnerHTML(`body`, &htmlStr),
@@ -119,8 +119,10 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
 
 func (t *TgxWeb) fetchMagnet(urlStr string) (string, bool) {
 	timeCtx, cancel := context.WithTimeout(context.TODO(), 300*time.Second)
-	newContext, _ := chromedp.NewContext(timeCtx)
+	newContext, _ := chromedp.NewContext(timeCtx, chromedp.WithLogf(log.Infof))
+	chromedp.Stop()
 	defer cancel()
+	// defer newContext.Done()
 	var magnet string
 	var match bool
 

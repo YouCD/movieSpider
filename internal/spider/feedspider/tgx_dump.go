@@ -4,14 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
-	"context"
 	"database/sql"
 	"fmt"
 	"io"
-	"movieSpider/internal/httpclient"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
-	"net/http"
 	"regexp"
 	"strings"
 	"sync"
@@ -23,29 +20,22 @@ type TgxDump struct {
 	BaseFeeder
 }
 
-func NewTgxDump(scheduling, siteURL string) *TgxDump {
+func NewTgxDump(scheduling, siteURL string, useIPProxy bool) *TgxDump {
 	return &TgxDump{
 		BaseFeeder{
-			web:        "TgxDump",
-			url:        siteURL,
-			scheduling: scheduling,
+			web:      "TgxDump",
+			BaseFeed: types.BaseFeed{Url: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy},
 		},
 	}
 }
 
 func (t *TgxDump) Crawler() (videos []*types.FeedVideo, err error) {
-	c := httpclient.NewHTTPClient()
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, t.url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("TgxDump new request, err: %w", err)
-	}
-	resp, err := c.Do(req)
+	resp, err := t.HTTPRequest(t.Url)
 	if err != nil {
 		return nil, fmt.Errorf("TgxDump resp, err: %w", err)
 	}
-	defer resp.Body.Close()
 
-	reader, err := gzip.NewReader(resp.Body)
+	reader, err := gzip.NewReader(bytes.NewReader(resp))
 	if err != nil {
 		return nil, fmt.Errorf("TgxDump reader, err: %w", err)
 	}

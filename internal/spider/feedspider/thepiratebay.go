@@ -3,19 +3,17 @@ package feedspider
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"movieSpider/internal/config"
 	"movieSpider/internal/types"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/youcd/toolkit/log"
-
-	"errors"
-
 	"github.com/PuerkitoBio/goquery"
-
 	"github.com/chromedp/chromedp"
+	"github.com/youcd/toolkit/log"
 )
 
 type ThePirateBay struct {
@@ -26,18 +24,22 @@ var (
 	ErrNotMatchTorrentName = errors.New("torrent name not match")
 )
 
-func NewThePirateBay(scheduling, siteURL string) *ThePirateBay {
+func NewThePirateBay() *ThePirateBay {
 	return &ThePirateBay{
 		BaseFeeder{
-			web:        "ThePirateBay",
-			url:        siteURL,
-			scheduling: scheduling,
+			web: "ThePirateBay",
+			BaseFeed: types.BaseFeed{
+				Url:        config.Config.Feed.ThePirateBay.Url,
+				Scheduling: config.Config.Feed.ThePirateBay.Scheduling,
+				UseIPProxy: config.Config.Feed.ThePirateBay.UseIPProxy,
+			},
 		},
 	}
 }
 func (t *ThePirateBay) Crawler() ([]*types.FeedVideo, error) {
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
+		chromedp.WithLogf(log.Infof),
 		// chromedp.WithDebugf(log.Printf),
 	)
 	defer cancel()
@@ -47,7 +49,7 @@ func (t *ThePirateBay) Crawler() ([]*types.FeedVideo, error) {
 
 	var html string
 	if err := chromedp.Run(ctx,
-		chromedp.Navigate(t.url),
+		chromedp.Navigate(t.Url),
 		chromedp.WaitVisible(`body > main`),
 		chromedp.Click(`#f_1080p`, chromedp.NodeVisible),
 		chromedp.Click(`#f_2160p`, chromedp.NodeVisible),

@@ -32,7 +32,6 @@ var rootCmd = &cobra.Command{
 		)
 
 		movieSpider.RunWithTGBot()
-
 		movieSpider.RunWithFeed()
 		movieSpider.RunWithFeedSpider()
 

@@ -5,17 +5,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	httpClient2 "movieSpider/internal/httpclient"
+	"movieSpider/internal/config"
 	"movieSpider/internal/types"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/mmcdole/gofeed"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -24,8 +22,8 @@ type Glodls struct {
 	BaseFeeder
 }
 
-func NewGlodls(scheduling, siteURL string) *Glodls {
-	parse, err := url.Parse(siteURL)
+func NewGlodls() *Glodls {
+	parse, err := url.Parse(config.Config.Feed.GLODLS.Url)
 	if err != nil {
 		log.Errorf("url.Parse err: %v", err)
 		return nil
@@ -35,17 +33,19 @@ func NewGlodls(scheduling, siteURL string) *Glodls {
 	return &Glodls{
 		urlBase,
 		BaseFeeder{
-			web:        "glodls",
-			url:        siteURL,
-			scheduling: scheduling,
+			web: "glodls",
+			BaseFeed: types.BaseFeed{
+				Url:        config.Config.Feed.GLODLS.Url,
+				Scheduling: config.Config.Feed.GLODLS.Scheduling,
+				UseIPProxy: config.Config.Feed.GLODLS.UseIPProxy,
+			},
 		},
 	}
 }
 
 //nolint:gosimple,ineffassign,goconst
 func (g *Glodls) Crawler() (videos []*types.FeedVideo, err error) {
-	fp := gofeed.NewParser()
-	fd, err := fp.ParseURL(g.url)
+	fd, err := g.FeedParser().ParseURL(g.Url)
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
@@ -139,9 +139,8 @@ func (g *Glodls) fetchMagnet(url string) (magnet string, err error) {
 	if err != nil {
 		return "", fmt.Errorf("GLODLS: 请求错误，err:%w", err)
 	}
-	httpClient := httpClient2.NewHTTPClient()
-	httpClient.Timeout = 20 * time.Second
-	resp, err := httpClient.Do(request)
+
+	resp, err := g.HTTPClientDynamic().Do(request)
 	if err != nil {
 		return "", fmt.Errorf("GLODLS: 请求错误，err:%w", err)
 	}

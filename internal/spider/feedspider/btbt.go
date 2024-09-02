@@ -1,24 +1,20 @@
 package feedspider
 
 import (
-	"context"
+	"bytes"
 	"database/sql"
 	"errors"
 	"fmt"
 	"movieSpider/internal/config"
-	"movieSpider/internal/httpclient"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/chromedp/chromedp"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -27,34 +23,63 @@ type Btbt struct {
 	webHost string
 }
 
-func NewBtbt(scheduling string, siteURL string) *Btbt {
-	parse, _ := url.Parse(siteURL)
+func NewBtbt() *Btbt {
+	parse, _ := url.Parse(config.Config.Feed.BTBT.Url)
 	return &Btbt{
 		BaseFeeder: BaseFeeder{
-			web:        "btbt",
-			url:        siteURL,
-			scheduling: scheduling,
+			BaseFeed: types.BaseFeed{
+				Url:        config.Config.Feed.BTBT.Url,
+				Scheduling: config.Config.Feed.BTBT.Scheduling,
+				UseIPProxy: config.Config.Feed.BTBT.UseIPProxy,
+			},
+			web: "btbt",
 		},
 		webHost: fmt.Sprintf("%s://%s", parse.Scheme, parse.Host),
 	}
 }
 func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
-	timeCtx, cancel := context.WithTimeout(context.TODO(), 300*time.Second)
-	defer cancel()
-	newContext, _ := chromedp.NewContext(timeCtx)
-	log.Debug(b.url)
-	var htmlStr string
-	err = chromedp.Run(newContext,
-		chromedp.Navigate(b.url),
-		chromedp.WaitVisible(`.media.thread.tap.hidden-sm`),
-		chromedp.Sleep(time.Second*10),
-		chromedp.InnerHTML(`body`, &htmlStr),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("btbt new request,err: %w", err)
-	}
+	log.Debug(b.Url)
+	/*
+		timeCtx, cancel := context.WithTimeout(context.TODO(), 300*time.Second)
+		defer cancel()
+		newContext, _ := chromedp.NewContext(timeCtx,
+			chromedp.WithLogf(log.Infof),
+		)
+		var bc1 cdp.BrowserContextID
+		//_, proxyStr := httpclient.NewIpProxyPoolHTTPClient(b.url)
+		if err = chromedp.Run(newContext,
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				c := chromedp.FromContext(ctx)
+				var err error
+				bc1, err = target.CreateBrowserContext().
+					WithDisposeOnDetach(true).
+					WithProxyServer("http://127.0.0.1:20171").
+					Do(cdp.WithExecutor(ctx, c.Browser))
+				if err != nil {
+					return err
+				}
+				return err
+			}),
+		); err != nil {
+			panic(err)
+		}
+		newContext, cancel = chromedp.NewContext(newContext, chromedp.WithExistingBrowserContext(bc1))
+		err = chromedp.Run(newContext,
+			chromedp.Navigate(b.Url),
+			chromedp.WaitVisible(`.media.thread.tap.hidden-sm`),
+			chromedp.Sleep(time.Second*10),
+			chromedp.InnerHTML(`body`, &htmlStr),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("btbt new request,err: %w", err)
+		}
+	*/
 
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlStr))
+	resp, err := b.HTTPRequest(b.Url)
+	if err != nil {
+		return nil, fmt.Errorf("btbt new request,url: %s, err: %w", b.Url, err)
+	}
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(resp))
 	if err != nil {
 		return nil, fmt.Errorf("getMovies goquery,err: %w", err)
 	}
@@ -110,9 +135,9 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
 		wg.Add(1)
 		go func(video *types.FeedVideo) {
 			defer wg.Done()
-			magnet, err := fetchMagnet(b.webHost, video.TorrentURL)
+			magnet, err := b.fetchMagnet(b.webHost, video.TorrentURL)
 			if err != nil {
-				log.Errorf("BTBT: 获取磁链错误 err:%s", err)
+				log.Errorf("BTBT: 获取磁链错误 err:%s", errors.Unwrap(err))
 				return
 			}
 			video.Magnet = magnet
@@ -128,16 +153,16 @@ var (
 	ErrDownloadURLIsEmpty = errors.New("downloadURL is empty")
 )
 
-func fetchMagnet(webHost, torrentURL string) (string, error) {
-	downloadURL, err := moviePageURL(torrentURL)
+func (b *Btbt) fetchMagnet(webHost, torrentURL string) (string, error) {
+	downloadURL, err := b.moviePageURL(torrentURL)
 	if err != nil {
-		return "", fmt.Errorf("BTBT: 获取磁链错误 err:%w", err)
+		return "", fmt.Errorf("BTBT: 获取磁链下载连接错误 err:%w", err)
 	}
 	if downloadURL == "" {
 		return "", ErrDownloadURLIsEmpty
 	}
 
-	magnet, err := getMagnet(fmt.Sprintf("%s/%s", webHost, downloadURL))
+	magnet, err := b.getMagnet(fmt.Sprintf("%s/%s", webHost, downloadURL))
 	if err != nil {
 		return "", fmt.Errorf("BTBT: 获取磁链错误 err:%w", err)
 	}
@@ -150,14 +175,13 @@ func trim(str string) string {
 	return str
 }
 
-func moviePageURL(pageURL string) (url string, err error) {
-	resp, err := client(pageURL)
+func (b *Btbt) moviePageURL(pageURL string) (url string, err error) {
+	resp, err := b.HTTPRequest(pageURL)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("连接请求: %w", err)
 	}
 
-	defer resp.Body.Close()
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(resp))
 	if err != nil {
 		return "", fmt.Errorf("moviePageURL: %w", err)
 	}
@@ -172,22 +196,11 @@ func moviePageURL(pageURL string) (url string, err error) {
 	return url, nil
 }
 
-func getMagnet(url string) (magnet string, err error) {
-	resp, err := client(url)
+func (b *Btbt) getMagnet(url string) (magnet string, err error) {
+	resp, err := b.HTTPRequest(url)
 	if err != nil {
 		return "", fmt.Errorf("BTBT: 获取磁链错误 err:%w", err)
 	}
-	defer resp.Body.Close()
 	//nolint:wrapcheck
-	return magnetconvert.IO2Magnet(resp.Body)
-}
-
-func client(url string) (resp *http.Response, err error) {
-	c := httpclient.NewHTTPClient()
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("client new request,err: %w", err)
-	}
-	resp, err = c.Do(req)
-	return
+	return magnetconvert.IO2Magnet(bytes.NewReader(resp))
 }

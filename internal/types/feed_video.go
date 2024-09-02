@@ -8,6 +8,13 @@ import (
 	"strings"
 )
 
+//nolint:tagliatelle,revive
+type BaseFeed struct {
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron" `
+	Url        string `son:"Url" yaml:"Url" validate:"http_url" `
+	UseIPProxy bool   `json:"UseIPProxy,omitempty" yaml:"UseIPProxy,omitempty"`
+}
+
 //nolint:tagliatelle
 type FeedVideo struct {
 	ID          int32          `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`

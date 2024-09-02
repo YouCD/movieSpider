@@ -14,7 +14,7 @@ func init() {
 func TestNewTgxDump(t *testing.T) {
 	for _, tgx := range config.Config.Feed.TGX {
 		if strings.HasSuffix(tgx.Url, "tgx24hdump.txt.gz") {
-			NewTgxDump(tgx.Scheduling, tgx.Url).Crawler()
+			NewTgxDump(tgx.Scheduling, tgx.Url, true).Crawler()
 		}
 	}
 }

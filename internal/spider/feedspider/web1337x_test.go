@@ -17,7 +17,7 @@ func init() {
 
 func TestWeb1337x_Crawler(t *testing.T) {
 	//web1337x := NewWeb1337x("*/3 * * * *", types.VideoTypeTV, "https://1337x.to/popular-tv")
-	web1337x := NewWeb1337x("*/3 * * * *", types.VideoTypeMovie, "https://1337x.to/popular-movies")
+	web1337x := NewWeb1337x("*/3 * * * *", types.VideoTypeMovie, "https://1337x.to/popular-movies", true)
 	gotVideos, err := web1337x.Crawler()
 	if err != nil {
 		t.Errorf("Crawler() error = %v", err)

@@ -2,13 +2,9 @@ package feedspider
 
 import (
 	"bytes"
-	"context"
 	"database/sql"
 	"fmt"
-	"io"
-	"movieSpider/internal/httpclient"
 	"movieSpider/internal/types"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -18,19 +14,18 @@ import (
 )
 
 type Web1337x struct {
-	typ types.VideoType
 	BaseFeeder
+	typ     types.VideoType
 	webHost string
 }
 
-func NewWeb1337x(scheduling string, resourceType types.VideoType, siteURL string) *Web1337x {
+func NewWeb1337x(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) *Web1337x {
 	parse, _ := url.Parse(siteURL)
 	return &Web1337x{
 		typ: resourceType,
 		BaseFeeder: BaseFeeder{
-			web:        "1337x",
-			url:        siteURL,
-			scheduling: scheduling,
+			web:      "1337x",
+			BaseFeed: types.BaseFeed{Url: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy},
 		},
 		webHost: fmt.Sprintf("%s://%s", parse.Scheme, parse.Host),
 	}
@@ -47,7 +42,7 @@ func (w *Web1337x) Crawler() ([]*types.FeedVideo, error) {
 
 func (w *Web1337x) crawler() ([]*types.FeedVideo, error) {
 	videosTemp := make([]*types.FeedVideo, 0)
-	data, err := fetchHTMLData(w.url)
+	data, err := w.HTTPRequest(w.Url)
 	if err != nil {
 		return nil, fmt.Errorf("fetchHTMLData, err:%w", err)
 	}
@@ -77,7 +72,7 @@ func (w *Web1337x) crawler() ([]*types.FeedVideo, error) {
 		torrentName = strings.ReplaceAll(matchArr[1], "-", ".")
 
 		// magnet 链接
-		data, err = fetchHTMLData(torrentURL)
+		data, err = w.HTTPRequest(torrentURL)
 		if err != nil {
 			log.Error(err)
 			return
@@ -121,21 +116,4 @@ func (w *Web1337x) crawler() ([]*types.FeedVideo, error) {
 		videosTemp = append(videosTemp, video)
 	})
 	return videosTemp, nil
-}
-
-func fetchHTMLData(urlStr string) ([]byte, error) {
-	c := httpclient.NewHTTPClient()
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, urlStr, nil)
-	if err != nil {
-		return nil, fmt.Errorf("magnetdl req,err:%w", err)
-	}
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("c.Do,err:%w", err)
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-	//nolint:wrapcheck
-	return io.ReadAll(resp.Body)
 }

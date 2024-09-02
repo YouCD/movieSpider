@@ -10,6 +10,7 @@ import (
 	"movieSpider/internal/model"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -48,7 +49,11 @@ type TGBot struct {
 //	@return *TGBot
 func NewTgBot(botToken string, tgIDs []int) *TGBot {
 	once.Do(func() {
-		client := httpclient.NewHTTPClient()
+		client := http.DefaultClient
+		if config.Config.TG.ProxyURL != "" {
+			log.Info(config.Config.TG.ProxyURL)
+			client = httpclient.NewProxyHTTPClient(config.Config.TG.ProxyURL)
+		}
 		bot, err := tgbotapi.NewBotAPIWithClient(config.Config.TG.BotToken, "https://api.telegram.org/bot%s/%s", client)
 		if err != nil {
 			log.Error(err)

@@ -4,7 +4,6 @@ RUN export download_url=`curl  -s https://api.github.com/repos/youcd/movieSpider
     wget ${download_url} -O /tmp/movieSpider
 
 FROM alpine
-MAINTAINER YCD "hnyoucd@gmail.com"
 WORKDIR /app
 ENV PATH=/app:$PATH
 ENV TZ Asia/Shanghai

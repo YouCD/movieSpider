@@ -13,5 +13,4 @@ func TestInitConfig(t *testing.T) {
 		fmt.Println(err)
 	}
 	fmt.Println(string(marshal))
-	fmt.Println("ResourceType  ", Config.Feed.MagnetDL[0].ResourceType)
 }

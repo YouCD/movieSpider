@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/mmcdole/gofeed"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -20,24 +19,21 @@ type Torlock struct {
 	BaseFeeder
 }
 
-func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string) *Torlock {
+func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) *Torlock {
 	return &Torlock{
 		typ: resourceType,
 		BaseFeeder: BaseFeeder{
-			web:        "torlock",
-			url:        siteURL,
-			scheduling: scheduling,
+			web:      "torlock",
+			BaseFeed: types.BaseFeed{Url: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy},
 		},
 	}
 }
 
 func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
 	var Videos []*types.FeedVideo
-	fp := gofeed.NewParser()
-	fp.Client = httpclient.NewHTTPClient()
-	fp.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+	fp := t.FeedParserUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36")
 	if t.typ == types.VideoTypeMovie {
-		fd, err := fp.ParseURL(t.url)
+		fd, err := fp.ParseURL(t.Url)
 		if err != nil {
 			return nil, ErrFeedParseURL
 		}
@@ -90,7 +86,7 @@ func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
 		return Videos, nil
 	}
 	if t.typ == types.VideoTypeTV {
-		fd, err := fp.ParseURL(t.url)
+		fd, err := fp.ParseURL(t.Url)
 		if err != nil {
 			return nil, ErrFeedParseURL
 		}
@@ -155,7 +151,7 @@ func (t *Torlock) fetchMagnetDownLoad(videos []*types.FeedVideo) []*types.FeedVi
 	for _, video := range videos {
 		wg.Add(1)
 		//nolint:noctx
-		resp, err := httpclient.NewHTTPClient().Get(video.TorrentURL)
+		resp, err := httpclient.HTTPClient.Get(video.TorrentURL)
 		if err != nil {
 			log.Errorf("TORLOCK.%s %s http request url is %s, error:%s", video.Type, video.Name, video.TorrentURL, err)
 			wg.Done()

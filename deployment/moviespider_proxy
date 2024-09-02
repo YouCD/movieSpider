@@ -1,0 +1,31 @@
+FROM  curlimages/curl AS curl
+WORKDIR /app
+RUN export download_url=`curl  -s https://api.github.com/repos/youcd/IpProxyPool/releases/latest|grep browser_download_url|grep linux|awk -F"\"" '{print $4}'`  &&\
+    echo ${download_url} &&\
+    wget ${download_url} -O /app/IpProxyPool
+
+FROM alpine
+
+# 指定时区
+ENV TIMEZONE=Asia/Shanghai
+
+# 指定工作目录
+WORKDIR /app
+
+# 执行的命令
+RUN set -eux \
+    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+    && apk upgrade \
+    && apk update \
+    && apk add --no-cache ca-certificates upx --no-progress bash tzdata busybox-extras \
+    && ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
+    && echo ${TIMEZONE} > /etc/timezone \
+    && rm -rf /var/cache/apk/*
+
+COPY --from=curl /app/app /app/IpProxyPool
+#ADD https://raw.githubusercontent.com/YouCD/IpProxyPool/main/conf/config.yaml /app/conf/config.yaml
+
+# 映射一个端口
+EXPOSE 3000
+
+ENTRYPOINT ["/app/IpProxyPool"]

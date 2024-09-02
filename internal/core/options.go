@@ -29,13 +29,13 @@ func (f optionFunc) apply(ms *MovieSpider) {
 //	@return Option
 func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// BTBT
-	feedBTBT := feedspider.NewBtbt(config.Config.Feed.BTBT.Scheduling, config.Config.Feed.BTBT.Url)
+	feedBTBT := feedspider.NewBtbt()
 
 	// EZTV
-	feedEZTV := feedspider.NewEztv(config.Config.Feed.EZTV.Scheduling, config.Config.Feed.EZTV.Url)
+	feedEZTV := feedspider.NewEztv()
 
 	// GLODLS
-	feedGLODLS := feedspider.NewGlodls(config.Config.Feed.GLODLS.Scheduling, config.Config.Feed.GLODLS.Url)
+	feedGLODLS := feedspider.NewGlodls()
 
 	// TGX
 	var TGXRss feedspider.Feeder
@@ -44,11 +44,11 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	for _, tgx := range config.Config.Feed.TGX {
 		switch strings.ToLower(tgx.Name) {
 		case "rss":
-			TGXRss = feedspider.NewTgx(tgx.Scheduling, tgx.Url)
+			TGXRss = feedspider.NewTgx(tgx.Scheduling, tgx.Url, tgx.UseIPProxy)
 		case "dump":
-			TGXDump = feedspider.NewTgxDump(tgx.Scheduling, tgx.Url)
+			TGXDump = feedspider.NewTgxDump(tgx.Scheduling, tgx.Url, tgx.UseIPProxy)
 		case "web":
-			TgxWeb = feedspider.NewTgxWeb(tgx.Scheduling, tgx.Url)
+			TgxWeb = feedspider.NewTgxWeb(tgx.Scheduling, tgx.Url, tgx.UseIPProxy)
 		}
 	}
 
@@ -58,11 +58,11 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	for _, r := range config.Config.Feed.TORLOCK {
 		if r != nil {
 			if r.ResourceType == types.VideoTypeTV {
-				feedTorlockTV = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.Url)
+				feedTorlockTV = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
 			}
 			log.Debug(r)
 			if r.ResourceType == types.VideoTypeMovie {
-				feedTorlockMovie = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.Url)
+				feedTorlockMovie = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
 			}
 			log.Debug(r)
 		}
@@ -73,17 +73,17 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	for _, r := range config.Config.Feed.Web1337x {
 		if r != nil {
 			if r.ResourceType == types.VideoTypeTV {
-				feed1337xTV = feedspider.NewWeb1337x(r.Scheduling, r.ResourceType, r.Url)
+				feed1337xTV = feedspider.NewWeb1337x(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
 			}
 			log.Debug(r)
 			if r.ResourceType == types.VideoTypeMovie {
-				feed1337xMovie = feedspider.NewWeb1337x(r.Scheduling, r.ResourceType, r.Url)
+				feed1337xMovie = feedspider.NewWeb1337x(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
 			}
 			log.Debug(r)
 		}
 	}
 
-	feedThePirateBay := feedspider.NewThePirateBay(config.Config.Feed.ThePirateBay.Scheduling, config.Config.Feed.ThePirateBay.Url)
+	feedThePirateBay := feedspider.NewThePirateBay()
 
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,

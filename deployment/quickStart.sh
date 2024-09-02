@@ -40,52 +40,84 @@ clear
 
 
 
-cat >${MovieSpider_Dir}/config.yaml<<EOF
+cat > ${MovieSpider_Dir}/config.yaml<<EOF
 MySQL:
   # 这个地址是docker里面的地址
   Host: moviespider_mysql
   Port: ${Mysql_Port}
   Database: movie
   User: root
-  Password: ${Mysql_Password}
+  Password: P@ssw0rd
 
-Douban:
+DouBan:
   # 豆瓣电影想看清单
-  DoubanUrl:
-    - Url: ${DoubanUrl}
   Scheduling: "*/10 * * * *"
+  DouBanList:
+    - Url: "${DoubanUrl}"
+
+ExcludeWords:
+  - 720p
+  - dvsux
+  - 480p
+  #- hdr
+  - .dv.
+  - .dolby.vision
+
 Feed:
   BTBT:
-      Scheduling: "*/5 * * * *"
+    Scheduling: "*/5 * * * *"
+    Url: "https://www.1lou.me/forum-1.htm"
   EZTV:
     Scheduling: "*/5 * * * *"
-    MirrorSite: "https://eztvx.to"
+    Url: "https://eztvx.to/ezrss.xml"
   GLODLS:
     Scheduling: "*/3 * * * *"
-    MirrorSite: "https://gtso.cc"
+    Url: "https://glodls.to/rss.php?cat=1,41"
+    UseIPProxy: true
   TGX:
-    Scheduling: "*/3 * * * *"
-    MirrorSite: "https://tgx.rs"
+    - Scheduling: "*/3 * * * *"
+      Url: "https://tgx.rs/rss"
+      Name: rss
+    # 24小时归档数据
+    - Scheduling: "0 1 * * *"
+      Url: "https://tgx.rs/cache/tgx24hdump.txt.gz"
+      Name: dump
+    - Scheduling: "*/3 * * * *"
+      Url: "https://tgx.rs/torrents.php?c3=1&c42=1&c41=1&c11=1&search=&lang=0&nox=2#resultss"
+      Name: web
+
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      MirrorSite: "https://torlock.unblockit.date"
+      Url: "https://www.torlock.com/movies/rss.xml"
+      UseIPProxy: true
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-      MirrorSite: "https://torlock.unblockit.date"
-  MAGNETDL:
+      Url: "https://www.torlock.com/television/rss.xml"
+      UseIPProxy: true
+  Web1337x:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      MirrorSite: "https://magnetdl.abcproxy.org"
+      Url: "https://1337x.to/popular-movies"
+      UseIPProxy: true
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
-      MirrorSite: "https://magnetdl.abcproxy.org"
+      Url: "https://1337x.to/popular-tv"
+      UseIPProxy: true
   TPBPIRATEPROXY:
     Scheduling: "*/3 * * * *"
-    MirrorSite: "https://thepiratebay10.info"
+    Url: "https://thepiratebay.party/rss/top100/200"
+  ThePirateBay:
+    Scheduling: "*/3 * * * *"
+    Url: "https://thepiratebay.org/search.php?q=top100:200"
+    UseIPProxy: true
+
 Global:
   LogLevel: info
   Report: true
+  # 网络代理池
+  IPProxyPool: "http://127.0.0.1:3001"
+
 
 # Downloader 下载
 Downloader:
@@ -119,9 +151,10 @@ clear
 
 
 
-sleep 5
+#sleep 5
 echo "开始下载docker-compose.yaml以及相关的Dockerfile"
 wget -q https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/docker-compose.yaml
-wget -q https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_Dockerfile
+wget -q https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_proxy
+wget -q https://raw.githubusercontent.com/YouCD/IpProxyPool/main/conf/config.yaml -O ${MovieSpider_Dir}/config.yaml
 echo "启动 moviespider"
 docker-compose -p moviespider up

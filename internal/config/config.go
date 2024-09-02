@@ -11,36 +11,28 @@ import (
 	"github.com/youcd/toolkit/log"
 )
 
-//nolint:tagliatelle,revive
 type btbt struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
+	types.BaseFeed `mapstructure:",squash"`
 }
 
-//nolint:tagliatelle,revive
+//nolint:tagliatelle
 type tgx struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
-	Name       string `json:"Name" yaml:"Name" validate:"required"`
+	types.BaseFeed `mapstructure:",squash"`
+	Name           string `json:"Name" yaml:"Name" validate:"required"`
 }
 
-//nolint:tagliatelle,revive
+//nolint:tagliatelle
 type torlock struct {
-	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	Url          string          `json:"Url" yaml:"Url" validate:"http_url"`
-	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
+	types.BaseFeed `mapstructure:",squash"`
+	ResourceType   types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
 }
 
-//nolint:tagliatelle,revive
 type eztv struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
+	types.BaseFeed `mapstructure:",squash"`
 }
 
-//nolint:tagliatelle,revive
 type glodls struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
+	types.BaseFeed `mapstructure:",squash"`
 }
 
 //nolint:tagliatelle
@@ -51,11 +43,9 @@ type downloader struct {
 
 //nolint:tagliatelle
 type global struct {
-	LogLevel string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
-	Report   bool   `json:"Report" yaml:"Report" validate:"required"`
-	Proxy    struct {
-		URL string `json:"Url" yaml:"Url" validate:"required,url"`
-	} `json:"Proxy" yaml:"Proxy" validate:"omitempty"`
+	LogLevel    string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
+	Report      bool   `json:"Report" yaml:"Report" validate:"required"`
+	IPProxyPool string `json:"IPProxyPool" yaml:"IPProxyPool" validate:"omitempty,http_url"`
 }
 
 //nolint:tagliatelle
@@ -69,6 +59,7 @@ type aria2 struct {
 type tg struct {
 	BotToken string `json:"BotToken" yaml:"BotToken" validate:"required"`
 	TgIDs    []int  `json:"TgIDs" yaml:"TgIDs" validate:"required"`
+	ProxyURL string `json:"ProxyUrl" yaml:"ProxyUrl" validate:"omitempty,url"`
 }
 
 //nolint:tagliatelle
@@ -95,17 +86,15 @@ type tmDB struct {
 }
 
 */
-//nolint:tagliatelle,revive
+
 type thePirateBay struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	Url        string `json:"Url" yaml:"Url" validate:"http_url"`
+	types.BaseFeed `mapstructure:",squash"`
 }
 
-//nolint:tagliatelle,revive
+//nolint:tagliatelle
 type web1337x struct {
-	Scheduling   string          `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	Url          string          `json:"Url" yaml:"Url" validate:"http_url"`
-	ResourceType types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
+	types.BaseFeed `mapstructure:",squash"`
+	ResourceType   types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
 }
 
 //nolint:tagliatelle
