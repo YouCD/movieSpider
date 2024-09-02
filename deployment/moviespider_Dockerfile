@@ -5,8 +5,8 @@ RUN export download_url=`curl  -s https://api.github.com/repos/youcd/movieSpider
 
 FROM alpine
 WORKDIR /app
-ENV PATH=/app:$PATH
-ENV TZ Asia/Shanghai
+ENV PATH=/app:$PATH \
+    TZ=Asia/Shanghai
 COPY --from=Curl /tmp/movieSpider /app/movieSpider
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories &&\
     chmod a+x /app/movieSpider &&\

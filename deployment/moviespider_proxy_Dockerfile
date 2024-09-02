@@ -2,7 +2,8 @@ FROM  curlimages/curl AS curl
 WORKDIR /app
 RUN export download_url=`curl  -s https://api.github.com/repos/youcd/IpProxyPool/releases/latest|grep browser_download_url|grep linux|awk -F"\"" '{print $4}'`  &&\
     echo ${download_url} &&\
-    wget ${download_url} -O /app/app
+    wget ${download_url} -O /app/app &&\
+    chmod +x /app/app
 
 FROM alpine
 
