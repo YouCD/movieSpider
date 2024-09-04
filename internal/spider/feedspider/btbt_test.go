@@ -1,7 +1,10 @@
 package feedspider
 
 import (
+	"movieSpider/internal/model"
 	"testing"
+
+	"github.com/youcd/toolkit/log"
 )
 
 func TestNewBtbt(t *testing.T) {
@@ -11,7 +14,12 @@ func TestNewBtbt(t *testing.T) {
 		t.Error(err)
 	}
 	for _, video := range videos {
-		t.Log(video)
+		filterVideo, err := model.FilterVideo(video)
+		if err != nil {
+			log.Infof("%#v", video)
+			continue
+		}
+		log.Warnf("%#v", filterVideo)
 	}
 
 }

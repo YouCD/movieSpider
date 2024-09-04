@@ -16,19 +16,24 @@ type BaseFeed struct {
 }
 
 //nolint:tagliatelle
-type FeedVideo struct {
-	ID          int32          `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
-	Name        string         `gorm:"uniqueIndex:nt;column:name;type:varchar(255);comment:片名;NOT NULL" json:"name"`
+type FeedVideoBase struct {
 	TorrentName string         `gorm:"uniqueIndex:nt;column:torrent_name;type:varchar(255);comment:种子名;NOT NULL" json:"torrent_name"`
 	TorrentURL  string         `gorm:"column:torrent_url;type:longtext;comment:种子引用地址;NOT NULL" json:"torrent_url"`
 	Magnet      string         `gorm:"column:magnet;type:longtext;comment:磁力链接;NOT NULL" json:"magnet"`
-	Year        string         `gorm:"column:year;type:varchar(255);comment:年份;NOT NULL" json:"year"`
 	Type        string         `gorm:"column:type;type:varchar(255);comment:tv或movie;NOT NULL" json:"type"`
 	RowData     sql.NullString `gorm:"column:row_data;type:longtext;comment:原始数据" json:"row_data"`
+	Year        string         `gorm:"column:year;type:varchar(255);comment:年份;NOT NULL" json:"year"`
 	Web         string         `gorm:"column:web;type:varchar(255);comment:站点;NOT NULL" json:"web"`
-	Download    int            `gorm:"column:download;type:int(11);comment:1:已经下载;NOT NULL" json:"download"`
-	Timestamp   int64          `gorm:"column:timestamp;type:bigint(11);comment:修改创建时间;NOT NULL" json:"timestamp"`
-	DoubanID    string         `gorm:"column:douban_id;type:varchar(255);comment:豆瓣ID;NOT NULL" json:"douban_id"`
+}
+
+//nolint:tagliatelle
+type FeedVideo struct {
+	FeedVideoBase
+	ID        int32  `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
+	Name      string `gorm:"uniqueIndex:nt;column:name;type:varchar(255);comment:片名;NOT NULL" json:"name"`
+	Download  int    `gorm:"column:download;type:int(11);comment:1:已经下载;NOT NULL" json:"download"`
+	Timestamp int64  `gorm:"column:timestamp;type:bigint(11);comment:修改创建时间;NOT NULL" json:"timestamp"`
+	DoubanID  string `gorm:"column:douban_id;type:varchar(255);comment:豆瓣ID;NOT NULL" json:"douban_id"`
 }
 
 func (f *FeedVideo) TableName() string {

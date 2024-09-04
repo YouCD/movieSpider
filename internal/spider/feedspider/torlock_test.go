@@ -3,21 +3,44 @@ package feedspider
 import (
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
+	"movieSpider/internal/types"
 	"testing"
+
+	"github.com/youcd/toolkit/log"
 )
 
 func Test_torlock_Crawler(t *testing.T) {
-	config.InitConfig("/home/ycd/Data/Daddylab/source_code/src/go-source/tools-cmd/core/bin/core/config.yaml")
-	model.NewMovieDB()
-
 	//facTORLOCK.CreateFeeder("*/1 * * * *", types.VideoTypeTV).Run()
 	//select {}
+	var err error
+	var videos []*types.FeedVideoBase
+	for _, r := range config.Config.Feed.TORLOCK {
+		if r != nil {
+			//if r.ResourceType == types.VideoTypeTV {
+			//	feedTorlockTV := NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
+			//	videos, err = feedTorlockTV.Crawler()
+			//	if err != nil {
+			//		log.Errorf("err: %s", err)
+			//		return
+			//	}
+			//}
+			if r.ResourceType == types.VideoTypeMovie {
+				videos, err = NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy).Crawler()
+				if err != nil {
+					log.Errorf("err: %s", err)
+					return
+				}
+			}
+			//log.Debug(r)
+		}
+	}
 
-	//videos, err := facTORLOCK.CreateFeeder("*/1 * * * *",  types.VideoTypeMovie).Search()
-	//if err != nil {
-	//	t.Error(err)
-	//}
-	//for _, video := range videos {
-	//	fmt.Println(video)
-	//}
+	for _, video := range videos {
+		filterVideo, err := model.FilterVideo(video)
+		if err != nil {
+			log.Errorf("err: %s    %#v", err, video)
+			continue
+		}
+		log.Infof("%#v", filterVideo)
+	}
 }

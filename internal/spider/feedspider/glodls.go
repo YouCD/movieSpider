@@ -9,7 +9,6 @@ import (
 	"movieSpider/internal/types"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -43,51 +42,21 @@ func NewGlodls() *Glodls {
 	}
 }
 
-//nolint:gosimple,ineffassign,goconst
-func (g *Glodls) Crawler() (videos []*types.FeedVideo, err error) {
+//nolint:goconst
+func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
 	fd, err := g.FeedParser().ParseURL(g.Url)
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
 	log.Debugf("%s Data: %#v", strings.ToUpper(g.web), fd.String())
 	//nolint:prealloc
-	var videosA []*types.FeedVideo
+	var videosA []*types.FeedVideoBase
 	for _, v := range fd.Items {
-		// 片名
-		torrentName := strings.ReplaceAll(v.Title, " ", ".")
-		// 片名处理
-		var name, year string
-		if strings.ToLower(v.Categories[0]) == "tv" {
-			compileRegex := regexp.MustCompile("(.*)(\\.[Ss][0-9][0-9][eE][0-9][0-9])")
-			matchArr := compileRegex.FindStringSubmatch(torrentName)
-			// 如果 正则匹配过后 没有结果直接 过滤掉
-			if len(matchArr) == 0 {
-				continue
-			}
-			//nolint:wastedassign
-			name = matchArr[1]
-		} else if strings.ToLower(v.Categories[0]) == "movies" {
-			compileRegex := regexp.MustCompile("(.*)\\.(\\d{4})\\.")
-			matchArr := compileRegex.FindStringSubmatch(torrentName)
-			if len(matchArr) == 0 {
-				//nolint:wastedassign
-				name = torrentName
-			} else {
-				//nolint:wastedassign
-				name = matchArr[1]
-				year = matchArr[2]
-			}
-		}
-		name = torrentName
-
-		fVideo := new(types.FeedVideo)
-		fVideo.Name = fVideo.FormatName(name)
-		fVideo.Year = year
-
+		fVideo := new(types.FeedVideoBase)
 		fVideo.Web = g.web
 		parse, _ := url.Parse(v.Link)
 		// 种子名
-		fVideo.TorrentName = fVideo.FormatName(torrentName)
+		fVideo.TorrentName = v.Title
 
 		if len(parse.Query()["id"]) == 0 {
 			log.Error("没有ID")
@@ -116,7 +85,7 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideo, err error) {
 	var wg sync.WaitGroup
 	for _, v := range videosA {
 		wg.Add(1)
-		go func(video *types.FeedVideo) {
+		go func(video *types.FeedVideoBase) {
 			defer wg.Done()
 			magnet, err := g.fetchMagnet(video.TorrentURL)
 			if err != nil {

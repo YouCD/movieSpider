@@ -3,10 +3,8 @@ package feedspider
 import (
 	"database/sql"
 	"encoding/json"
-	"movieSpider/internal/httpclient"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -29,8 +27,8 @@ func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string,
 	}
 }
 
-func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
-	var Videos []*types.FeedVideo
+func (t *Torlock) Crawler() ([]*types.FeedVideoBase, error) {
+	var Videos []*types.FeedVideoBase
 	fp := t.FeedParserUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36")
 	if t.typ == types.VideoTypeMovie {
 		fd, err := fp.ParseURL(t.Url)
@@ -39,14 +37,11 @@ func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
 		}
 		log.Debugf("%s Data: %#v", strings.ToUpper(t.web), fd.String())
 
-		var videos1 []*types.FeedVideo
-		nameReg := regexp.MustCompile(`(.*)\.([0-9][0-9][0-9][0-9])\.`)
-		yearReg := regexp.MustCompile(`(.*)\.\(([0-9][0-9][0-9][0-9])\)\.`)
+		var videos1 []*types.FeedVideoBase
 		for _, v := range fd.Items {
 			// 片名
 			name := strings.ReplaceAll(v.Title, " ", ".")
-
-			var fVideo types.FeedVideo
+			var fVideo types.FeedVideoBase
 			fVideo.Web = t.web
 			fVideo.TorrentName = name
 			fVideo.TorrentURL = v.Link
@@ -55,28 +50,7 @@ func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
 			// 原始数据
 			//nolint:errchkjson
 			bytes, _ := json.Marshal(v)
-
 			fVideo.RowData = sql.NullString{String: string(bytes)}
-
-			// 片名
-			matchArr := nameReg.FindStringSubmatch(name)
-			if len(matchArr) > 0 {
-				fVideo.Name = fVideo.FormatName(matchArr[1])
-			} else {
-				fVideo.Name = fVideo.FormatName(name)
-			}
-			// 年份
-			submatch := yearReg.FindStringSubmatch(name)
-
-			if len(matchArr) > 0 {
-				if matchArr[2] != "" {
-					fVideo.Year = matchArr[2]
-				}
-			} else {
-				if len(submatch) > 2 {
-					fVideo.Year = submatch[2]
-				}
-			}
 			videos1 = append(videos1, &fVideo)
 		}
 
@@ -91,31 +65,17 @@ func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
 			return nil, ErrFeedParseURL
 		}
 		log.Debugf("TORLOCK.tv Data: %#v", fd.String())
-		compileRegex := regexp.MustCompile(`(.*)\.[sS][0-9][0-9]|[Ee][0-9][0-9]?\.`)
-
-		var videos1 []*types.FeedVideo
-
+		var videos1 []*types.FeedVideoBase
 		for _, v := range fd.Items {
-			// 片名
-			name := strings.ReplaceAll(v.Title, " ", ".")
-
-			matchArr := compileRegex.FindStringSubmatch(name)
-			var fVideo types.FeedVideo
-			fVideo.TorrentName = fVideo.FormatName(name)
+			var fVideo types.FeedVideoBase
+			fVideo.TorrentName = v.Title
 			fVideo.TorrentURL = v.Link
 			fVideo.Type = "tv"
-			// 原始数据
 			//nolint:errchkjson
 			bytes, _ := json.Marshal(v)
 
 			fVideo.RowData = sql.NullString{String: string(bytes)}
 			fVideo.Web = t.web
-			// 片名
-			if len(matchArr) > 0 {
-				fVideo.Name = fVideo.FormatName(matchArr[1])
-			} else {
-				fVideo.Name = fVideo.FormatName(name)
-			}
 			videos1 = append(videos1, &fVideo)
 		}
 
@@ -127,13 +87,13 @@ func (t *Torlock) Crawler() ([]*types.FeedVideo, error) {
 	return nil, nil
 }
 
-func (t *Torlock) fetchMagnet(videos []*types.FeedVideo) (feedVideos []*types.FeedVideo) {
+func (t *Torlock) fetchMagnet(videos []*types.FeedVideoBase) (feedVideos []*types.FeedVideoBase) {
 	var wg sync.WaitGroup
 	for _, video := range videos {
 		wg.Add(1)
 		magnet, err := magnetconvert.FetchMagnet(video.Magnet)
 		if err != nil {
-			log.Errorf("TORLOCK: get %s magnet download url is %s", video.Name, video.Magnet)
+			log.Errorf("TORLOCK: get %s magnet download url is %s", video.TorrentName, video.Magnet)
 			wg.Done()
 			continue
 		}
@@ -145,30 +105,31 @@ func (t *Torlock) fetchMagnet(videos []*types.FeedVideo) (feedVideos []*types.Fe
 	return feedVideos
 }
 
-func (t *Torlock) fetchMagnetDownLoad(videos []*types.FeedVideo) []*types.FeedVideo {
+func (t *Torlock) fetchMagnetDownLoad(videos []*types.FeedVideoBase) []*types.FeedVideoBase {
 	var wg sync.WaitGroup
-	var videos2 []*types.FeedVideo
+	var videos2 []*types.FeedVideoBase
 	for _, video := range videos {
 		wg.Add(1)
 		//nolint:noctx
-		resp, err := httpclient.HTTPClient.Get(video.TorrentURL)
-		if err != nil {
-			log.Errorf("TORLOCK.%s %s http request url is %s, error:%s", video.Type, video.Name, video.TorrentURL, err)
-			wg.Done()
-			continue
-		}
-		defer resp.Body.Close()
-		doc, err := goquery.NewDocumentFromReader(resp.Body)
-		if err != nil {
-			log.Errorf("TORLOCK.%s %s http goquery error:%s", video.Type, video.Name, err)
-			continue
-		}
-		val, exists := doc.Find("body > article > div:nth-child(6) > div > div:nth-child(2) > a").Attr("href")
-		if exists {
-			video.Magnet = val
-			videos2 = append(videos2, video)
-		}
-		wg.Done()
+		go func() {
+			defer wg.Done()
+			resp, err := t.HTTPClientDynamic().Get(video.TorrentURL)
+			if err != nil {
+				log.Errorf("TORLOCK.%s %s http request url is %s, error:%s", video.Type, video.TorrentName, video.TorrentURL, err)
+				return
+			}
+			defer resp.Body.Close()
+			doc, err := goquery.NewDocumentFromReader(resp.Body)
+			if err != nil {
+				log.Errorf("TORLOCK.%s %s http goquery error:%s", video.Type, video.TorrentName, err)
+				return
+			}
+			val, exists := doc.Find("body > article > div:nth-child(6) > div > div:nth-child(2) > a").Attr("href")
+			if exists {
+				video.Magnet = val
+				videos2 = append(videos2, video)
+			}
+		}()
 	}
 	wg.Wait()
 	return videos2

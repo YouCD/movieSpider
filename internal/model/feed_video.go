@@ -34,22 +34,6 @@ func (m *MovieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVide
 	return
 }
 
-// UpdateFeedVideoNameByID
-//
-//	@Description: 根据id 更新 Feed 电影名
-//	@receiver m
-//	@param id
-//	@param name
-//	@param resource
-//	@return err
-func (m *MovieDB) UpdateFeedVideoNameByID(id int32, name string, resource types.VideoType) (err error) {
-	err = m.db.Model(&types.FeedVideo{}).Where("id=?", id).Updates(types.FeedVideo{Name: name, Type: resource.String()}).Error
-	if err != nil {
-		return err
-	}
-	return
-}
-
 // GetFeedVideoTVByName 通过 名称 获取 feedVideo tv
 //
 //	@Description:

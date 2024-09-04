@@ -37,43 +37,8 @@ func NewBtbt() *Btbt {
 		webHost: fmt.Sprintf("%s://%s", parse.Scheme, parse.Host),
 	}
 }
-func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
+func (b *Btbt) Crawler() (videos []*types.FeedVideoBase, err error) {
 	log.Debug(b.Url)
-	/*
-		timeCtx, cancel := context.WithTimeout(context.TODO(), 300*time.Second)
-		defer cancel()
-		newContext, _ := chromedp.NewContext(timeCtx,
-			chromedp.WithLogf(log.Infof),
-		)
-		var bc1 cdp.BrowserContextID
-		//_, proxyStr := httpclient.NewIpProxyPoolHTTPClient(b.url)
-		if err = chromedp.Run(newContext,
-			chromedp.ActionFunc(func(ctx context.Context) error {
-				c := chromedp.FromContext(ctx)
-				var err error
-				bc1, err = target.CreateBrowserContext().
-					WithDisposeOnDetach(true).
-					WithProxyServer("http://127.0.0.1:20171").
-					Do(cdp.WithExecutor(ctx, c.Browser))
-				if err != nil {
-					return err
-				}
-				return err
-			}),
-		); err != nil {
-			panic(err)
-		}
-		newContext, cancel = chromedp.NewContext(newContext, chromedp.WithExistingBrowserContext(bc1))
-		err = chromedp.Run(newContext,
-			chromedp.Navigate(b.Url),
-			chromedp.WaitVisible(`.media.thread.tap.hidden-sm`),
-			chromedp.Sleep(time.Second*10),
-			chromedp.InnerHTML(`body`, &htmlStr),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("btbt new request,err: %w", err)
-		}
-	*/
 
 	resp, err := b.HTTPRequest(b.Url)
 	if err != nil {
@@ -85,7 +50,7 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
 	}
 
 	// 洗出  下载电影的页面
-	var Videos1 []*types.FeedVideo
+	var Videos1 []*types.FeedVideoBase
 	compileRegex := regexp.MustCompile(`\[.*?\]`)
 
 	doc.Find(".media.thread.tap.hidden-sm").Each(func(_ int, s *goquery.Selection) {
@@ -115,9 +80,9 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
 			return
 		}
 
-		video := &types.FeedVideo{
-			Name:        trim(matchArr[1]),
-			TorrentName: torrentName,
+		video := &types.FeedVideoBase{
+			//Name:        trim(matchArr[1]),
+			TorrentName: trim(matchArr[1]),
 			TorrentURL:  torrentURL,
 			//Magnet:      magnet,
 			Year:    year,
@@ -133,7 +98,7 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideo, err error) {
 	var wg sync.WaitGroup
 	for _, v := range Videos1 {
 		wg.Add(1)
-		go func(video *types.FeedVideo) {
+		go func(video *types.FeedVideoBase) {
 			defer wg.Done()
 			magnet, err := b.fetchMagnet(b.webHost, video.TorrentURL)
 			if err != nil {

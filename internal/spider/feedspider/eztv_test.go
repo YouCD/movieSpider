@@ -2,7 +2,10 @@ package feedspider
 
 import (
 	"movieSpider/internal/config"
+	"movieSpider/internal/model"
 	"testing"
+
+	"github.com/youcd/toolkit/log"
 )
 
 func init() {
@@ -16,6 +19,12 @@ func TestNewEztv(t *testing.T) {
 		t.Error(err)
 	}
 	for _, video := range videos {
-		t.Log(video)
+		filterVideo, err := model.FilterVideo(video)
+		if err != nil {
+			log.Errorf("err:%s,%#v", err, video)
+			continue
+		}
+		log.Infof("%#v", filterVideo)
 	}
+
 }

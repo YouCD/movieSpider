@@ -1,18 +1,13 @@
 package feedspider
 
 import (
-	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
 	"regexp"
 	"strings"
-	"time"
 
-	"github.com/PuerkitoBio/goquery"
-	"github.com/chromedp/chromedp"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -36,86 +31,110 @@ func NewThePirateBay() *ThePirateBay {
 		},
 	}
 }
-func (t *ThePirateBay) Crawler() ([]*types.FeedVideo, error) {
-	ctx, cancel := chromedp.NewContext(
-		context.Background(),
-		chromedp.WithLogf(log.Infof),
-		// chromedp.WithDebugf(log.Printf),
-	)
-	defer cancel()
-
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	var html string
-	if err := chromedp.Run(ctx,
-		chromedp.Navigate(t.Url),
-		chromedp.WaitVisible(`body > main`),
-		chromedp.Click(`#f_1080p`, chromedp.NodeVisible),
-		chromedp.Click(`#f_2160p`, chromedp.NodeVisible),
-		chromedp.InnerHTML(`#torrents`, &html),
-	); err != nil {
-		return nil, fmt.Errorf("chromedp.Run err: %w", err)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+func (t *ThePirateBay) Crawler() ([]*types.FeedVideoBase, error) {
+	fd, err := t.FeedParser().ParseURL(t.Url)
 	if err != nil {
-		return nil, fmt.Errorf("goquery.NewDocumentFromReader err: %w", err)
+		return nil, ErrFeedParseURL
 	}
+	log.Debugf("%s Data: %#v", strings.ToUpper(t.web), fd.String())
 
-	var videos []*types.FeedVideo
-	doc.Find("#st").Each(func(_ int, s *goquery.Selection) {
-		//  名字
-		torrentName := s.Find("span.list-item.item-name.item-title").Text()
-		if torrentName == "" {
-			log.Warn("text is empty")
-			return
+	videos := make([]*types.FeedVideoBase, 0)
+	for _, v := range fd.Items {
+		if len(v.Categories) < 1 {
+			continue
 		}
-		// 连接地址
-		magnet, exists := s.Find("span.item-icons > a").Attr("href")
-		if !exists {
-			log.Warn("magnet is empty")
-			return
+		video := new(types.FeedVideoBase)
+		if strings.Contains(strings.ToLower(v.Categories[0]), "movie") {
+			video.Type = types.VideoTypeMovie.String()
 		}
-
-		// 类型
-		// 过滤掉 其他类型的种子
-		typStr := s.Find("span.list-item.item-type > a:nth-child(2)").Text()
-		var typ string
-		switch {
-		case strings.Contains(strings.ToLower(typStr), "tv-shows"):
-			typ = "tv"
-		case strings.Contains(strings.ToLower(typStr), "movies"):
-			typ = "movie"
-		default:
-			log.Warn("typStr is empty: ", typStr)
-			return
+		if strings.Contains(strings.ToLower(v.Categories[0]), "tv") {
+			video.Type = types.VideoTypeTV.String()
 		}
 
-		name, _, year, err := torrentName2info(torrentName)
-		if err != nil {
-			log.Warnf("torrentName2info err: %s", err)
-			return
-		}
-		video := &types.FeedVideo{
-			Name:        name,
-			TorrentName: name,
-			TorrentURL:  "",
-			Magnet:      magnet,
-			Year:        year,
-			Type:        typ,
-			RowData:     sql.NullString{},
-			Web:         t.web,
-			DoubanID:    "",
-		}
-		video.Name = video.FormatName(video.Name)
+		video.TorrentName = v.Title
+		video.Magnet = v.Link
+		video.TorrentURL = v.GUID
+		video.Web = t.web
 		videos = append(videos, video)
-	})
-
+	}
 	return videos, nil
+	// ctx, cancel := chromedp.NewContext(
+	// 	context.Background(),
+	// 	chromedp.WithLogf(log.Infof),
+	// 	// chromedp.WithDebugf(log.Printf),
+	// )
+	// defer cancel()
+	//
+	// ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	// defer cancel()
+	//
+	// var html string
+	// if err := chromedp.Run(ctx,
+	//	chromedp.Navigate(t.Url),
+	//	chromedp.WaitVisible(`body > main`),
+	//	chromedp.Click(`#f_1080p`, chromedp.NodeVisible),
+	//	chromedp.Click(`#f_2160p`, chromedp.NodeVisible),
+	//	chromedp.InnerHTML(`#torrents`, &html),
+	// ); err != nil {
+	// 	return nil, fmt.Errorf("chromedp.Run err: %w", err)
+	// }
+	//
+	// doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+	// if err != nil {
+	// 	return nil, fmt.Errorf("goquery.NewDocumentFromReader err: %w", err)
+	// }
+	//
+	// var videos []*types.FeedVideo
+	// doc.Find("#st").Each(func(_ int, s *goquery.Selection) {
+	// 	//  名字
+	// 	torrentName := s.Find("span.list-item.item-name.item-title").Text()
+	// 	if torrentName == "" {
+	//		log.Warn("text is empty")
+	//		return
+	//	}
+	//	// 连接地址
+	//	magnet, exists := s.Find("span.item-icons > a").Attr("href")
+	//	if !exists {
+	//		log.Warn("magnet is empty")
+	//		return
+	//	}
+	//
+	//	// 类型
+	//	// 过滤掉 其他类型的种子
+	//	typStr := s.Find("span.list-item.item-type > a:nth-child(2)").Text()
+	//	var typ string
+	//	switch {
+	//	case strings.Contains(strings.ToLower(typStr), "tv-shows"):
+	//		typ = "tv"
+	//	case strings.Contains(strings.ToLower(typStr), "movies"):
+	//		typ = "movie"
+	//	default:
+	//		log.Warn("typStr is empty: ", typStr)
+	//		return
+	//	}
+	//
+	//	name, _, year, err := torrentName2info(torrentName)
+	//	if err != nil {
+	//		log.Warnf("torrentName2info err: %s", err)
+	//		return
+	//	}
+	//	video := &types.FeedVideo{
+	//		Name:        name,
+	//		TorrentName: name,
+	//		TorrentURL:  "",
+	//		Magnet:      magnet,
+	//		Year:        year,
+	//		Type:        typ,
+	//		RowData:     sql.NullString{},
+	//		Web:         t.web,
+	//		DoubanID:    "",
+	//	}
+	// 	video.Name = video.FormatName(video.Name)
+	// 	videos = append(videos, video)
+	// })
+	// return videos, nil
 }
 
-//nolint:unparam
 func torrentName2info(torrentName string) (string, string, string, error) {
 	// 去除空格
 	newTorrentName := strings.ReplaceAll(torrentName, " ", ".")

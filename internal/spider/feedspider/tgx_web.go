@@ -32,7 +32,7 @@ func NewTgxWeb(scheduling, siteURL string, useIPProxy bool) *TgxWeb {
 	}
 }
 
-func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
+func (t *TgxWeb) Crawler() ([]*types.FeedVideoBase, error) {
 	timeCtx, cancel := context.WithTimeout(context.TODO(), 300*time.Second)
 	defer cancel()
 	newContext, _ := chromedp.NewContext(timeCtx, chromedp.WithLogf(log.Infof))
@@ -56,7 +56,7 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
 		return nil, fmt.Errorf("goquery.NewDocumentFromReader goquery, err:%w", err)
 	}
 
-	videosTemp := make([]*types.FeedVideo, 0)
+	videosTemp := make([]*types.FeedVideoBase, 0)
 	doc.Find(".tgxtablerow.txlight").Each(func(_ int, s *goquery.Selection) {
 		// 类别
 		typStr := s.Find(".tgxtablecell.shrink.rounded.txlight").Text()
@@ -73,7 +73,7 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
 
 		//  名字
 		torrentName := s.Find(".tgxtablecell.clickable-row.click.textshadow.rounded.txlight").Text()
-		name, _, year, err := torrentName2info(torrentName)
+		name, _, _, err := torrentName2info(torrentName)
 		if err != nil {
 			log.Warnf("torrentName2info err: %s", err)
 			return
@@ -84,25 +84,22 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideo, error) {
 			return
 		}
 
-		video := &types.FeedVideo{
-			Name:        name,
+		video := &types.FeedVideoBase{
 			TorrentName: name,
 			TorrentURL:  t.webHost + u,
 			Magnet:      "",
-			Year:        year,
 			Type:        typ,
 			RowData:     sql.NullString{},
 			Web:         t.web,
-			DoubanID:    "",
 		}
 		videosTemp = append(videosTemp, video)
 	})
 
-	videos := make([]*types.FeedVideo, 0)
+	videos := make([]*types.FeedVideoBase, 0)
 	var wg sync.WaitGroup
 	for _, video := range videosTemp {
 		wg.Add(1)
-		go func(v *types.FeedVideo) {
+		go func(v *types.FeedVideoBase) {
 			defer wg.Done()
 			magnet, match := t.fetchMagnet(v.TorrentURL)
 			if !match {

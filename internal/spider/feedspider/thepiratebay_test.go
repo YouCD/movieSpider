@@ -1,18 +1,11 @@
 package feedspider
 
 import (
-	"fmt"
-	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"testing"
 
 	"github.com/youcd/toolkit/log"
 )
-
-func init() {
-	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
-	model.NewMovieDB().SaveFeedVideoFromChan()
-}
 
 func TestThePirateBay_Crawler(t1 *testing.T) {
 	thePirateBay := NewThePirateBay()
@@ -21,8 +14,12 @@ func TestThePirateBay_Crawler(t1 *testing.T) {
 		t1.Errorf("Crawler() error = %v", err)
 		return
 	}
-	fmt.Println(gotVideos)
 	for _, video := range gotVideos {
-		log.Errorf("%#v", video)
+		filterVideo, err := model.FilterVideo(video)
+		if err != nil {
+			log.Errorf("err: %s    %#v", err, video)
+			continue
+		}
+		log.Infof("%#v", filterVideo)
 	}
 }

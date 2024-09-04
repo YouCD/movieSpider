@@ -29,7 +29,7 @@ func NewTgxDump(scheduling, siteURL string, useIPProxy bool) *TgxDump {
 	}
 }
 
-func (t *TgxDump) Crawler() (videos []*types.FeedVideo, err error) {
+func (t *TgxDump) Crawler() (videos []*types.FeedVideoBase, err error) {
 	resp, err := t.HTTPRequest(t.Url)
 	if err != nil {
 		return nil, fmt.Errorf("TgxDump resp, err: %w", err)
@@ -63,7 +63,7 @@ func (t *TgxDump) Crawler() (videos []*types.FeedVideo, err error) {
 		wg.Add(1)
 		go func(split []string) {
 			defer wg.Done()
-			video := new(types.FeedVideo) //nolint
+			video := new(types.FeedVideoBase) //nolint
 			if strings.Contains(strings.ToLower(split[2]), "tv") || strings.Contains(strings.ToLower(split[2]), "movies") {
 				if video = t.parser2Video(split[1], split[2], line, split[4]); video != nil {
 					mu.Lock()
@@ -80,14 +80,13 @@ func (t *TgxDump) Crawler() (videos []*types.FeedVideo, err error) {
 	return videos, nil
 }
 
-func (t *TgxDump) parser2Video(name, typ, rowData, torrentURL string) *types.FeedVideo {
+func (t *TgxDump) parser2Video(name, typ, rowData, torrentURL string) *types.FeedVideoBase {
 	torrentName := strings.ReplaceAll(name, " ", ".")
 	compileRegex := regexp.MustCompile(`(.*)\.(\d{4})\.`)
 	matchArr := compileRegex.FindStringSubmatch(torrentName)
 	if len(matchArr) < 3 {
 		return nil
 	}
-	year := matchArr[2]
 	if len(matchArr) == 0 {
 		tvReg := regexp.MustCompile(`(.*)(\.[Ss][0-9][0-9][eE][0-9][0-9])`)
 		TVNameArr := tvReg.FindStringSubmatch(torrentName)
@@ -108,12 +107,10 @@ func (t *TgxDump) parser2Video(name, typ, rowData, torrentURL string) *types.Fee
 		log.Warnf("spider: %s , name :%s , magnet is empty", t.web, name)
 		return nil
 	}
-	return &types.FeedVideo{
-		Name:        name,
+	return &types.FeedVideoBase{
 		TorrentName: torrentName,
 		TorrentURL:  torrentURL,
 		Magnet:      magnet,
-		Year:        year,
 		Type:        typ,
 		RowData:     sql.NullString{String: rowData},
 		Web:         t.web,

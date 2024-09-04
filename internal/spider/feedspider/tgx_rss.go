@@ -43,14 +43,14 @@ func inSkipCategories(categories string) bool {
 	return false
 }
 
-func (t *Tgx) Crawler() (videos []*types.FeedVideo, err error) {
+func (t *Tgx) Crawler() (videos []*types.FeedVideoBase, err error) {
 	fd, err := t.FeedParser().ParseURL(t.Url)
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
 	log.Debugf("%s Data: %#v", strings.ToUpper(t.web), fd.String())
 
-	videos1 := make([]*types.FeedVideo, 0)
+	videos1 := make([]*types.FeedVideoBase, 0)
 	for _, v := range fd.Items {
 		if len(v.Categories) > 0 {
 			if inSkipCategories(v.Categories[0]) {
@@ -60,7 +60,7 @@ func (t *Tgx) Crawler() (videos []*types.FeedVideo, err error) {
 		}
 
 		torrentName := strings.ReplaceAll(v.Title, " ", ".")
-		var name, year, typ string
+		var year, typ string
 		compileRegex := regexp.MustCompile(`(.*)\.(\d{4})\.`)
 		matchArr := compileRegex.FindStringSubmatch(torrentName)
 		if len(matchArr) < 3 {
@@ -74,9 +74,6 @@ func (t *Tgx) Crawler() (videos []*types.FeedVideo, err error) {
 			if len(TVNameArr) == 0 {
 				continue
 			}
-			name = TVNameArr[1]
-		} else {
-			name = matchArr[1]
 		}
 
 		// 过滤掉 其他类型的种子
@@ -89,14 +86,14 @@ func (t *Tgx) Crawler() (videos []*types.FeedVideo, err error) {
 			continue
 		}
 
-		fVideo := new(types.FeedVideo)
+		fVideo := new(types.FeedVideoBase)
 		fVideo.Web = t.web
 		fVideo.Year = year
 
 		// 片名
-		fVideo.Name = fVideo.FormatName(name)
+
 		// 种子名
-		fVideo.TorrentName = fVideo.FormatName(torrentName)
+		fVideo.TorrentName = v.Title
 		fVideo.Type = typ
 		fVideo.TorrentURL = v.Link
 		//nolint:errchkjson

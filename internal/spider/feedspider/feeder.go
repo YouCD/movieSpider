@@ -22,7 +22,7 @@ type Feeder interface {
 	Scheduling() string
 	WebName() string
 	URL() string
-	Crawler() ([]*types.FeedVideo, error)
+	Crawler() ([]*types.FeedVideoBase, error)
 }
 type Crawler func() ([]*types.FeedVideo, error)
 

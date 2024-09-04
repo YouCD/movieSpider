@@ -108,9 +108,6 @@ Feed:
       ResourceType: tv
       Url: "https://1337x.to/popular-tv"
       UseIPProxy: true
-  TPBPIRATEPROXY:
-    Scheduling: "*/3 * * * *"
-    Url: "https://thepiratebay.party/rss/top100/200"
   ThePirateBay:
     Scheduling: "*/3 * * * *"
     Url: "https://thepiratebay.org/search.php?q=top100:200"

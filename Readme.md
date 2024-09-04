@@ -11,10 +11,9 @@
 * [glodls](https://glodls.to)
 * [knaben](https://rss.knaben.eu)
 * ~~[rarbg](http://rarbg.to/)~~
-* [TGx](https://tgx.rs)
+* ~~[TGx](https://tgx.rs)~~
 * [torlock](https://www.torlock.com)
 * ~~[magnetdl](https://www.magnetdl.com)~~
-* ~~[TpbpirateProxy](https://thepiratebay.party/rss//top100/200)~~
 * [ThePirateBay](https://thepiratebay.org/search.php?q=top100:200)
 * [1337x](https://1337x.to/)
 
@@ -154,9 +153,6 @@ Feed:
       ResourceType: tv
       Url: "https://1337x.to/popular-tv"
       UseIPProxy: true
-  TPBPIRATEPROXY:
-    Scheduling: "*/3 * * * *"
-    Url: "https://thepiratebay.party/rss/top100/200"
   ThePirateBay:
     Scheduling: "*/3 * * * *"
     Url: "https://thepiratebay.org/search.php?q=top100:200"

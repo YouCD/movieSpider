@@ -1,7 +1,6 @@
 package feedspider
 
 import (
-	"fmt"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
@@ -23,8 +22,12 @@ func TestWeb1337x_Crawler(t *testing.T) {
 		t.Errorf("Crawler() error = %v", err)
 		return
 	}
-	fmt.Println(gotVideos)
 	for _, video := range gotVideos {
-		log.Errorf("%#v", video)
+		filterVideo, err := model.FilterVideo(video)
+		if err != nil {
+			log.Errorf("err: %s    %#v", err, video)
+			continue
+		}
+		log.Infof("%#v", filterVideo)
 	}
 }

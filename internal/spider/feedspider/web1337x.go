@@ -7,7 +7,6 @@ import (
 	"movieSpider/internal/types"
 	"net/url"
 	"regexp"
-	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/youcd/toolkit/log"
@@ -31,17 +30,13 @@ func NewWeb1337x(scheduling string, resourceType types.VideoType, siteURL string
 	}
 }
 
-func (w *Web1337x) Crawler() ([]*types.FeedVideo, error) {
-	videosTemp, err := w.crawler()
-	if err != nil {
-		return nil, err
-	}
+func (w *Web1337x) Crawler() ([]*types.FeedVideoBase, error) {
 	//nolint:exhaustive
-	return videosTemp, nil
+	return w.crawler()
 }
 
-func (w *Web1337x) crawler() ([]*types.FeedVideo, error) {
-	videosTemp := make([]*types.FeedVideo, 0)
+func (w *Web1337x) crawler() ([]*types.FeedVideoBase, error) {
+	videosTemp := make([]*types.FeedVideoBase, 0)
 	data, err := w.HTTPRequest(w.Url)
 	if err != nil {
 		return nil, fmt.Errorf("fetchHTMLData, err:%w", err)
@@ -56,7 +51,7 @@ func (w *Web1337x) crawler() ([]*types.FeedVideo, error) {
 
 	compileRegex := regexp.MustCompile(`/torrent/\d+/(.*)/.*`)
 	doc.Find(selector).Each(func(_ int, s *goquery.Selection) {
-		var torrentName, torrentURL, magnet, typ string
+		var torrentURL, magnet, typ string
 		// href
 		href, exists := s.Find("td.coll-1.name > a:nth-child(2)").Attr("href")
 		if !exists {
@@ -68,9 +63,6 @@ func (w *Web1337x) crawler() ([]*types.FeedVideo, error) {
 		if len(matchArr) <= 1 {
 			return
 		}
-		// 种子名
-		torrentName = strings.ReplaceAll(matchArr[1], "-", ".")
-
 		// magnet 链接
 		data, err = w.HTTPRequest(torrentURL)
 		if err != nil {
@@ -88,13 +80,6 @@ func (w *Web1337x) crawler() ([]*types.FeedVideo, error) {
 		if !exists {
 			return
 		}
-
-		name, _, year, err := torrentName2info(torrentName)
-		if err != nil {
-			log.Warnf("torrentName2info err: %s", err)
-			return
-		}
-
 		switch w.typ {
 		case types.VideoTypeMovie:
 			typ = "movie"
@@ -102,16 +87,13 @@ func (w *Web1337x) crawler() ([]*types.FeedVideo, error) {
 			typ = "tv"
 		}
 
-		video := &types.FeedVideo{
-			Name:        name,
-			TorrentName: name,
+		video := &types.FeedVideoBase{
+			TorrentName: matchArr[1],
 			TorrentURL:  torrentURL,
 			Magnet:      magnet,
-			Year:        year,
 			Type:        typ,
 			RowData:     sql.NullString{},
 			Web:         w.web,
-			DoubanID:    "",
 		}
 		videosTemp = append(videosTemp, video)
 	})
