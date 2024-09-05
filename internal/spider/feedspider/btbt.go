@@ -11,7 +11,6 @@ import (
 	"movieSpider/internal/types"
 	"net/url"
 	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
@@ -81,14 +80,12 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideoBase, err error) {
 		}
 
 		video := &types.FeedVideoBase{
-			//Name:        trim(matchArr[1]),
-			TorrentName: trim(matchArr[1]),
+			TorrentName: matchArr[1],
 			TorrentURL:  torrentURL,
-			//Magnet:      magnet,
-			Year:    year,
-			Type:    "movie",
-			RowData: sql.NullString{},
-			Web:     b.web,
+			Year:        year,
+			Type:        "movie",
+			RowData:     sql.NullString{},
+			Web:         b.web,
 		}
 
 		Videos1 = append(Videos1, video)
@@ -114,10 +111,6 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideoBase, err error) {
 	return videos, nil
 }
 
-var (
-	ErrDownloadURLIsEmpty = errors.New("downloadURL is empty")
-)
-
 func (b *Btbt) fetchMagnet(webHost, torrentURL string) (string, error) {
 	downloadURL, err := b.moviePageURL(torrentURL)
 	if err != nil {
@@ -132,12 +125,6 @@ func (b *Btbt) fetchMagnet(webHost, torrentURL string) (string, error) {
 		return "", fmt.Errorf("BTBT: 获取磁链错误 err:%w", err)
 	}
 	return magnet, nil
-}
-
-func trim(str string) string {
-	str = strings.Trim(str, "[")
-	str = strings.Trim(str, "]")
-	return str
 }
 
 func (b *Btbt) moviePageURL(pageURL string) (url string, err error) {

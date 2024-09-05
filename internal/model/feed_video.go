@@ -238,12 +238,6 @@ func (m *MovieDB) GetFeedVideoMovieByNameAndDoubanID(doubanID string, names ...s
 
 	log.Debugf("GetFeedVideoMovieByName 开始第二次查找Movie数据: %s.", names)
 	for _, n := range names {
-		// var likeName string
-		// if strings.Contains(n, ".") {
-		// 	likeName = fmt.Sprintf("%%.%s.%%", n)
-		// } else {
-		// 	likeName = fmt.Sprintf("%%%s%%", n)
-		// }
 		//nolint:rowserrcheck
 		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name  = ? and magnet!="" and download!=1  and type="movie"`, n).Rows()
 		if err != nil {
@@ -297,8 +291,6 @@ func (m *MovieDB) CreatFeedVideo(video *types.FeedVideo) (err error) {
 //	@param video
 //	@return err
 func (m *MovieDB) UpdateFeedVideo(video *types.FeedVideo) (err error) {
-	video.Name = video.FormatName(video.Name)
-
 	err = m.db.Model(&types.FeedVideo{}).Where("id=?", video.ID).Updates(video).Error
 	if err != nil {
 		return err

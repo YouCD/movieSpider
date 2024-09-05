@@ -55,8 +55,6 @@ func (k *Knaben) Search() (videos []*types.FeedVideo, err error) {
 	}
 	for _, v := range fd.Items {
 		// 片名
-		name := strings.ReplaceAll(v.Title, " ", ".")
-
 		fVideo := new(types.FeedVideo)
 		fVideo.Web = k.web
 
@@ -73,11 +71,10 @@ func (k *Knaben) Search() (videos []*types.FeedVideo, err error) {
 
 		for _, m := range strings.Split(v.Description, "\n") {
 			if strings.Contains(m, "Magnet") {
-				fVideo.Name = fVideo.FormatName(name)
 				magnet := k.parseMagnet(m)
 				fVideo.Magnet = magnet
 				// 种子名
-				fVideo.TorrentName = fVideo.FormatName(fVideo.Name)
+				fVideo.TorrentName = v.Title
 				videos = append(videos, fVideo)
 			}
 		}

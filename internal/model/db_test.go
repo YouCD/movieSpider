@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"fmt"
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
@@ -61,17 +60,10 @@ func Test_movieDB_CreatDouBanVideo(t *testing.T) {
 
 func Test_movieDB_CreatFeedVideo(t *testing.T) {
 	err := NewMovieDB().CreatFeedVideo(&types.FeedVideo{
-		ID:          888888,
-		Name:        "888888",
-		TorrentName: "888888",
-		TorrentURL:  "888888",
-		Magnet:      "888888",
-		Year:        "888888",
-		Type:        "888888",
-		RowData:     sql.NullString{},
-		Web:         "888888",
-		Download:    0,
-		Timestamp:   99999,
+		ID:        888888,
+		Name:      "888888",
+		Download:  0,
+		Timestamp: 99999,
 	})
 	if err != nil {
 		t.Error(err)
@@ -157,10 +149,6 @@ func Test_movieDB_UpdateFeedVideoDownloadByID(t *testing.T) {
 	}
 }
 
-func Test_movieDB_UpdateFeedVideoNameByID(t *testing.T) {
-	NewMovieDB().UpdateFeedVideoNameByID(56, "万千瓦请", types.VideoTypeMovie)
-}
-
 func Test_movieDB_checkDownloadHistory(t *testing.T) {
 	_, flag := NewMovieDB().checkDownloadHistory(&types.DownloadHistory{
 		Name:        "Raven.of.the.Inner.Palace",
@@ -187,4 +175,8 @@ func Test_movieDB_IsDatePublished(t *testing.T) {
 		DatePublished: "2023-06-13",
 	}
 	fmt.Println(obj.IsDatePublished())
+}
+
+func Test_torrentName2info(t *testing.T) {
+	fmt.Println(torrentName2info("BBC Proms 2024 - Prom 18 - Sam Smith at the Proms (1080p, soft English subtitles)"))
 }

@@ -1,10 +1,12 @@
 package feedspider
 
 import (
-	"fmt"
+	"errors"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"testing"
+
+	"github.com/youcd/toolkit/log"
 )
 
 func init() {
@@ -20,6 +22,14 @@ func TestNewTgxWeb(t *testing.T) {
 		t.Error(err)
 	}
 	for _, video := range videos {
-		fmt.Println(video)
+		vv, err := model.FilterVideo(video)
+		if err != nil {
+			if errors.Is(err, model.ErrFeedVideoExclude) {
+				continue
+			}
+			log.Errorf("err: %s    %#v", err, video)
+			continue
+		}
+		log.Info(vv)
 	}
 }

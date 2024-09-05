@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mmcdole/gofeed"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/mmcdole/gofeed"
+	"github.com/youcd/toolkit/log"
 )
 
 const (
@@ -51,17 +52,15 @@ func (b *BT4g) Search() (videos []*types.FeedVideo, err error) {
 	}
 	for _, v := range fd.Items {
 		// 片名
-		name := strings.ReplaceAll(v.Title, " ", ".")
 		if v.Link == "" {
 			continue
 		}
 
 		fVideo := new(types.FeedVideo)
 		fVideo.Web = b.web
-		fVideo.Name = fVideo.FormatName(name)
 		fVideo.Magnet = v.Link
 		// 种子名
-		fVideo.TorrentName = fVideo.Name
+		fVideo.TorrentName = v.Title
 
 		fVideo.TorrentURL = v.GUID
 		fVideo.Type = "other"

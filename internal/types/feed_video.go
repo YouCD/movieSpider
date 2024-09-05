@@ -3,9 +3,7 @@ package types
 import (
 	"database/sql"
 	"fmt"
-	"movieSpider/internal/tools"
 	"regexp"
-	"strings"
 )
 
 //nolint:tagliatelle,revive
@@ -44,54 +42,13 @@ func (f *FeedVideo) VideoType() VideoType {
 }
 
 var (
-	nameReg = regexp.MustCompile("【.*】.*?[.*](.*)") //  去除 【xxxx】
-)
-
-//nolint:gosimple
-func (f *FeedVideo) FormatName(name string) string {
-	//  首发于高清影视之家 高清剧集网
-	submatch := nameReg.FindStringSubmatch(name)
-	if len(submatch) > 1 {
-		name = submatch[1]
-	}
-
-	// 去除空格
-	name = strings.ReplaceAll(name, " ", "")
-
-	// 处理 .
-	nameSlice := strings.Split(name, ".")
-	ret := tools.RemoveSpaceItem(nameSlice)
-	name = strings.Join(ret, ".")
-	// 去除 -.
-	name = strings.ReplaceAll(name, ".-.", ".")
-	// 去除 +.
-	name = strings.ReplaceAll(name, ".+.", ".")
-
-	compileRegex := regexp.MustCompile("(.*)\\.(\\(?\\d{4}\\)?)\\.")
-	matchArr := compileRegex.FindStringSubmatch(name)
-	if len(matchArr) == 0 {
-		compileRegex2 := regexp.MustCompile(`(.*)\.[S|s]\d\d[E|e]\d\d`)
-		matchArr2 := compileRegex2.FindStringSubmatch(name)
-		if len(matchArr2) > 1 {
-			return matchArr2[1]
-		}
-		return name
-	}
-	name = matchArr[1]
-
-	return name
-}
-
-var (
-	tvRegSxxExx = regexp.MustCompile("[Ss]([0-9][0-9])[eE]([0-9][0-9])")
-	tvRegSxx    = regexp.MustCompile("[Ss]([0-9][0-9])")
-
+	tvRegSxxExx   = regexp.MustCompile("[Ss]([0-9][0-9])[eE]([0-9][0-9])")
+	tvRegSxx      = regexp.MustCompile("[Ss]([0-9][0-9])")
 	resolutionReg = regexp.MustCompile("(2160p|2160P|1080p|1080P)")
 )
 
 func (f *FeedVideo) Convert2DownloadHistory() *DownloadHistory {
 	var downloadHistory DownloadHistory
-	downloadHistory.Name = f.FormatName(f.Name)
 	downloadHistory.TorrentName = f.TorrentName
 	downloadHistory.Type = f.Type
 	downloadHistory.DoubanID = f.DoubanID

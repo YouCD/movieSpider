@@ -9,7 +9,6 @@ import (
 	"io"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -63,9 +62,26 @@ func (t *TgxDump) Crawler() (videos []*types.FeedVideoBase, err error) {
 		wg.Add(1)
 		go func(split []string) {
 			defer wg.Done()
-			video := new(types.FeedVideoBase) //nolint
-			if strings.Contains(strings.ToLower(split[2]), "tv") || strings.Contains(strings.ToLower(split[2]), "movies") {
-				if video = t.parser2Video(split[1], split[2], line, split[4]); video != nil {
+			var typ string
+			typFiled := strings.ToLower(split[2])
+			switch {
+			case strings.Contains(typFiled, "tv"):
+				typ = "tv"
+			case strings.Contains(typFiled, "movie"):
+				typ = "movie"
+			}
+
+			if strings.Contains(strings.ToLower(split[2]), "tv") || strings.Contains(strings.ToLower(split[2]), "movie") {
+				video := &types.FeedVideoBase{
+					TorrentName: split[1],
+					TorrentURL:  split[4],
+					Type:        typ,
+					RowData:     sql.NullString{String: line},
+					Web:         t.web,
+				}
+
+				if magnet, err := t.parser2Video(split[4]); err == nil {
+					video.Magnet = magnet
 					mu.Lock()
 					videos = append(videos, video)
 					mu.Unlock()
@@ -80,39 +96,13 @@ func (t *TgxDump) Crawler() (videos []*types.FeedVideoBase, err error) {
 	return videos, nil
 }
 
-func (t *TgxDump) parser2Video(name, typ, rowData, torrentURL string) *types.FeedVideoBase {
-	torrentName := strings.ReplaceAll(name, " ", ".")
-	compileRegex := regexp.MustCompile(`(.*)\.(\d{4})\.`)
-	matchArr := compileRegex.FindStringSubmatch(torrentName)
-	if len(matchArr) < 3 {
-		return nil
-	}
-	if len(matchArr) == 0 {
-		tvReg := regexp.MustCompile(`(.*)(\.[Ss][0-9][0-9][eE][0-9][0-9])`)
-		TVNameArr := tvReg.FindStringSubmatch(torrentName)
-		// 如果 正则匹配过后 没有结果直接 过滤掉
-		if len(TVNameArr) == 0 {
-			return nil
-		}
-		name = TVNameArr[1]
-	} else {
-		name = matchArr[1]
-	}
+func (t *TgxDump) parser2Video(torrentURL string) (string, error) {
 	magnet, err := magnetconvert.FetchMagnet(torrentURL)
 	if err != nil {
-		log.Error(err)
-		return nil
+		return "", fmt.Errorf("parser2Video magnet convert err: %w", err)
 	}
 	if magnet == "" {
-		log.Warnf("spider: %s , name :%s , magnet is empty", t.web, name)
-		return nil
+		return "", ErrMagnetIsEmpty
 	}
-	return &types.FeedVideoBase{
-		TorrentName: torrentName,
-		TorrentURL:  torrentURL,
-		Magnet:      magnet,
-		Type:        typ,
-		RowData:     sql.NullString{String: rowData},
-		Web:         t.web,
-	}
+	return magnet, nil
 }

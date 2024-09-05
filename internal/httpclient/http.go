@@ -53,6 +53,6 @@ func NewIPProxyPoolHTTPClient(exampleURL string) (*http.Client, string) {
 		ResponseHeaderTimeout: time.Second * time.Duration(30),
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 	}
-	log.Infof("use proxy: %s", proxy)
+	log.Debugf("use proxy: %s", proxy)
 	return &http.Client{Transport: netTransport, Timeout: time.Second * 30}, proxy
 }

@@ -30,17 +30,10 @@ var (
 	once         sync.Once
 	db           = new(gorm.DB)
 	ErrDataExist = errors.New("数据已存在")
-	err          error
-)
-var (
-	ErrNotMatchTorrentName = errors.New("torrent name not match")
-	ErrFeedVideoIsNil      = errors.New("feedVideo is nil")
-	ErrFeedVideoExclude    = errors.New("feedVideo exclude")
-	ErrFeedVideoResolution = errors.New("feedVideo resolution match")
-	ErrFeedVideoYear       = errors.New("feedVideo year match")
 )
 
 func NewMovieDB() *MovieDB {
+	var err error
 	once.Do(func() {
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8&parseTime=True&loc=Local", config.Config.MySQL.User, config.Config.MySQL.Password, config.Config.MySQL.Host, config.Config.MySQL.Port)
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -101,12 +94,10 @@ func (m *MovieDB) SaveFeedVideoFromChan() {
 				log.Error(err)
 				continue
 			}
-
-			//  排除 低码率的视频
-			if ok := tools.ExcludeVideo(feedVideo.TorrentName, config.Config.ExcludeWords); ok {
+			if feedVideo.Name == "" {
+				log.Warnf("feedVideo.Name is empty: %v", feedVideo)
 				continue
 			}
-			// log.Infof("%s.%s: %s 开始保存.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)
 			if err := NewMovieDB().CreatFeedVideo(feedVideo); err != nil {
 				if errors.Is(err, ErrDataExist) {
 					log.Debugf("%s.%s err: %s", strings.ToUpper(feedVideo.Web), feedVideo.Type, err)
@@ -140,47 +131,29 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 		// 片名 resolution year
 		name, _, year, err := torrentName2info(feedVideoBase.TorrentName)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("web:%s, err:%w", feedVideoBase.Web, err)
 		}
 		feedVideo.Name = name
 		feedVideo.Year = year
 	}
-
-	// 处理 电影 名字
-	switch feedVideoBase.Type {
-	case types.VideoTypeMovie.String():
-
-	case types.VideoTypeTV.String():
-
-	default:
-		log.Warn("未知类型:", feedVideoBase)
-	}
-
-	//// log.Infof("%s.%s: %s 开始保存.", strings.ToUpper(feedVideoBase.Web), feedVideoBase.Type, feedVideoBase.Name)
-	// if err := NewMovieDB().CreatFeedVideo(feedVideoBase); err != nil {
-	// 	if errors.Is(err, ErrDataExist) {
-	// 		log.Debugf("%s.%s err: %s", strings.ToUpper(feedVideoBase.Web), feedVideoBase.Type, err)
-	// 		continue
-	// 	}
-	// 	log.Error(err)
-	// 	continue
-	// }
-	// log.Infof("%s.%s: %s 保存完毕.", strings.ToUpper(feedVideoBase.Web), feedVideoBase.Type, feedVideoBase.Name)
 	return feedVideo, nil
 }
 
-//nolint:ineffassign,wastedassign
 func torrentName2info(torrentName string) (string, string, string, error) {
 	// 去除 -
 	newTorrentName := strings.ReplaceAll(torrentName, "-", ".")
 	// 去除 _
 	newTorrentName = strings.ReplaceAll(newTorrentName, "_", ".")
+	newTorrentName = strings.ReplaceAll(newTorrentName, ",", "")
 
 	// 去除空格
 	reg := regexp.MustCompile(`( )+|(\n)+`)
 	newTorrentName = reg.ReplaceAllString(newTorrentName, "$1$2")
 	newTorrentName = strings.ReplaceAll(newTorrentName, " ", ".")
 	newTorrentName = strings.ReplaceAll(newTorrentName, ".", ".") //nolint:gocritic
+
+	dotReg := regexp.MustCompile(`\.+`)
+	newTorrentName = dotReg.ReplaceAllString(newTorrentName, ".")
 
 	// 去除 []
 	newTorrentName = strings.ReplaceAll(newTorrentName, "[", "")
@@ -195,8 +168,6 @@ func torrentName2info(torrentName string) (string, string, string, error) {
 	{
 		if tvName, tvNameArr, err := matchTV(newTorrentName); err != nil {
 			log.Debugf("tv匹配失败: old:%s, new:%s , tvNameArr: %s", torrentName, newTorrentName, tvNameArr)
-		} else {
-			name = tvName
 			// 匹配 片名
 			if movieName, nameRegexArr, err := matchMovie(newTorrentName); err == nil {
 				name = movieName
@@ -204,6 +175,8 @@ func torrentName2info(torrentName string) (string, string, string, error) {
 				log.Debugf("movie匹配失败: old:%s, new:%s , movieNameArr: %s", torrentName, newTorrentName, nameRegexArr)
 				return "", "", "", fmt.Errorf("old:%s, new:%s movieNam匹配失败:%w, movieNameArr: %s", torrentName, newTorrentName, err, nameRegexArr)
 			}
+		} else {
+			name = tvName
 		}
 	}
 

@@ -2,7 +2,6 @@ package feedspider
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"movieSpider/internal/httpclient"
@@ -10,11 +9,6 @@ import (
 	"net/http"
 
 	"github.com/mmcdole/gofeed"
-)
-
-var (
-	ErrNoFeedData   = errors.New("no feed data")
-	ErrFeedParseURL = errors.New("feed url解析失败")
 )
 
 //nolint:inamedparam
@@ -30,12 +24,6 @@ type BaseFeeder struct {
 	types.BaseFeed
 	web string
 }
-
-// func (b *BaseFeeder) SetHttpClient(HTTPRequest *http.Client) {
-// 	b.mux.Lock()
-// 	defer b.mux.Unlock()
-// 	b.HTTPClient = HTTPRequest
-// }
 
 func (b *BaseFeeder) HTTPClient() *http.Client {
 	return httpclient.HTTPClient

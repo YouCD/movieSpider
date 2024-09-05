@@ -103,7 +103,7 @@ func (m *MovieDB) FindFeedVideoInDownloadHistory(v *types.FeedVideo) (*types.Fee
 	}
 	// 查找
 
-	err = m.db.Model(&types.DownloadHistory{}).Where("name=? and season=? and episode=?", downloadHistory.Name, downloadHistory.Season, downloadHistory.Episode).Scan(&d).Error
+	err := m.db.Model(&types.DownloadHistory{}).Where("name=? and season=? and episode=?", downloadHistory.Name, downloadHistory.Season, downloadHistory.Episode).Scan(&d).Error
 	if err != nil {
 		// log.Error(downloadHistory.TorrentName, err)
 		if strings.Contains(err.Error(), "no rows in result set") {

@@ -11,9 +11,8 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/youcd/toolkit/log"
-
 	"github.com/chromedp/chromedp"
+	"github.com/youcd/toolkit/log"
 )
 
 type TgxWeb struct {
@@ -33,10 +32,11 @@ func NewTgxWeb(scheduling, siteURL string, useIPProxy bool) *TgxWeb {
 }
 
 func (t *TgxWeb) Crawler() ([]*types.FeedVideoBase, error) {
-	timeCtx, cancel := context.WithTimeout(context.TODO(), 300*time.Second)
-	defer cancel()
+	//nolint:govet
+	timeCtx, _ := context.WithTimeout(context.TODO(), 300*time.Second)
+	// allocator, _ := chromedp.NewRemoteAllocator(timeCtx, "http://127.0.0.1:9222/")
 	newContext, _ := chromedp.NewContext(timeCtx, chromedp.WithLogf(log.Infof))
-	// defer newContext.Done()
+	defer newContext.Done()
 	log.Debug(t.Url)
 	var htmlStr string
 	err := chromedp.Run(newContext,
@@ -64,7 +64,7 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideoBase, error) {
 		switch {
 		case strings.Contains(strings.ToLower(typStr), "tv"):
 			typ = "tv"
-		case strings.Contains(strings.ToLower(typStr), "movies"):
+		case strings.Contains(strings.ToLower(typStr), "movie"):
 			typ = "movie"
 		default:
 			log.Warn("typStr is empty", typStr, s.Text())
@@ -73,19 +73,13 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideoBase, error) {
 
 		//  名字
 		torrentName := s.Find(".tgxtablecell.clickable-row.click.textshadow.rounded.txlight").Text()
-		name, _, _, err := torrentName2info(torrentName)
-		if err != nil {
-			log.Warnf("torrentName2info err: %s", err)
-			return
-		}
-
 		u, ok := s.Find("#click > div > a.txlight").Attr("href")
 		if !ok {
 			return
 		}
 
 		video := &types.FeedVideoBase{
-			TorrentName: name,
+			TorrentName: torrentName,
 			TorrentURL:  t.webHost + u,
 			Magnet:      "",
 			Type:        typ,

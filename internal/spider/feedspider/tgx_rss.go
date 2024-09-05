@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -54,44 +53,24 @@ func (t *Tgx) Crawler() (videos []*types.FeedVideoBase, err error) {
 	for _, v := range fd.Items {
 		if len(v.Categories) > 0 {
 			if inSkipCategories(v.Categories[0]) {
-				log.Infof("TGx: 跳过类别: [%s], Title: %s", v.Categories[0], v.Title)
+				log.Debugf("TGx: 跳过类别: [%s], Title: %s", v.Categories[0], v.Title)
 				continue
 			}
 		}
 
-		torrentName := strings.ReplaceAll(v.Title, " ", ".")
-		var year, typ string
-		compileRegex := regexp.MustCompile(`(.*)\.(\d{4})\.`)
-		matchArr := compileRegex.FindStringSubmatch(torrentName)
-		if len(matchArr) < 3 {
-			continue
-		}
-		year = matchArr[2]
-		if len(matchArr) == 0 {
-			tvReg := regexp.MustCompile(`(.*)(\.[Ss][0-9][0-9][eE][0-9][0-9])`)
-			TVNameArr := tvReg.FindStringSubmatch(torrentName)
-			// 如果 正则匹配过后 没有结果直接 过滤掉
-			if len(TVNameArr) == 0 {
-				continue
-			}
-		}
-
-		// 过滤掉 其他类型的种子
+		var typ string
 		switch {
 		case strings.HasPrefix(strings.ToLower(v.Categories[0]), "tv :"):
 			typ = "tv"
 		case strings.HasPrefix(strings.ToLower(v.Categories[0]), "movies :"):
 			typ = "movie"
 		default:
+			// 过滤掉 其他类型的种子
 			continue
 		}
 
 		fVideo := new(types.FeedVideoBase)
 		fVideo.Web = t.web
-		fVideo.Year = year
-
-		// 片名
-
 		// 种子名
 		fVideo.TorrentName = v.Title
 		fVideo.Type = typ

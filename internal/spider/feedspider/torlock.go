@@ -40,10 +40,9 @@ func (t *Torlock) Crawler() ([]*types.FeedVideoBase, error) {
 		var videos1 []*types.FeedVideoBase
 		for _, v := range fd.Items {
 			// 片名
-			name := strings.ReplaceAll(v.Title, " ", ".")
 			var fVideo types.FeedVideoBase
 			fVideo.Web = t.web
-			fVideo.TorrentName = name
+			fVideo.TorrentName = v.Title
 			fVideo.TorrentURL = v.Link
 			fVideo.Type = "movie"
 
@@ -73,14 +72,13 @@ func (t *Torlock) Crawler() ([]*types.FeedVideoBase, error) {
 			fVideo.Type = "tv"
 			//nolint:errchkjson
 			bytes, _ := json.Marshal(v)
-
 			fVideo.RowData = sql.NullString{String: string(bytes)}
+
 			fVideo.Web = t.web
 			videos1 = append(videos1, &fVideo)
 		}
 
 		videos2 := t.fetchMagnetDownLoad(videos1)
-
 		Videos = t.fetchMagnet(videos2)
 		return Videos, nil
 	}
