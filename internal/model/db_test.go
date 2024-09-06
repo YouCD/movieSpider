@@ -102,7 +102,7 @@ func Test_movieDB_FetchOneDouBanVideoByDouBanID(t *testing.T) {
 }
 
 func Test_movieDB_FetchTVMagnetByName(t *testing.T) {
-	videos, err := NewMovieDB().GetFeedVideoTVByName("29384657", []string{"Ahsoka"}...)
+	videos, err := NewMovieDB().GetFeedVideoTVByNames([]string{"Ahsoka"}...)
 	if err != nil {
 		t.Error(err)
 	}
@@ -116,9 +116,10 @@ func Test_movieDB_FindLikeTVFromFeedVideo(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	for _, video := range videos {
-		fmt.Println(video)
-	}
+	//for _, video := range videos {
+	//	fmt.Println(video)
+	//}
+	fmt.Println(len(videos))
 }
 
 func Test_movieDB_RandomOneDouBanVideo(t *testing.T) {

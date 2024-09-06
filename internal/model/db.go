@@ -118,7 +118,7 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	}
 	//  排除 低码率的视频
 	if ok := tools.ExcludeVideo(feedVideoBase.TorrentName, config.Config.ExcludeWords); ok {
-		return nil, ErrFeedVideoExclude
+		return nil, fmt.Errorf("err:%w,TorrentName:%v", ErrFeedVideoExclude, feedVideoBase.TorrentName)
 	}
 
 	feedVideo := &types.FeedVideo{
@@ -165,37 +165,38 @@ func torrentName2info(torrentName string) (string, string, string, error) {
 
 	var name, resolution, year string
 	// 先匹配 tv
-	{
-		if tvName, tvNameArr, err := matchTV(newTorrentName); err != nil {
-			log.Debugf("tv匹配失败: old:%s, new:%s , tvNameArr: %s", torrentName, newTorrentName, tvNameArr)
-			// 匹配 片名
-			if movieName, nameRegexArr, err := matchMovie(newTorrentName); err == nil {
-				name = movieName
-			} else {
-				log.Debugf("movie匹配失败: old:%s, new:%s , movieNameArr: %s", torrentName, newTorrentName, nameRegexArr)
-				return "", "", "", fmt.Errorf("old:%s, new:%s movieNam匹配失败:%w, movieNameArr: %s", torrentName, newTorrentName, err, nameRegexArr)
-			}
-		} else {
-			name = tvName
-		}
+	if tvName, tvNameArr, err := matchTV(newTorrentName); err != nil {
+		log.Debugf("tv匹配失败: old:%s, new:%s , tvNameArr: %s", torrentName, newTorrentName, tvNameArr)
+		goto MatchMovie
+	} else {
+		name = tvName
+		goto MatchResolution
 	}
-
+	//	 匹配 movie
+MatchMovie:
+	if movieName, nameRegexArr, err := matchMovie(newTorrentName); err == nil {
+		name = movieName
+	} else {
+		log.Debugf("movie匹配失败: old:%s, new:%s, Arr: %s", torrentName, newTorrentName, nameRegexArr)
+		return "", "", "", fmt.Errorf("%w,old:%s, new:%s,  Arr: %s", err, torrentName, newTorrentName, nameRegexArr)
+	}
+MatchResolution:
 	// 匹配分辨率
 	{
-		resolutionRegex := regexp.MustCompile(`.*\.(1080[p|P]|2106[p|P])\.`)
+		resolutionRegex := regexp.MustCompile(`.*\.(\d{4}[p|P])\.`)
 		resolutionArr := resolutionRegex.FindStringSubmatch(newTorrentName)
 		if len(resolutionArr) < 2 || len(resolutionArr) == 0 {
-			return "", "", "", fmt.Errorf("old:%s, new:%s resolution匹配失败:%w, resolutionArr: %s", torrentName, newTorrentName, ErrFeedVideoResolution, resolutionArr)
+			return "", "", "", fmt.Errorf("%w, old:%s, new:%s, Arr: %s", ErrFeedVideoResolution, torrentName, newTorrentName, resolutionArr)
 		}
 		resolution = resolutionArr[1]
 	}
 
 	// 匹配 年份
 	{
-		compileYearRegex := regexp.MustCompile(`.*?(\d{4}).*?1080[p|P]|2106[p|P].*`)
+		compileYearRegex := regexp.MustCompile(`.*?(\d{4}).*?\d{4}[p|P].*`)
 		yearArr := compileYearRegex.FindStringSubmatch(newTorrentName)
 		if len(yearArr) < 2 || len(yearArr) == 0 {
-			return "", "", "", fmt.Errorf("old:%s, new:%s yearArr匹配失败:%w, yearArr: %s", torrentName, newTorrentName, ErrFeedVideoYear, yearArr)
+			return "", "", "", fmt.Errorf("%w, old:%s, new:%s, Arr: %s", ErrFeedVideoYear, torrentName, newTorrentName, yearArr)
 		}
 		year = yearArr[1]
 	}
@@ -204,20 +205,26 @@ func torrentName2info(torrentName string) (string, string, string, error) {
 }
 
 func matchMovie(torrentName string) (string, []string, error) {
-	nameRegex := regexp.MustCompile(`(.*)\.1080[p|P]|2106[p|P]\.`)
+	nameRegex := regexp.MustCompile(`(.*)\.\d{4}[p|P]`)
 	nameRegexArr := nameRegex.FindStringSubmatch(torrentName)
 	if len(nameRegexArr) >= 2 {
 		name := nameRegexArr[1]
-		// Longlegs.2024
-		nameReg := regexp.MustCompile(`(.*)\.\d{4}`)
-		nameSubMatch := nameReg.FindStringSubmatch(name)
-		if len(nameSubMatch) >= 2 {
-			name = nameSubMatch[1]
-			return name, nil, nil
+		movieA, arr, err := matchMovieA(name)
+		if err == nil {
+			return movieA, arr, nil
 		}
 		return name, nil, nil
 	}
-	return "", nameRegexArr, ErrNotMatchTorrentName
+	return matchMovieA(torrentName)
+}
+
+func matchMovieA(torrentName string) (string, []string, error) {
+	nameReg := regexp.MustCompile(`(.*)\.\d{4}`)
+	nameSubMatch := nameReg.FindStringSubmatch(torrentName)
+	if len(nameSubMatch) >= 2 {
+		return nameSubMatch[1], nil, nil
+	}
+	return "", nameSubMatch, ErrFeedVideoMovieMatch
 }
 
 func matchTV(torrentName string) (string, []string, error) {

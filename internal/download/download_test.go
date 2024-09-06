@@ -80,5 +80,5 @@ func TestDownload_downloadMovieTask(t *testing.T) {
 	}
 
 	fmt.Println("done")
-	select {}
+	//select {}
 }

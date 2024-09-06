@@ -135,26 +135,20 @@ func (m *MovieDB) UpdateDouBanVideo(video *types.DouBanVideo) (err error) {
 //	@return err
 func (m *MovieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*types.DouBanVideo][]string, err error) {
 	nameList = make(map[*types.DouBanVideo][]string)
-	//nolint:rowserrcheck
-	rows, err := m.db.Model(&types.DouBanVideo{}).Where("type = ?", typ.String()).Rows()
-	if err != nil {
-		return
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var tv types.DouBanVideo
 
-		if err = m.db.ScanRows(rows, &tv); err != nil {
-			continue
-		}
+	var videos []*types.DouBanVideo
+	//nolint:rowserrcheck
+	if err = m.db.Model(&types.DouBanVideo{}).Where("type = ?", typ.String()).Find(&videos).Error; err != nil {
+		return nil, err
+	}
+	for _, video := range videos {
 		var names []string
-		if err = json.Unmarshal([]byte(tv.Names), &names); err != nil {
+		if err = json.Unmarshal([]byte(video.Names), &names); err != nil {
 			log.Error(err)
 			continue
 		}
-		nameList[&tv] = names
+		nameList[video] = names
 	}
-
 	return
 }
 

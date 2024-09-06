@@ -55,7 +55,7 @@ func (d *Download) downloadTvTask() (err error) {
 	// 归类同一个电视剧名的 feedVideo
 	for douBanVideo, name := range videos {
 		// 获取 tv
-		videoList, err := model.NewMovieDB().GetFeedVideoTVByName(douBanVideo.DoubanID, name...)
+		videoList, err := model.NewMovieDB().GetFeedVideoTVByNames(name...)
 		if err != nil {
 			log.Warn(err)
 		}
@@ -65,6 +65,8 @@ func (d *Download) downloadTvTask() (err error) {
 
 		// 归类同一个电视剧名的视频
 		for _, video := range videoList {
+			// 添加 豆瓣ID
+			video.DoubanID = douBanVideo.DoubanID
 			//  将此次所有feedVideo的下载状态更新为3
 			video.Download = 3
 
@@ -132,16 +134,19 @@ func (d *Download) downloadMovieTask() (err error) {
 	// 归类同一个电视剧名的 feedVideo
 	for douBanVideo, names := range videos {
 		// 获取 feedVideo movie
-		videoList, err := model.NewMovieDB().GetFeedVideoMovieByNameAndDoubanID(douBanVideo.DoubanID, names...)
+		videoList, err := model.NewMovieDB().GetFeedVideoMovieByNames(names...)
 		if err != nil {
-			return fmt.Errorf("GetFeedVideoMovieByNameAndDoubanID,err: %w", err)
+			return fmt.Errorf("GetFeedVideoMovieByNames,err: %w", err)
 		}
 		if len(videoList) == 0 {
 			log.Debugf("douBanVideo: %s 已全部下载完毕，或该影片没有更新.", douBanVideo.Names)
 			continue
 		}
-
+		log.Infof("douBanVideo:%v   种子数: %#v", douBanVideo.Names, len(videoList))
 		for _, video := range videoList {
+			// 添加 豆瓣ID
+			video.DoubanID = douBanVideo.DoubanID
+
 			//  将此次所有feedVideo的下载状态更新为3
 			video.Download = 3
 			err = model.NewMovieDB().UpdateFeedVideo(video)

@@ -52,6 +52,7 @@ func (f *FeedVideo) Convert2DownloadHistory() *DownloadHistory {
 	downloadHistory.TorrentName = f.TorrentName
 	downloadHistory.Type = f.Type
 	downloadHistory.DoubanID = f.DoubanID
+	downloadHistory.Name = f.Name
 	//nolint:exhaustive
 	switch f.VideoType() {
 	case VideoTypeTV:

@@ -18,60 +18,36 @@ import (
 //	@return err
 func (m *MovieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVideo, err error) {
 	//nolint:sqlclosecheck, rowserrcheck
-	rows, err := m.db.Model(&types.FeedVideo{}).Select(" id,name").Where(" name like ?", fmt.Sprintf("%%%s%%", name)).Rows()
-	if err != nil {
+	if err := m.db.Model(&types.FeedVideo{}).Select(" id,name").Where(" name like ?", fmt.Sprintf("%%%s%%", name)).Find(&videos).Error; err != nil {
 		return nil, fmt.Errorf("FindLikeTVFromFeedVideo,err %w", err)
-	}
-
-	for rows.Next() {
-		v := new(types.FeedVideo)
-		err = rows.Scan(&v.ID, &v.Name)
-		if err != nil {
-			return nil, fmt.Errorf("FindLikeTVFromFeedVideo,err %w", err)
-		}
-		videos = append(videos, v)
 	}
 	return
 }
 
-// GetFeedVideoTVByName 通过 名称 获取 feedVideo tv
+// GetFeedVideoTVByNames 通过 名称 获取 feedVideo tv
 //
 //	@Description:
 //	@receiver m
 //	@param names
 //	@return videos
 //	@return err
-func (m *MovieDB) GetFeedVideoTVByName(doubanID string, names ...string) (videos []*types.FeedVideo, err error) {
-	var videos1 []*types.FeedVideo
+func (m *MovieDB) GetFeedVideoTVByNames(names ...string) ([]*types.FeedVideo, error) {
+	var firstVideos []*types.FeedVideo
+	log.Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", names)
 	for _, n := range names {
-		log.Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", n)
-		// var likeName string
-		// likeName = fmt.Sprintf("%s%%", n)
-		//nolint:rowserrcheck,perfsprint
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="tv" and download=0;`, fmt.Sprintf("%s%%", n)).Rows()
-		if err != nil {
+		var nVideos []*types.FeedVideo
+		if err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="tv" and download=0;`, fmt.Sprintf("%s%%", n)).Find(&nVideos).Error; err != nil {
 			return nil, fmt.Errorf("查找失败, err:%w", err)
 		}
-		defer rows.Close()
-		// 只查找 没有下载过 && 类型为tv数据
-		for rows.Next() {
-			var video types.FeedVideo
-			err = m.db.ScanRows(rows, &video)
-			if err != nil {
-				return nil, fmt.Errorf("GetFeedVideoMovieByName 扫描rows失败, err:%w", err)
-			}
-			// 添加豆瓣id
-			video.DoubanID = doubanID
-
-			videos1 = append(videos1, &video)
-		}
+		firstVideos = append(firstVideos, nVideos...)
 	}
-	if len(videos1) > 0 {
-		return videos1, nil
+	if len(firstVideos) > 0 {
+		return firstVideos, nil
 	}
 
+	log.Debugf("GetFeedVideoMovieByName 开始第二次查找tv数据: %s.", names)
+	var secondVideos []*types.FeedVideo
 	for _, n := range names {
-		log.Debugf("GetFeedVideoMovieByName 开始第二次查找tv数据: %s.", n)
 		// 查找 没有下载过 && 类型不等于TV的数据
 		/*
 			var likeName string
@@ -81,26 +57,15 @@ func (m *MovieDB) GetFeedVideoTVByName(doubanID string, names ...string) (videos
 				likeName = fmt.Sprintf("%%%s%%", n)
 			}
 		*/
-		//nolint:rowserrcheck, perfsprint
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download !=1 and type="movie" `, fmt.Sprintf("%s%%", n)).Rows()
+		var nVideos []*types.FeedVideo
 		// rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and download !=1 and  type !="movie" `, n).Rows()
-		if err != nil {
+		if err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download !=1 and type="movie" `, fmt.Sprintf("%s%%", n)).Find(&nVideos).Error; err != nil {
 			return nil, fmt.Errorf("GetFeedVideoMovieByName 第二次查找tv数据失败, err:%w", err)
 		}
-		defer rows.Close()
-		for rows.Next() {
-			var video types.FeedVideo
-			err = m.db.ScanRows(rows, &video)
-			if err != nil {
-				return nil, fmt.Errorf("解析为结构体失败, err:%w", err)
-			}
-			// 添加豆瓣id
-			video.DoubanID = doubanID
-			videos = append(videos, &video)
-		}
+		secondVideos = append(secondVideos, nVideos...)
 	}
 	//nolint:nakedret
-	return
+	return secondVideos, nil
 }
 
 // UpdateFeedVideoDownloadByID
@@ -112,7 +77,6 @@ func (m *MovieDB) GetFeedVideoTVByName(doubanID string, names ...string) (videos
 //	@return err
 func (m *MovieDB) UpdateFeedVideoDownloadByID(id int32, isDownload int) (err error) {
 	// 定义sql
-
 	err = m.db.Model(&types.FeedVideo{}).Where("id=?", id).Updates(types.FeedVideo{Download: isDownload}).Error
 	if err != nil {
 		return err
@@ -128,18 +92,9 @@ func (m *MovieDB) UpdateFeedVideoDownloadByID(id int32, isDownload int) (err err
 //	@return err
 func (m *MovieDB) CountFeedVideo() (counts []*types.ReportCount, err error) {
 	//nolint:rowserrcheck, sqlclosecheck
-	rows, err := m.db.Model(&types.FeedVideo{}).Select("count(*)  as count ,web ").Group("web").Order("count").Rows()
+	err = m.db.Model(&types.FeedVideo{}).Select("count(*)  as count ,web ").Group("web").Order("count").Find(&counts).Error
 	if err != nil {
 		return nil, fmt.Errorf("查找失败, err:%w", err)
-	}
-
-	for rows.Next() {
-		c := new(types.ReportCount)
-		err = rows.Scan(&c.Count, &c.Web)
-		if err != nil {
-			return nil, fmt.Errorf("CountFeedVideo, err:%w", err)
-		}
-		counts = append(counts, c)
 	}
 	return
 }
@@ -211,51 +166,33 @@ func (m *MovieDB) GetFeedVideoMovieByName(names ...string) (videos []*types.Feed
 	return
 }
 
-func (m *MovieDB) GetFeedVideoMovieByNameAndDoubanID(doubanID string, names ...string) (videos []*types.FeedVideo, err error) {
-	var videos1 []*types.FeedVideo
+func (m *MovieDB) GetFeedVideoMovieByNames(names ...string) ([]*types.FeedVideo, error) {
+	var firstVideos []*types.FeedVideo
 	log.Debugf("GetFeedVideoMovieByName 开始第一次查找Movie数据: %s.", names)
 	for _, n := range names {
 		//  只查找 没有下载过 && 类型为movie数据   and download=0
-		//nolint:rowserrcheck
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and  type="movie" `, n).Rows()
-		if err != nil {
+		var nVideos []*types.FeedVideo
+		if err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and  type="movie" `, n).Find(&nVideos).Error; err != nil {
 			return nil, fmt.Errorf("查找失败, err:%w", err)
 		}
-		defer rows.Close()
-		for rows.Next() {
-			var video types.FeedVideo
-			err = m.db.ScanRows(rows, &video)
-			if err != nil {
-				return nil, fmt.Errorf("GetFeedVideoMovieByName, err:%w", err)
-			}
-			video.DoubanID = doubanID
-			videos1 = append(videos1, &video)
-		}
+		firstVideos = append(firstVideos, nVideos...)
 	}
-	if len(videos1) > 0 {
-		return videos1, nil
+	if len(firstVideos) > 0 {
+		log.Errorf("%#v 种子数:%d", names, len(firstVideos))
+		return firstVideos, nil
 	}
-
 	log.Debugf("GetFeedVideoMovieByName 开始第二次查找Movie数据: %s.", names)
+
+	var secondVideos []*types.FeedVideo
 	for _, n := range names {
-		//nolint:rowserrcheck
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name  = ? and magnet!="" and download!=1  and type="movie"`, n).Rows()
-		if err != nil {
+		var nVideos []*types.FeedVideo
+		if err := m.db.Model(&types.FeedVideo{}).Where(`name  = ? and magnet!="" and download!=1  and type="movie"`, n).Find(&nVideos).Error; err != nil {
 			return nil, fmt.Errorf("查找失败, err:%w", err)
 		}
-		defer rows.Close()
-		for rows.Next() {
-			var video types.FeedVideo
-			err = m.db.ScanRows(rows, &video)
-			if err != nil {
-				return nil, fmt.Errorf("解析为结构体失败, err:%w", err)
-			}
-			video.DoubanID = doubanID
-			videos = append(videos, &video)
-		}
+		secondVideos = append(secondVideos, nVideos...)
 	}
 	//nolint:nakedret
-	return
+	return secondVideos, nil
 }
 
 // CreatFeedVideo
