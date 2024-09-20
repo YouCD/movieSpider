@@ -50,13 +50,6 @@ func Test_download_DownloadByName(t *testing.T) {
 	select {}
 }
 
-func Test_download_DownloadByName1(t *testing.T) {
-	d := &Download{
-		scheduling: "tt.fields.scheduling",
-	}
-	d.DownloadByName("Werewolf.by.Night", "2160")
-}
-
 func Test_download_downloadTvTask(t *testing.T) {
 
 	d := &Download{

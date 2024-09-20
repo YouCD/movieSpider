@@ -84,7 +84,7 @@ func (t *Tgx) Crawler() (videos []*types.FeedVideoBase, err error) {
 	var wg sync.WaitGroup
 	for _, video := range videos1 {
 		wg.Add(1)
-		magnet, err := magnetconvert.FetchMagnet(video.TorrentURL)
+		magnet, err := magnetconvert.FetchMagnetWithHTTPClient(video.TorrentURL, t.HTTPClientDynamic())
 		if err != nil {
 			wg.Done()
 			return nil, fmt.Errorf("FetchMagnet: %w", err)

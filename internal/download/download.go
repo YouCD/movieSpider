@@ -208,6 +208,10 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 		return fmt.Errorf("aria2 初始化失败,err: %w", err)
 	}
 	for _, v := range videos {
+		if v.Name == "" {
+			log.Warnf("TorrentName: %v ,name is nil", v.TorrentName)
+			continue
+		}
 		gid, err := newAria2.DownloadByWithVideo(v, v.Magnet)
 		if err != nil {
 			log.Error(err)
@@ -254,16 +258,6 @@ func (d *Download) DownloadByName(name, resolution string) (msg string) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		feedKnaben := searchspider.NewFeedKnaben(name, d.ResolutionStr2Int(resolution))
-		_, err := feedKnaben.Search()
-		if err != nil {
-			log.Error(err)
-		}
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
 		feedBt4g := searchspider.NewFeedBt4g(name, d.ResolutionStr2Int(resolution))
 		_, err := feedBt4g.Search()
 		if err != nil {
@@ -289,6 +283,10 @@ func (d *Download) DownloadByName(name, resolution string) (msg string) {
 	}
 
 	for _, v := range videos {
+		if v.Name == "" {
+			log.Warnf("TorrentName: %v ,name is nil", v.TorrentName)
+			continue
+		}
 		gid, err := newAria2.DownloadByWithVideo(v, v.Magnet)
 		if err != nil {
 			log.Error(err)

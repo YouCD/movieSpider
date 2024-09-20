@@ -91,7 +91,7 @@ func (m *MovieDB) SaveFeedVideoFromChan() {
 		for {
 			feedVideo, err := FilterVideo(<-m.feedVideoCh)
 			if err != nil {
-				log.Error(err)
+				log.Warn(err)
 				continue
 			}
 			if feedVideo.Name == "" {
@@ -165,6 +165,7 @@ func torrentName2info(torrentName string) (string, string, string, error) {
 
 	var name, resolution, year string
 	// 先匹配 tv
+	//nolint:revive
 	if tvName, tvNameArr, err := matchTV(newTorrentName); err != nil {
 		log.Debugf("tv匹配失败: old:%s, new:%s , tvNameArr: %s", torrentName, newTorrentName, tvNameArr)
 		goto MatchMovie

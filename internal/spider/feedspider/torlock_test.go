@@ -17,7 +17,7 @@ func Test_torlock_Crawler(t *testing.T) {
 	for _, r := range config.Config.Feed.TORLOCK {
 		if r != nil {
 			//if r.ResourceType == types.VideoTypeTV {
-			//	feedTorlockTV := NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
+			//	feedTorlockTV := NewTorlock(r.Scheduling, r.ResourceType, r.URL, r.UseIPProxy)
 			//	videos, err = feedTorlockTV.Crawler()
 			//	if err != nil {
 			//		log.Errorf("err: %s", err)

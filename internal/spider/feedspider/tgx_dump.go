@@ -97,7 +97,7 @@ func (t *TgxDump) Crawler() (videos []*types.FeedVideoBase, err error) {
 }
 
 func (t *TgxDump) parser2Video(torrentURL string) (string, error) {
-	magnet, err := magnetconvert.FetchMagnet(torrentURL)
+	magnet, err := magnetconvert.FetchMagnetWithHTTPClient(torrentURL, t.HTTPClientDynamic())
 	if err != nil {
 		return "", fmt.Errorf("parser2Video magnet convert err: %w", err)
 	}

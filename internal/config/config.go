@@ -11,30 +11,6 @@ import (
 	"github.com/youcd/toolkit/log"
 )
 
-type btbt struct {
-	types.BaseFeed `mapstructure:",squash"`
-}
-
-//nolint:tagliatelle
-type tgx struct {
-	types.BaseFeed `mapstructure:",squash"`
-	Name           string `json:"Name" yaml:"Name" validate:"required"`
-}
-
-//nolint:tagliatelle
-type torlock struct {
-	types.BaseFeed `mapstructure:",squash"`
-	ResourceType   types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
-}
-
-type eztv struct {
-	types.BaseFeed `mapstructure:",squash"`
-}
-
-type glodls struct {
-	types.BaseFeed `mapstructure:",squash"`
-}
-
 //nolint:tagliatelle
 type downloader struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
@@ -50,7 +26,7 @@ type global struct {
 
 //nolint:tagliatelle
 type aria2 struct {
-	URL   string `json:"Url" yaml:"Url" validate:"required,http_url"`
+	URL   string `json:"URL" yaml:"URL" validate:"required,http_url"`
 	Token string `json:"Token" yaml:"Token" validate:"required"`
 	Label string `json:"Label" yaml:"Label" validate:"required"`
 }
@@ -75,7 +51,7 @@ type mysql struct {
 type DouBan struct {
 	DouBanList []*DouBan `json:"DouBanList,omitempty" yaml:"DouBanList,omitempty" validate:"required,omitempty"`
 	Scheduling string    `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	URL        string    `json:"Url,omitempty" yaml:"Url,omitempty" validate:"omitempty"`
+	URL        string    `json:"URL,omitempty" yaml:"URL,omitempty" validate:"omitempty"`
 }
 
 /*
@@ -87,12 +63,14 @@ type tmDB struct {
 
 */
 
-type thePirateBay struct {
+//nolint:tagliatelle
+type tgx struct {
 	types.BaseFeed `mapstructure:",squash"`
+	Name           string `json:"Name" yaml:"Name" validate:"required"`
 }
 
 //nolint:tagliatelle
-type web1337x struct {
+type BaseRT struct {
 	types.BaseFeed `mapstructure:",squash"`
 	ResourceType   types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
 }
@@ -104,13 +82,16 @@ type config struct {
 	DouBan       *DouBan  `json:"DouBan" yaml:"DouBan" validate:"required"`
 	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
 	Feed         struct {
-		BTBT         *btbt         `json:"BTBT" yaml:"BTBT" validate:"required"`
-		EZTV         *eztv         `json:"EZTV" yaml:"EZTV" validate:"required"`
-		GLODLS       *glodls       `json:"GLODLS" yaml:"GLODLS" validate:"required"`
-		TGX          []*tgx        `json:"TGX" yaml:"TGX" validate:"required"`
-		TORLOCK      []*torlock    `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
-		Web1337x     []*web1337x   `json:"Web1337x" yaml:"Web1337x" validate:"required"`
-		ThePirateBay *thePirateBay `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
+		BTBT         *types.BaseFeed `json:"BTBT" yaml:"BTBT" validate:"required"`
+		EZTV         *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
+		GLODLS       *types.BaseFeed `json:"GLODLS" yaml:"GLODLS" validate:"required"`
+		TGX          []*tgx          `json:"TGX" yaml:"TGX" validate:"required"`
+		TORLOCK      []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
+		Web1337x     []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
+		ThePirateBay *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
+		Knaben       *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
+		Rarbg2       []*BaseRT       `json:"Rarbg2" yaml:"Rarbg2" validate:"required"`
+		TheRarbg     []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
 	} `json:"Feed" yaml:"Feed" validate:"required"`
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
 	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`

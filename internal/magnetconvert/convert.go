@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	httpClient2 "movieSpider/internal/httpclient"
 	"net/http"
 
 	"errors"
@@ -55,18 +54,12 @@ func IO2Magnet(r io.Reader) (string, error) {
 	return m2.String(), nil
 }
 
-// FetchMagnet
-//
-//	@Description: 获取磁链
-//	@param url
-//	@return magnet
-//	@return err
-func FetchMagnet(url string) (magnet string, err error) {
+func FetchMagnetWithHTTPClient(url string, httpClient *http.Client) (magnet string, err error) {
 	request, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
 	if err != nil {
-		return "", fmt.Errorf("TGx: 磁链获取错误,err: %w", err)
+		return "", fmt.Errorf("磁链获取错误,err: %w", err)
 	}
-	resp, err := httpClient2.HTTPClient.Do(request)
+	resp, err := httpClient.Do(request)
 	if err != nil {
 		return "", fmt.Errorf("磁链获取错误,err: %w", err)
 	}

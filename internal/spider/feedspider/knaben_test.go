@@ -1,14 +1,15 @@
 package feedspider
 
 import (
+	"errors"
 	"movieSpider/internal/model"
 	"testing"
 
 	"github.com/youcd/toolkit/log"
 )
 
-func TestNewBtbt(t *testing.T) {
-	feeder := NewBtbt()
+func TestEztv_Crawler(t *testing.T) {
+	feeder := NewFeedKnaben()
 	videos, err := feeder.Crawler()
 	if err != nil {
 		t.Error(err)
@@ -16,9 +17,13 @@ func TestNewBtbt(t *testing.T) {
 	for _, video := range videos {
 		filterVideo, err := model.FilterVideo(video)
 		if err != nil {
-			log.Infof("%#v", video)
+			if errors.Is(err, model.ErrFeedVideoExclude) {
+				continue
+			}
+			//log.Errorf("err: %s    %#v", err, video)
 			continue
 		}
-		log.Warnf("%#v", filterVideo)
+		log.Error("%#v", filterVideo)
 	}
+
 }

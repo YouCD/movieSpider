@@ -53,6 +53,17 @@ func FetchProxy(typ string) *PoolDataIP {
 
 	return data
 }
+func DelProxy(ip string) {
+	log.Warn("DelProxy: ", ip)
+	urlStr := fmt.Sprintf("%s/del?ip=%s", config.Config.Global.IPProxyPool, ip)
+	//nolint:noctx
+	resp, err := http.DefaultClient.Get(urlStr)
+	if err != nil {
+		log.Errorf("Feed.ProxyPool %s,err: %s", config.Config.Global.IPProxyPool, err)
+		return
+	}
+	defer resp.Body.Close()
+}
 
 func parseIPProxyPoolData(body io.Reader) (*PoolDataIP, error) {
 	buf := new(bytes.Buffer)

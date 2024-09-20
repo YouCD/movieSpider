@@ -17,7 +17,7 @@ type Torlock struct {
 	BaseFeeder
 }
 
-func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) *Torlock {
+func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) Feeder {
 	return &Torlock{
 		typ: resourceType,
 		BaseFeeder: BaseFeeder{
@@ -89,7 +89,7 @@ func (t *Torlock) fetchMagnet(videos []*types.FeedVideoBase) (feedVideos []*type
 	var wg sync.WaitGroup
 	for _, video := range videos {
 		wg.Add(1)
-		magnet, err := magnetconvert.FetchMagnet(video.Magnet)
+		magnet, err := magnetconvert.FetchMagnetWithHTTPClient(video.Magnet, t.HTTPClientDynamic())
 		if err != nil {
 			log.Errorf("TORLOCK: get %s magnet download url is %s", video.TorrentName, video.Magnet)
 			wg.Done()

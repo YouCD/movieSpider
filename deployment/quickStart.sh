@@ -112,6 +112,23 @@ Feed:
     Scheduling: "*/3 * * * *"
     Url: "https://thepiratebay.org/search.php?q=top100:200"
     UseIPProxy: true
+  Knaben:
+    Scheduling: "*/3 * * * *"
+    Url: "https://rss.knaben.eu////hidexxx"
+  Rarbg2:
+    - Scheduling: "*/3 * * * *"
+      Url: "https://en.rarbg2.xyz/search?category=tv&q=:latest:"
+      ResourceType: tv
+    - Scheduling: "*/3 * * * *"
+      Url: "https://en.rarbg2.xyz/search?category=movies&q=:latest:"
+      ResourceType: movie
+  TheRarbg:
+    - Scheduling: "*/3 * * * *"
+      Url: "https://therarbg.to/api/v1/recommendation-list/tv/"
+      ResourceType: tv
+    - Scheduling: "*/3 * * * *"
+      Url: "https://therarbg.to/api/v1/recommendation-list/Movies/"
+      ResourceType: movie
 
 Global:
   LogLevel: info

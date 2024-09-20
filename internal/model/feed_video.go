@@ -17,7 +17,6 @@ import (
 //	@return videos
 //	@return err
 func (m *MovieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVideo, err error) {
-	//nolint:sqlclosecheck, rowserrcheck
 	if err := m.db.Model(&types.FeedVideo{}).Select(" id,name").Where(" name like ?", fmt.Sprintf("%%%s%%", name)).Find(&videos).Error; err != nil {
 		return nil, fmt.Errorf("FindLikeTVFromFeedVideo,err %w", err)
 	}
@@ -34,6 +33,7 @@ func (m *MovieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVide
 func (m *MovieDB) GetFeedVideoTVByNames(names ...string) ([]*types.FeedVideo, error) {
 	var firstVideos []*types.FeedVideo
 	log.Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", names)
+	//nolint:perfsprint
 	for _, n := range names {
 		var nVideos []*types.FeedVideo
 		if err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and  type="tv" and download=0;`, fmt.Sprintf("%s%%", n)).Find(&nVideos).Error; err != nil {
@@ -59,12 +59,12 @@ func (m *MovieDB) GetFeedVideoTVByNames(names ...string) ([]*types.FeedVideo, er
 		*/
 		var nVideos []*types.FeedVideo
 		// rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and download !=1 and  type !="movie" `, n).Rows()
+		//nolint:perfsprint
 		if err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download !=1 and type="movie" `, fmt.Sprintf("%s%%", n)).Find(&nVideos).Error; err != nil {
 			return nil, fmt.Errorf("GetFeedVideoMovieByName 第二次查找tv数据失败, err:%w", err)
 		}
 		secondVideos = append(secondVideos, nVideos...)
 	}
-	//nolint:nakedret
 	return secondVideos, nil
 }
 
@@ -91,7 +91,6 @@ func (m *MovieDB) UpdateFeedVideoDownloadByID(id int32, isDownload int) (err err
 //	@return counts
 //	@return err
 func (m *MovieDB) CountFeedVideo() (counts []*types.ReportCount, err error) {
-	//nolint:rowserrcheck, sqlclosecheck
 	err = m.db.Model(&types.FeedVideo{}).Select("count(*)  as count ,web ").Group("web").Order("count").Find(&counts).Error
 	if err != nil {
 		return nil, fmt.Errorf("查找失败, err:%w", err)
@@ -191,7 +190,6 @@ func (m *MovieDB) GetFeedVideoMovieByNames(names ...string) ([]*types.FeedVideo,
 		}
 		secondVideos = append(secondVideos, nVideos...)
 	}
-	//nolint:nakedret
 	return secondVideos, nil
 }
 

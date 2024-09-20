@@ -1,20 +1,6 @@
 package feedspider
 
-import (
-	"context"
-	"database/sql"
-	"fmt"
-	"movieSpider/internal/types"
-	"net/url"
-	"strings"
-	"sync"
-	"time"
-
-	"github.com/PuerkitoBio/goquery"
-	"github.com/chromedp/chromedp"
-	"github.com/youcd/toolkit/log"
-)
-
+/*
 type TgxWeb struct {
 	webHost string
 	BaseFeeder
@@ -26,7 +12,7 @@ func NewTgxWeb(scheduling, siteURL string, useIPProxy bool) *TgxWeb {
 		webHost: fmt.Sprintf("%s://%s", parse.Scheme, parse.Host),
 		BaseFeeder: BaseFeeder{
 			web:      "tgx_web",
-			BaseFeed: types.BaseFeed{Url: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy},
+			BaseFeed: types.BaseFeed{URL: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy},
 		},
 	}
 }
@@ -37,10 +23,10 @@ func (t *TgxWeb) Crawler() ([]*types.FeedVideoBase, error) {
 	// allocator, _ := chromedp.NewRemoteAllocator(timeCtx, "http://127.0.0.1:9222/")
 	newContext, _ := chromedp.NewContext(timeCtx, chromedp.WithLogf(log.Infof))
 	defer newContext.Done()
-	log.Debug(t.Url)
+	log.Debug(t.URL)
 	var htmlStr string
 	err := chromedp.Run(newContext,
-		chromedp.Navigate(t.Url),
+		chromedp.Navigate(t.URL),
 		chromedp.WaitVisible(`.tgxtable`),
 		chromedp.Sleep(time.Second*10),
 		chromedp.InnerHTML(`body`, &htmlStr),
@@ -130,3 +116,6 @@ func (t *TgxWeb) fetchMagnet(urlStr string) (string, bool) {
 	}
 	return magnet, match
 }
+
+
+*/

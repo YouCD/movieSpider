@@ -16,6 +16,7 @@ linters:
   enable-all: true
   disable:
     - varnamelen
+    - exportloopref
     #- nolintlint
     - gochecknoinits
     - nonamedreturns

@@ -5,7 +5,7 @@
 ## 磁力站点
 
 支持的`Torrent`站点
-* [bt4g](https://bt4g.org)
+* ~~[[bt4g](https://bt4g.org)~~
 * [btbt](https://www.1lou.me/forum-1.htm)
 * [eztv](https://eztv.re)
 * [glodls](https://glodls.to)
@@ -16,6 +16,8 @@
 * ~~[magnetdl](https://www.magnetdl.com)~~
 * [ThePirateBay](https://thepiratebay.org/search.php?q=top100:200)
 * [1337x](https://1337x.to/)
+* [rarbg2](https://en.rarbg2.xyz)
+* [TheRARBG](https://therarbg.com/)
 
 ## 使用TG
 
@@ -24,7 +26,6 @@
 Telegram bot 指令如下
 
 ```shell
-movie_download - 下载电影  电影名  清晰度
 report_download - 报告下载状态
 report_feedvioes - 报告Feed资源
 ```
@@ -40,7 +41,6 @@ report_feedvioes - 报告Feed资源
   
   有白名单，只有白名单的用户才能使用
   ```
-  movie_download - 下载电影  电影名  清晰度
   report_download - 报告下载状态
   report_feedvioes - 报告Feed资源
   ```

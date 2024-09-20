@@ -36,52 +36,32 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 
 	// GLODLS
 	feedGLODLS := feedspider.NewGlodls()
+	// Knaben
+	feedKnaben := feedspider.NewFeedKnaben()
 
 	// TGX
 	var TGXRss feedspider.Feeder
 	var TGXDump feedspider.Feeder
-	var TgxWeb feedspider.Feeder
+	// var TgxWeb feedspider.Feeder
 	for _, tgx := range config.Config.Feed.TGX {
 		switch strings.ToLower(tgx.Name) {
 		case "rss":
 			TGXRss = feedspider.NewTgx(tgx.Scheduling, tgx.Url, tgx.UseIPProxy)
 		case "dump":
 			TGXDump = feedspider.NewTgxDump(tgx.Scheduling, tgx.Url, tgx.UseIPProxy)
-		case "web":
-			TgxWeb = feedspider.NewTgxWeb(tgx.Scheduling, tgx.Url, tgx.UseIPProxy)
+			// case "web":
+			//	TgxWeb = feedspider.NewTgxWeb(tgx.Scheduling, tgx.URL, tgx.UseIPProxy)
 		}
 	}
 
 	// TORLOCK
-	var feedTorlockMovie feedspider.Feeder
-	var feedTorlockTV feedspider.Feeder
-	for _, r := range config.Config.Feed.TORLOCK {
-		if r != nil {
-			if r.ResourceType == types.VideoTypeTV {
-				feedTorlockTV = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
-			}
-			log.Debug(r)
-			if r.ResourceType == types.VideoTypeMovie {
-				feedTorlockMovie = feedspider.NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
-			}
-			log.Debug(r)
-		}
-	}
+	feedTorlockTV, feedTorlockMovie := createFeederWithURLs(config.Config.Feed.TORLOCK, feedspider.NewTorlock)
 	// 1337x
-	var feed1337xMovie feedspider.Feeder
-	var feed1337xTV feedspider.Feeder
-	for _, r := range config.Config.Feed.Web1337x {
-		if r != nil {
-			if r.ResourceType == types.VideoTypeTV {
-				feed1337xTV = feedspider.NewWeb1337x(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
-			}
-			log.Debug(r)
-			if r.ResourceType == types.VideoTypeMovie {
-				feed1337xMovie = feedspider.NewWeb1337x(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
-			}
-			log.Debug(r)
-		}
-	}
+	feed1337xTV, feed1337xMovie := createFeederWithURLs(config.Config.Feed.Web1337x, feedspider.NewWeb1337x)
+	// rarbg2
+	feedRarbg2TV, feedrarbg2Movie := createFeederWithURLs(config.Config.Feed.Rarbg2, feedspider.NewRarbg2)
+	// therarbg
+	feedTheRarbg2TV, feedTheRarbg2Movie := createFeederWithURLs(config.Config.Feed.TheRarbg, feedspider.NewTheRarbg)
 
 	feedThePirateBay := feedspider.NewThePirateBay()
 
@@ -92,15 +72,35 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			feedGLODLS,
 			TGXDump,
 			TGXRss,
-			TgxWeb,
+			// TgxWeb,
 			feedTorlockMovie,
 			feedTorlockTV,
 			feed1337xMovie,
 			feed1337xTV,
 			feedThePirateBay,
+			feedKnaben,
+			feedRarbg2TV,
+			feedrarbg2Movie,
+			feedTheRarbg2TV,
+			feedTheRarbg2Movie,
 		)
 		ms.feeds = append(ms.feeds, feeds...)
 	})
+}
+
+type createFunc func(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) feedspider.Feeder
+
+func createFeederWithURLs(urls []*config.BaseRT, create createFunc) (feedspider.Feeder, feedspider.Feeder) {
+	var tv, movie feedspider.Feeder
+	for _, r := range urls {
+		if r.ResourceType == types.VideoTypeTV {
+			tv = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
+		}
+		if r.ResourceType == types.VideoTypeMovie {
+			movie = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
+		}
+	}
+	return tv, movie
 }
 
 // WithConfigFile

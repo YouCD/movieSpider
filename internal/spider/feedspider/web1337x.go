@@ -18,7 +18,7 @@ type Web1337x struct {
 	webHost string
 }
 
-func NewWeb1337x(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) *Web1337x {
+func NewWeb1337x(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) Feeder {
 	parse, _ := url.Parse(siteURL)
 	return &Web1337x{
 		typ: resourceType,

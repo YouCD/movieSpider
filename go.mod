@@ -5,7 +5,6 @@ go 1.22.3
 require (
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/anacrolix/torrent v1.56.1
-	github.com/chromedp/chromedp v0.10.0
 	github.com/duke-git/lancet/v2 v2.3.1
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1

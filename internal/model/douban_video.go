@@ -137,7 +137,6 @@ func (m *MovieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*typ
 	nameList = make(map[*types.DouBanVideo][]string)
 
 	var videos []*types.DouBanVideo
-	//nolint:rowserrcheck
 	if err = m.db.Model(&types.DouBanVideo{}).Where("type = ?", typ.String()).Find(&videos).Error; err != nil {
 		return nil, err
 	}
