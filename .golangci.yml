@@ -9,6 +9,10 @@ run:
   #    - testdata
   tests: false
 
+issues:
+  exclude-files:
+    - internal/dhtclient/*
+
 linters:
   #  # 禁用所有默认启用的linters
   #  disable-all: true

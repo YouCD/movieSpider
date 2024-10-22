@@ -5,6 +5,7 @@ import (
 	"movieSpider/internal/bot"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
+	dhtc_client "movieSpider/internal/dhtclient"
 	"movieSpider/internal/download"
 	"movieSpider/internal/job"
 	"movieSpider/internal/spider"
@@ -24,6 +25,7 @@ type MovieSpider struct {
 	bot            *bot.TGBot
 	spiders        []spider.Spider
 	releaseTimeJob *job.ReleaseTimeJob
+	DHT            bool
 }
 
 //nolint:gochecknoglobals
@@ -47,7 +49,7 @@ func NewMovieSpider(options ...Option) *MovieSpider {
 //
 //	@Description: 运行feed
 //	@receiver m
-func (m *MovieSpider) RunWithFeed() {
+func (m *MovieSpider) startFeed() {
 	for _, feeder := range m.feeds {
 		go func(feeder feedspider.Feeder) {
 			if feeder.Scheduling() == "" {
@@ -84,22 +86,11 @@ func (m *MovieSpider) RunWithFeed() {
 	}
 }
 
-// RunWithTGBot
-//
-//	@Description: 运行tgbot
-//	@receiver m
-func (m *MovieSpider) RunWithTGBot() {
-	if config.Config.TG != nil {
-		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
-		go ms.bot.StartBot()
-	}
-}
-
 // RunWithFeedSpider
 //
-//	@Description: 运行feedSpider
+//	@Description: 运行 Spider
 //	@receiver m
-func (m *MovieSpider) RunWithFeedSpider() {
+func (m *MovieSpider) startSpider() {
 	// Spider
 	m.spiders = append(m.spiders, douban.NewSpiderDouBan(config.Config.DouBan)...)
 	for _, s := range m.spiders {
@@ -107,4 +98,18 @@ func (m *MovieSpider) RunWithFeedSpider() {
 			spider.Run()
 		}(s)
 	}
+}
+
+func (m *MovieSpider) Start() {
+	if config.Config.TG != nil {
+		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
+		go ms.bot.StartBot()
+	}
+	if m.DHT {
+		go dhtc_client.Boot()
+	}
+
+	m.startFeed()
+	m.startSpider()
+	m.startSpider()
 }

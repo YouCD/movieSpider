@@ -22,6 +22,7 @@ type global struct {
 	LogLevel    string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
 	Report      bool   `json:"Report" yaml:"Report" validate:"required"`
 	IPProxyPool string `json:"IPProxyPool" yaml:"IPProxyPool" validate:"omitempty,http_url"`
+	DHT         bool   `json:"DHT" yaml:"DHT"`
 }
 
 //nolint:tagliatelle

@@ -177,7 +177,7 @@ func (m *MovieDB) GetFeedVideoMovieByNames(names ...string) ([]*types.FeedVideo,
 		firstVideos = append(firstVideos, nVideos...)
 	}
 	if len(firstVideos) > 0 {
-		log.Errorf("%#v 种子数:%d", names, len(firstVideos))
+		log.Debugf("%#v 种子数:%d", names, len(firstVideos))
 		return firstVideos, nil
 	}
 	log.Debugf("GetFeedVideoMovieByName 开始第二次查找Movie数据: %s.", names)

@@ -151,3 +151,11 @@ func WithReleaseTimeJob() Option {
 		go ms.releaseTimeJob.Run()
 	})
 }
+
+func WithDHT() Option {
+	return optionFunc(func(ms *MovieSpider) {
+		if config.Config.Global.DHT {
+			ms.DHT = true
+		}
+	})
+}

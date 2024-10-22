@@ -44,6 +44,8 @@ report_feedvioes - 报告Feed资源
   report_download - 报告下载状态
   report_feedvioes - 报告Feed资源
   ```
+* [x] 集成DHT网络：感谢[nbdy/dhtc](https://github.com/nbdy/dhtc)
+
 * [ ] 自动化下载字幕
 * [ ] 基本网页展示
 

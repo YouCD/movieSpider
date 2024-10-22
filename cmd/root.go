@@ -29,11 +29,10 @@ var rootCmd = &cobra.Command{
 			core.WithDownload(),
 			core.WithReport(),
 			core.WithReleaseTimeJob(),
+			core.WithDHT(),
 		)
 
-		movieSpider.RunWithTGBot()
-		movieSpider.RunWithFeed()
-		movieSpider.RunWithFeedSpider()
+		movieSpider.Start()
 
 		model.NewMovieDB().SaveFeedVideoFromChan()
 		select {}
