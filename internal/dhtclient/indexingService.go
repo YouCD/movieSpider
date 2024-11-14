@@ -103,7 +103,7 @@ func (is *IndexingService) bootstrap(nodes []string) {
 
 		addr, err := net.ResolveUDPAddr("udp", node)
 		if err != nil {
-			log.Error("Could NOT resolve (UDP) address of the bootstrapping node!")
+			log.Errorf("Could NOT resolve (UDP) address of the bootstrapping node!,err:%v", err)
 			continue
 		}
 

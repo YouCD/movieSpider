@@ -80,7 +80,7 @@ func (b *Btbt) Crawler() (videos []*types.FeedVideoBase, err error) {
 		}
 
 		video := &types.FeedVideoBase{
-			TorrentName: matchArr[1],
+			TorrentName: tools.ReplaceAll(matchArr[1]),
 			TorrentURL:  torrentURL,
 			Year:        year,
 			Type:        "movie",

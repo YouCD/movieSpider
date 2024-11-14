@@ -94,15 +94,19 @@ func (m *MovieDB) FindFeedVideoInDownloadHistory(v *types.FeedVideo) (*types.Fee
 		return nil, ErrVideoIsNil
 	}
 
-	var d *types.DownloadHistory
 	//  将 FeedVideo 转换为 download_history
 	downloadHistory := v.Convert2DownloadHistory()
+	if downloadHistory.Resolution == 0 {
+		return nil, fmt.Errorf("种子名: %s,分辨率: %d, err:%w", v.TorrentName, downloadHistory.Resolution, ErrFeedVideoResolutionTooLow)
+	}
+
 	if downloadHistory == nil {
 		//nolint:goerr113
 		return nil, fmt.Errorf("不能将种子: %#v 转换为 downloadHistory", v.TorrentName)
 	}
-	// 查找
 
+	// 查找
+	var d *types.DownloadHistory
 	err := m.db.Model(&types.DownloadHistory{}).Where("name=? and season=? and episode=?", downloadHistory.Name, downloadHistory.Season, downloadHistory.Episode).Scan(&d).Error
 	if err != nil {
 		// log.Error(downloadHistory.TorrentName, err)

@@ -1,11 +1,11 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
 	"movieSpider/internal/types"
 	"os"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 	"github.com/youcd/toolkit/log"
@@ -102,21 +102,16 @@ type config struct {
 
 //nolint:gochecknoglobals
 var (
-	Config config
+	Config *config
+	v      = viper.New()
 )
 
-func InitConfig(config string) {
-	v := viper.New()
+func InitConfig(configFile string) {
 	v.SetConfigType("yaml")
+	v.SetConfigFile(configFile)
 
-	fmt.Printf("config file is %s.\n", config)
-	b, err := os.ReadFile(config)
-	if err != nil {
-		fmt.Printf("配置文件读取错误,err:%s\n", err.Error())
-		os.Exit(1)
-	}
-
-	err = v.ReadConfig(bytes.NewReader(b))
+	fmt.Printf("config file is %s.\n", configFile)
+	err := v.ReadInConfig()
 	if err != nil {
 		fmt.Printf("配置文件错误.")
 		os.Exit(1)
@@ -135,25 +130,42 @@ func InitConfig(config string) {
 		}
 	}
 
+	v.WatchConfig()
+	v.OnConfigChange(func(e fsnotify.Event) {
+		log.Infof("Config file changed: %s\n", e.Name)
+		c := new(config)
+		// 解析配置文件，反序列化
+		if err := v.Unmarshal(c); err != nil {
+			log.Errorf("Unmarshal yaml faild: %s", err)
+			os.Exit(-1)
+		}
+		if err = ValidateFc(Config); err == nil {
+			Config = c
+			log.SetLogLevel(Config.Global.LogLevel)
+		}
+
+	})
 	// 打印 日志级别
 	log.Init(true)
 	log.SetLogLevel(Config.Global.LogLevel)
 	log.Debug("日志级别： ", Config.Global.LogLevel)
 
-	ValidateFc(Config)
+	if err = ValidateFc(Config); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
-func ValidateFc(s interface{}) {
+func ValidateFc(s interface{}) error {
 	validate := validator.New()
 	//nolint:errorlint,forcetypeassert,errorlint
 	if err := validate.Struct(s); err != nil {
 		if _, ok := err.(*validator.InvalidValidationError); ok {
-			fmt.Println(err.Error())
-			os.Exit(1)
+			return err
 		}
 		for _, err := range err.(validator.ValidationErrors) {
-			fmt.Printf("配置项: %s 条件: %s %v 当前值: %#v\n", err.StructField(), err.Tag(), err.Param(), err.Value())
+			return fmt.Errorf("配置项: %s 条件: %s %v 当前值: %#v\n", err.StructField(), err.Tag(), err.Param(), err.Value())
 		}
-		os.Exit(1)
 	}
+	return nil
 }
