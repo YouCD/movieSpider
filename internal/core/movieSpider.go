@@ -25,7 +25,7 @@ type MovieSpider struct {
 	bot            *bot.TGBot
 	spiders        []spider.Spider
 	releaseTimeJob *job.ReleaseTimeJob
-	DHT            bool
+	DHTThread      int
 }
 
 //nolint:gochecknoglobals
@@ -105,8 +105,8 @@ func (m *MovieSpider) Start() {
 		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
 		go ms.bot.StartBot()
 	}
-	if m.DHT {
-		go dhtc_client.Boot()
+	if m.DHTThread > 0 {
+		go dhtc_client.Boot(m.DHTThread)
 	}
 
 	m.startFeed()

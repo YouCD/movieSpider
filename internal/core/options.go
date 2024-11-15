@@ -154,8 +154,8 @@ func WithReleaseTimeJob() Option {
 
 func WithDHT() Option {
 	return optionFunc(func(ms *MovieSpider) {
-		if config.Config.Global.DHT {
-			ms.DHT = true
+		if config.Config.Global.DHTThread > 0 {
+			ms.DHTThread = config.Config.Global.DHTThread
 		}
 	})
 }

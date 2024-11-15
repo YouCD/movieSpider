@@ -12,5 +12,5 @@ func init() {
 }
 func TestBoot(t *testing.T) {
 	model.NewMovieDB().SaveFeedVideoFromChan()
-	Boot()
+	Boot(2)
 }

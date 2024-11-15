@@ -13,9 +13,9 @@ import (
 	"github.com/youcd/toolkit/log"
 )
 
-func Boot() {
+func Boot(thread int) {
 	log.Info("Start DHT Network")
-	for i := 0; i < 5; i++ {
+	for i := 0; i < thread; i++ {
 		go crawl()
 	}
 	//}
