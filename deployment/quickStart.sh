@@ -135,6 +135,7 @@ Global:
   Report: true
   # 网络代理池
   IPProxyPool: "http://127.0.0.1:3001"
+  DHTThread: 3 # DHT网络爬虫线程数, 0关闭
 
 
 # Downloader 下载
