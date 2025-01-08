@@ -165,7 +165,8 @@ Global:
   Report: true
   # 免费的网络代理池 https://github.com/YouCD/IpProxyPool
   IPProxyPool: "http://127.0.0.1:3001"
-
+  DHTThread: 3 # DHT网络爬虫线程数, 0关闭
+  
 # Downloader 下载
 Downloader:
   Scheduling: "*/60 * * * *"
