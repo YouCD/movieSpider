@@ -11,7 +11,7 @@ RUN upx movieSpider
 
 FROM frolvlad/alpine-glibc
 MAINTAINER YCD "ycd@daddylab.com"
-WORKDIR /movieSpider
+WORKDIR /app
 ENV PATH=/app:$PATH
 ENV TZ Asia/Shanghai
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories &&\

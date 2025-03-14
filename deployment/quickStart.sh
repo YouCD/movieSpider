@@ -171,7 +171,7 @@ echo "开始 构建镜像"
 echo "开始 下载docker-compose.yaml 以及相关的配置文件"
 wget -q https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/docker-compose.yaml
 wget -q https://raw.githubusercontent.com/YouCD/IpProxyPool/main/conf/config.yaml -O ${IpProxyPool_Dir}/config.yaml
-sed -i "s/127.0.0.1/moviespider_name_parser_model/" ${IpProxyPool_Dir}/config.yaml
+sed -i "s/127.0.0.1/moviespider_mysql/" ${IpProxyPool_Dir}/config.yaml
 
 echo "启动 moviespider"
 docker-compose -p moviespider up
