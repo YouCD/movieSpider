@@ -14,7 +14,8 @@ MAINTAINER YCD "ycd@daddylab.com"
 WORKDIR /movieSpider
 ENV PATH=/app:$PATH
 ENV TZ Asia/Shanghai
-RUN apk add -U tzdata --no-cache &&\
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories &&\
+    apk add -U tzdata --no-cache &&\
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&\
     echo $TZ > /etc/timezone
 COPY --from=upx /movieSpider/movieSpider .
