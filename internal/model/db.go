@@ -3,15 +3,19 @@ package model
 import (
 	"errors"
 	"fmt"
+	"io"
 	log1 "log"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/youcd/toolkit/log"
 	"gorm.io/driver/mysql"
@@ -131,13 +135,57 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	case "btbt":
 		feedVideo.Name = feedVideoBase.TorrentName
 	default:
-		// 片名 resolution year
-		name, _, year, err := tools.TorrentName2info(feedVideoBase.TorrentName)
+		// 使用模型解析种子名
+		typeStr, newName, year, _, err := NameParserModelHandler(feedVideo.TorrentName)
 		if err != nil {
-			return nil, fmt.Errorf("web:%s, err:%w", feedVideoBase.Web, err)
+			log.Warnf("feedVideo.TorrentName is empty: %v", feedVideo)
+			return nil, err
 		}
-		feedVideo.Name = name
+		feedVideo.Name = newName
 		feedVideo.Year = year
+		feedVideo.Type = typeStr
 	}
 	return feedVideo, nil
+}
+
+var (
+	httpClient = &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10, // 复用连接
+			MaxIdleConnsPerHost: 10,
+		},
+		//Timeout: 30 * time.Second, // 超时时间
+	}
+)
+
+func NameParserModelHandler(name string) (string, string, string, string, error) {
+	req, err := http.NewRequest("POST", config.Config.Global.NameParserModel+"/name", strings.NewReader(fmt.Sprintf(`{"raw_name": "%s"}`, name)))
+	if err != nil {
+		return "", "", "", "", fmt.Errorf("创建请求失败: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return "", "", "", "", fmt.Errorf("请求失败: %w", err)
+	}
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			log.Errorf("关闭请求失败: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", "", "", "", fmt.Errorf("HTTP 错误: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", "", "", fmt.Errorf("读取响应失败: %w", err)
+	}
+	newName := jsoniter.Get(body, "output").Get("name").ToString()
+	year := jsoniter.Get(body, "output").Get("year").ToString()
+	resolution := jsoniter.Get(body, "output").Get("resolution").ToString()
+	typeStr := jsoniter.Get(body, "output").Get("type").ToString()
+	return typeStr, newName, year, resolution, nil
 }

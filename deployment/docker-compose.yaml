@@ -1,6 +1,6 @@
 services:
   moviespider_proxy:
-    image: moviespider_proxy
+    image: crpi-cr13merkmfane9w0.cn-guangzhou.personal.cr.aliyuncs.com/youcd/moviespider_proxy:v0.2
     ports:
       - "5010:5010"
     restart: always
@@ -37,14 +37,21 @@ services:
       - ${Aria2_Port}:6800
       - 6888:6888
       - 6888:6888/udp
-
+  moviespider_name_parser_model:
+    image: crpi-cr13merkmfane9w0.cn-guangzhou.personal.cr.aliyuncs.com/youcd/name_parser_model:v1
+    restart: always
+    volumes:
+      - "${MovieSpider_Dir}/log:/data/log"
+    ports:
+      - "8000:8000"
   moviespider_core:
     restart: always
-    image: moviespider_core
+    image: crpi-cr13merkmfane9w0.cn-guangzhou.personal.cr.aliyuncs.com/youcd/moviespider_core
     links:
       - moviespider_mysql
       - moviespider_aria2
       - moviespider_proxy
+      - moviespider_name_parser_model
     depends_on:
       - moviespider_mysql
     volumes:

@@ -59,7 +59,7 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// 1337x
 	feed1337xTV, feed1337xMovie := createFeederWithURLs(config.Config.Feed.Web1337x, feedspider.NewWeb1337x)
 	// rarbg2
-	feedRarbg2TV, feedrarbg2Movie := createFeederWithURLs(config.Config.Feed.Rarbg2, feedspider.NewRarbg2)
+	// feedRarbg2TV, feedrarbg2Movie := createFeederWithURLs(config.Config.Feed.Rarbg2, feedspider.NewRarbg2)
 	// therarbg
 	feedTheRarbg2TV, feedTheRarbg2Movie := createFeederWithURLs(config.Config.Feed.TheRarbg, feedspider.NewTheRarbg)
 
@@ -79,8 +79,8 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			feed1337xTV,
 			feedThePirateBay,
 			feedKnaben,
-			feedRarbg2TV,
-			feedrarbg2Movie,
+			//feedRarbg2TV,
+			//feedrarbg2Movie,
 			feedTheRarbg2TV,
 			feedTheRarbg2Movie,
 		)

@@ -16,7 +16,7 @@
 * ~~[magnetdl](https://www.magnetdl.com)~~
 * [ThePirateBay](https://thepiratebay.org/search.php?q=top100:200)
 * [1337x](https://1337x.to/)
-* [rarbg2](https://en.rarbg2.xyz)
+* ~~[rarbg2](https://en.rarbg2.xyz)~~
 * [TheRARBG](https://therarbg.com/)
 
 ## 使用TG
@@ -45,7 +45,7 @@ report_feedvioes - 报告Feed资源
   report_feedvioes - 报告Feed资源
   ```
 * [x] 集成DHT网络：感谢[nbdy/dhtc](https://github.com/nbdy/dhtc)
-
+* [x] 引入transformers模型： 提高种子名规范化能力
 * [ ] 自动化下载字幕
 * [ ] 基本网页展示
 
@@ -121,6 +121,7 @@ Feed:
   EZTV:
     Scheduling: "*/5 * * * *"
     Url: "https://eztvx.to/ezrss.xml"
+    UseIPProxy: true
   GLODLS:
     Scheduling: "*/3 * * * *"
     Url: "https://glodls.to/rss.php?cat=1,41"
@@ -157,15 +158,25 @@ Feed:
       UseIPProxy: true
   ThePirateBay:
     Scheduling: "*/3 * * * *"
-    Url: "https://thepiratebay.org/search.php?q=top100:200"
-    UseIPProxy: true
+    Url: "https://thepiratebay.party/rss/top100/200"
+  Knaben:
+    Scheduling: "*/3 * * * *"
+    Url: "https://rss.knaben.eu////hidexxx"
+  TheRarbg:
+    - Scheduling: "*/3 * * * *"
+      Url: "https://therarbg.to/api/v1/recommendation-list/tv/"
+      ResourceType: tv
+    - Scheduling: "*/3 * * * *"
+      Url: "https://therarbg.to/api/v1/recommendation-list/Movies/"
+      ResourceType: movie
 
 Global:
   LogLevel: info
   Report: true
   # 免费的网络代理池 https://github.com/YouCD/IpProxyPool
   IPProxyPool: "http://127.0.0.1:3001"
-  DHTThread: 3 # DHT网络爬虫线程数, 0关闭
+  DHTThread: 0 # DHT网络爬虫线程数, 0关闭
+  NameParserModel: http://127.0.0.1:8000 # 使用模型进行解析种子名称
   
 # Downloader 下载
 Downloader:

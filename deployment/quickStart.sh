@@ -115,13 +115,6 @@ Feed:
   Knaben:
     Scheduling: "*/3 * * * *"
     Url: "https://rss.knaben.eu////hidexxx"
-  Rarbg2:
-    - Scheduling: "*/3 * * * *"
-      Url: "https://en.rarbg2.xyz/search?category=tv&q=:latest:"
-      ResourceType: tv
-    - Scheduling: "*/3 * * * *"
-      Url: "https://en.rarbg2.xyz/search?category=movies&q=:latest:"
-      ResourceType: movie
   TheRarbg:
     - Scheduling: "*/3 * * * *"
       Url: "https://therarbg.to/api/v1/recommendation-list/tv/"
@@ -135,8 +128,8 @@ Global:
   Report: true
   # 网络代理池
   IPProxyPool: "http://127.0.0.1:3001"
-  DHTThread: 3 # DHT网络爬虫线程数, 0关闭
-
+  DHTThread: 0 # DHT网络爬虫线程数, 0关闭
+  NameParserModel: http://moviespider_name_parser_model:8000 # 使用模型进行解析种子名称
 
 # Downloader 下载
 Downloader:
@@ -172,8 +165,8 @@ clear
 
 #sleep 5
 echo "开始 构建镜像"
-docker build  -f https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_proxy_Dockerfile -t moviespider_proxy .
-docker build  -f https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_Dockerfile -t moviespider_core .
+#docker build  -f https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_proxy_Dockerfile -t moviespider_proxy .
+#docker build  -f https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/moviespider_Dockerfile -t moviespider_core .
 
 echo "开始 下载docker-compose.yaml 以及相关的配置文件"
 wget -q https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/docker-compose.yaml
