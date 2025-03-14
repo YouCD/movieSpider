@@ -14,14 +14,13 @@ ENV TIMEZONE=Asia/Shanghai
 WORKDIR /app
 
 # 执行的命令
-RUN set -eux \
-    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
-    && apk upgrade \
-    && apk update \
-    && apk add --no-cache ca-certificates upx --no-progress bash tzdata busybox-extras \
-    && ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
-    && echo ${TIMEZONE} > /etc/timezone \
-    && rm -rf /var/cache/apk/*
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories &&\
+    apk upgrade &&\
+    apk update &&\
+    apk add --no-cache ca-certificates upx --no-progress bash tzdata busybox-extras &&\
+    ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime &&\
+    echo ${TIMEZONE} > /etc/timezone &&\
+    rm -rf /var/cache/apk/*
 
 COPY --from=curl /app/app /app/IpProxyPool
 #ADD https://raw.githubusercontent.com/YouCD/IpProxyPool/main/conf/config.yaml /app/conf/config.yaml
