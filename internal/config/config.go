@@ -42,7 +42,7 @@ type tg struct {
 
 //nolint:tagliatelle
 type mysql struct {
-	Host     string `json:"Host" yaml:"Host" validate:"required,ip"`
+	Host     string `json:"Host" yaml:"Host" validate:"required"`
 	Port     int    `json:"Port" yaml:"Port" validate:"gte=0,lte=65535"`
 	Database string `json:"Database" yaml:"Database" validate:"required"`
 	User     string `json:"User" yaml:"User" validate:"required"`
