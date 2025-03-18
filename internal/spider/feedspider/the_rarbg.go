@@ -29,7 +29,7 @@ type TheRarbg struct {
 	webHost string
 }
 
-func NewTheRarbg(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) Feeder {
+func NewTheRarbg(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy, useCloudflareBypass bool) Feeder {
 	parse, err := url.Parse(siteURL)
 	if err != nil {
 		panic(err)
@@ -37,9 +37,10 @@ func NewTheRarbg(scheduling string, resourceType types.VideoType, siteURL string
 	return &TheRarbg{
 		BaseFeeder: BaseFeeder{
 			BaseFeed: types.BaseFeed{
-				Scheduling: scheduling,
-				Url:        siteURL,
-				UseIPProxy: useIPProxy,
+				Scheduling:          scheduling,
+				Url:                 siteURL,
+				UseIPProxy:          useIPProxy,
+				UseCloudflareBypass: useCloudflareBypass,
 			},
 			web: "the_rarbg",
 		},

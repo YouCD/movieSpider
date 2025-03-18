@@ -28,8 +28,8 @@ func (f optionFunc) apply(ms *MovieSpider) {
 //	@param feeds
 //	@return Option
 func WithFeeds(feeds ...feedspider.Feeder) Option {
-	// BTBT
-	feedBTBT := feedspider.NewBtbt()
+	//// BTBT
+	//feedBTBT := feedspider.NewBtbt()
 
 	// EZTV
 	feedEZTV := feedspider.NewEztv()
@@ -63,11 +63,14 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// therarbg
 	feedTheRarbg2TV, feedTheRarbg2Movie := createFeederWithURLs(config.Config.Feed.TheRarbg, feedspider.NewTheRarbg)
 
+	// extto
+	exttoTv, exttoMovie := createFeederWithURLs(config.Config.Feed.Extto, feedspider.NewExtto)
+
 	feedThePirateBay := feedspider.NewThePirateBay()
 
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
-			feedBTBT,
+			//feedBTBT,
 			feedEZTV,
 			feedGLODLS,
 			TGXDump,
@@ -83,21 +86,23 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			//feedrarbg2Movie,
 			feedTheRarbg2TV,
 			feedTheRarbg2Movie,
+			exttoTv,
+			exttoMovie,
 		)
 		ms.feeds = append(ms.feeds, feeds...)
 	})
 }
 
-type createFunc func(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) feedspider.Feeder
+type createFunc func(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy, useCloudflareBypass bool) feedspider.Feeder
 
 func createFeederWithURLs(urls []*config.BaseRT, create createFunc) (feedspider.Feeder, feedspider.Feeder) {
 	var tv, movie feedspider.Feeder
 	for _, r := range urls {
 		if r.ResourceType == types.VideoTypeTV {
-			tv = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
+			tv = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy, r.UseCloudflareBypass)
 		}
 		if r.ResourceType == types.VideoTypeMovie {
-			movie = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
+			movie = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy, r.UseCloudflareBypass)
 		}
 	}
 	return tv, movie

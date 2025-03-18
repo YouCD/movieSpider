@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"movieSpider/internal/config"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/types"
 	"net/http"
+	"net/url"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -81,11 +83,33 @@ type FeederAbstractFactory interface {
 	CreateFeeder(args ...interface{}) Feeder
 }
 
-func (b *BaseFeeder) HTTPRequest(url string) ([]byte, error) {
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("HTTPRequest new request,err: %w", err)
+func (b *BaseFeeder) HTTPRequest(urlStr string) ([]byte, error) {
+	var req *http.Request
+	var err error
+	if b.UseCloudflareBypass {
+		u, err := url.Parse(config.Config.Global.CloudflareBypass)
+		if err != nil {
+			return nil, fmt.Errorf("HTTPRequest url parse,err: %w", err)
+		}
+		u = u.JoinPath("html")
+
+		query := make(url.Values)
+		query.Set("url", urlStr)
+		if b.UseIPProxy {
+			// 获取代理
+			_, proxy := httpclient.NewIPProxyPoolHTTPClient(b.Url)
+			query.Set("proxy", proxy)
+		}
+		u.RawQuery = query.Encode()
+		if req, err = http.NewRequestWithContext(context.TODO(), http.MethodGet, u.String(), nil); err != nil {
+			return nil, fmt.Errorf("HTTPRequest new request,err: %w", err)
+		}
+	} else {
+		if req, err = http.NewRequestWithContext(context.TODO(), http.MethodGet, urlStr, nil); err != nil {
+			return nil, fmt.Errorf("HTTPRequest new request,err: %w", err)
+		}
 	}
+
 	resp, err := b.HTTPClientDynamic().Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("HTTPRequest do,err: %w", err)

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -125,26 +126,24 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	}
 	//  排除 低码率的视频
 	if ok := tools.ExcludeVideo(feedVideoBase.TorrentName, config.Config.ExcludeWords); ok {
-		return nil, fmt.Errorf("err:%w,TorrentName:%v", ErrFeedVideoExclude, feedVideoBase.TorrentName)
+		return nil, fmt.Errorf("excludeWords, web:%s,TorrentName:%v", feedVideoBase.Web, feedVideoBase.TorrentName)
 	}
 
 	feedVideo := &types.FeedVideo{
 		FeedVideoBase: *feedVideoBase,
 	}
-	switch feedVideoBase.Web {
-	case "btbt":
-		feedVideo.Name = feedVideoBase.TorrentName
-	default:
-		// 使用模型解析种子名
-		typeStr, newName, year, _, err := NameParserModelHandler(feedVideo.TorrentName)
-		if err != nil {
-			log.Warnf("feedVideo.TorrentName is empty: %v", feedVideo)
-			return nil, err
-		}
-		feedVideo.Name = newName
-		feedVideo.Year = year
-		feedVideo.Type = typeStr
+	if feedVideo.TorrentName == "" {
+		return nil, fmt.Errorf("feedVideo.TorrentName is empty: %#v", feedVideo)
 	}
+	// 使用模型解析种子名
+	typeStr, newName, year, _, err := NameParserModelHandler(feedVideo.TorrentName)
+	if err != nil {
+		log.Warnf("TorrentName: %#v,err: %s", feedVideo.TorrentName, err)
+		return nil, err
+	}
+	feedVideo.Name = newName
+	feedVideo.Year = year
+	feedVideo.Type = typeStr
 	return feedVideo, nil
 }
 
@@ -159,7 +158,13 @@ var (
 )
 
 func NameParserModelHandler(name string) (string, string, string, string, error) {
-	req, err := http.NewRequest("POST", config.Config.Global.NameParserModel+"/name", strings.NewReader(fmt.Sprintf(`{"raw_name": "%s"}`, name)))
+	var reqStruct struct {
+		RawName string `json:"raw_name"`
+	}
+	reqStruct.RawName = name
+	jsonData, _ := jsoniter.Marshal(reqStruct)
+
+	req, err := http.NewRequest("POST", config.Config.Global.NameParserModel+"/name", bytes.NewReader(jsonData))
 	if err != nil {
 		return "", "", "", "", fmt.Errorf("创建请求失败: %w", err)
 	}

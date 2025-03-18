@@ -6,7 +6,7 @@
 
 支持的`Torrent`站点
 * ~~[[bt4g](https://bt4g.org)~~
-* [btbt](https://www.1lou.me/forum-1.htm)
+* ~~[btbt](https://www.1lou.me/forum-1.htm)~~
 * [eztv](https://eztv.re)
 * [glodls](https://glodls.to)
 * [knaben](https://rss.knaben.eu)
@@ -18,6 +18,7 @@
 * [1337x](https://1337x.to/)
 * ~~[rarbg2](https://en.rarbg2.xyz)~~
 * [TheRARBG](https://therarbg.com/)
+* [EXT](https://extto.com/)
 
 ## 使用TG
 
@@ -46,6 +47,9 @@ report_feedvioes - 报告Feed资源
   ```
 * [x] 集成DHT网络：感谢[nbdy/dhtc](https://github.com/nbdy/dhtc)
 * [x] 引入transformers模型： 提高种子名规范化能力
+* [x] 引入[CloudflareBypassForScraping](https://github.com/sarperavci/CloudflareBypassForScraping)： 自动处理Cloudflare防护
+
+
 * [ ] 自动化下载字幕
 * [ ] 基本网页展示
 
@@ -169,7 +173,15 @@ Feed:
     - Scheduling: "*/3 * * * *"
       Url: "https://therarbg.to/api/v1/recommendation-list/Movies/"
       ResourceType: movie
-
+  Extto:
+    - Scheduling: "*/3 * * * *"
+      Url: "https://search.extto.com/browse/?cat=2&page_size=100&sort=age&order=desc&age=0"
+      ResourceType: tv
+      UseCloudflareBypass: true
+    - Scheduling: "*/3 * * * *"
+      Url: "https://search.extto.com/browse/?page_size=100&cat=1&sort=age&order=desc&age=0"
+      ResourceType: movie
+      UseCloudflareBypass: true
 Global:
   LogLevel: info
   Report: true
@@ -177,6 +189,7 @@ Global:
   IPProxyPool: "http://127.0.0.1:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
   NameParserModel: http://127.0.0.1:8000 # 使用模型进行解析种子名称
+  CloudflareBypass: http://127.0.0.1:8989 # Cloudflare 绕过代理
   
 # Downloader 下载
 Downloader:
