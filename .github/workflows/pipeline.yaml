@@ -19,7 +19,7 @@ jobs:
       - name: Build
         run: make build-all
       - name: Upload binary file
-        uses: actions/download-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: movieSpider
           path: bin/*
