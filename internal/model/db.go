@@ -53,16 +53,22 @@ func NewMovieDB() *MovieDB {
 			os.Exit(1)
 		}
 
+		setLogLevel := func() logger.LogLevel {
+			if config.Config.Global.LogLevel == "debug" {
+				return logger.Info
+			}
+			return logger.Silent
+		}
 		newLogger := logger.New(
 			log1.New(os.Stdout, "\r\n", log1.LstdFlags), // io writer
-
 			logger.Config{
 				SlowThreshold: time.Second,   // 慢 SQL 阈值
-				LogLevel:      logger.Silent, // Log level
+				LogLevel:      setLogLevel(), // Log level
 				//LogLevel: logger.Info, // Log level
 				Colorful: true, // 禁用彩色打印
 			},
 		)
+
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local", config.Config.MySQL.User, config.Config.MySQL.Password, config.Config.MySQL.Host, config.Config.MySQL.Port, config.Config.MySQL.Database) // 连接数据库
 
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{

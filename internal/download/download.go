@@ -134,9 +134,11 @@ func (d *Download) downloadMovieTask() (err error) {
 	// 归类同一个电视剧名的 feedVideo
 	for douBanVideo, names := range videos {
 		// 获取 feedVideo movie
+		log.Infof("douBanVideo: %s", douBanVideo.Names)
 		videoList, err := model.NewMovieDB().GetFeedVideoMovieByNames(names...)
 		if err != nil {
-			return fmt.Errorf("GetFeedVideoMovieByNames,err: %w", err)
+			//fmt.Errorf("GetFeedVideoMovieByNames,names:%s,err: %w", strings.Join(names, ","), err)
+			log.Warnf("douBanVideo: %s,err:%s", douBanVideo.Names, err)
 		}
 		if len(videoList) == 0 {
 			log.Debugf("douBanVideo: %s 已全部下载完毕，或该影片没有更新.", douBanVideo.Names)
