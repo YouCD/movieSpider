@@ -223,7 +223,7 @@ docker-compose -p moviespider up
 # quickStart
 
 ```shell
-curl https://raw.githubusercontent.com/YouCD/movieSpider/main/deployment/quickStart.sh| bash
+curl https://raw.githubusercontent.com/YouCD/movieSpider/refs/heads/main/deployment/quickStart.sh| bash
 ```
 
 
