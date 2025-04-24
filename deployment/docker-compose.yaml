@@ -1,6 +1,6 @@
 services:
   moviespider_proxy:
-    image: crpi-cr13merkmfane9w0.cn-guangzhou.personal.cr.aliyuncs.com/youcd/moviespider_proxy
+    image: swr.cn-north-4.myhuaweicloud.com/youcd/moviespider_proxy
     ports:
       - "5010:5010"
     restart: always
