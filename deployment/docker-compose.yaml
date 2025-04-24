@@ -26,7 +26,7 @@ services:
         soft: 65535
         hard: 65535
     healthcheck:
-      test: mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "show databases"
+      test: mysql -uroot -p${Mysql_Password} -e "show databases"
       interval: 10s
       timeout: 3s
       retries: 3
