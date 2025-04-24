@@ -186,4 +186,4 @@ wget -q https://raw.githubusercontent.com/YouCD/IpProxyPool/main/conf/config.yam
 sed -i "s/127.0.0.1/moviespider_mysql/" ${IpProxyPool_Dir}/config.yaml
 
 echo "启动 moviespider"
-docker-compose -p moviespider up
+docker-compose -p moviespider up -d

@@ -11,7 +11,7 @@ services:
     networks:
       - movie_spider
     depends_on:
-      mysql:
+      moviespider_mysql:
         condition: service_healthy
   moviespider_mysql:
     container_name: moviespider_mysql
@@ -81,7 +81,7 @@ services:
     restart: always
     image: swr.cn-north-4.myhuaweicloud.com/youcd/moviespider_core
     depends_on:
-      mysql:
+      moviespider_mysql:
         condition: service_healthy
     volumes:
       - "${MovieSpider_Dir}/config.yaml:/app/config.yaml"
