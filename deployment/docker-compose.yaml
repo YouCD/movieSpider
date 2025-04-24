@@ -44,7 +44,7 @@ services:
     networks:
       - movie_spider
   moviespider_name_parser_model:
-    image: crpi-cr13merkmfane9w0.cn-guangzhou.personal.cr.aliyuncs.com/youcd/name_parser_model
+    image: swr.cn-north-4.myhuaweicloud.com/youcd/name_parser_model
     restart: always
     volumes:
       - "${MovieSpider_Dir}/log:/data/log"
@@ -53,7 +53,7 @@ services:
     networks:
       - movie_spider
   moviespider_cloudflare_bypass:
-    image: ghcr.io/sarperavci/cloudflarebypassforscraping:latest
+    image: ghcr.nju.edu.cn/sarperavci/cloudflarebypassforscraping
     restart: always
     ports:
       - "8989:8000"
@@ -62,7 +62,7 @@ services:
 
   moviespider_core:
     restart: always
-    image: crpi-cr13merkmfane9w0.cn-guangzhou.personal.cr.aliyuncs.com/youcd/moviespider_core
+    image: swr.cn-north-4.myhuaweicloud.com/youcd/moviespider_core
     depends_on:
       - moviespider_mysql
     volumes:

@@ -1,4 +1,4 @@
-FROM golang:1.18.2-bullseye as builder
+FROM golang:1.23.1-bullseye as builder
 WORKDIR /movieSpider
 ENV GOPROXY https://goproxy.cn,direct
 COPY . .
