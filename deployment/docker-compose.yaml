@@ -1,26 +1,40 @@
 services:
   moviespider_proxy:
     image: swr.cn-north-4.myhuaweicloud.com/youcd/moviespider_proxy
+    container_name: moviespider_proxy
     ports:
       - "5010:5010"
     restart: always
     volumes:
       - "./IpProxyPool/config.yaml:/app/conf/config.yaml"
       - "./IpProxyPool/logs:/app/logs"
-    depends_on:
-      - moviespider_mysql
     networks:
       - movie_spider
+    depends_on:
+      mysql:
+        condition: service_healthy
   moviespider_mysql:
+    container_name: moviespider_mysql
     image: mysql:5.7.18
     ports:
       - ${Mysql_Port}:3306
     environment:
       - MYSQL_ROOT_PASSWORD=${Mysql_Password}
     restart: always
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    healthcheck:
+      test: mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "show databases"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 100s
     networks:
       - movie_spider
   moviespider_aria2:
+    container_name: moviespider_aria2
     image: p3terx/aria2-pro
     environment:
       - PUID=$UID
@@ -44,6 +58,7 @@ services:
     networks:
       - movie_spider
   moviespider_name_parser_model:
+    container_name: moviespider_name_parser_model
     image: swr.cn-north-4.myhuaweicloud.com/youcd/name_parser_model
     restart: always
     volumes:
@@ -53,6 +68,7 @@ services:
     networks:
       - movie_spider
   moviespider_cloudflare_bypass:
+    container_name: moviespider_cloudflare_bypass
     image: ghcr.nju.edu.cn/sarperavci/cloudflarebypassforscraping
     restart: always
     ports:
@@ -61,10 +77,12 @@ services:
       - movie_spider
 
   moviespider_core:
+    container_name: moviespider_core
     restart: always
     image: swr.cn-north-4.myhuaweicloud.com/youcd/moviespider_core
     depends_on:
-      - moviespider_mysql
+      mysql:
+        condition: service_healthy
     volumes:
       - "${MovieSpider_Dir}/config.yaml:/app/config.yaml"
     networks:

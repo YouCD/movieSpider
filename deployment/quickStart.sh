@@ -4,8 +4,10 @@ echo -e "\033[31m[*] 请确保已经安装了docker和docker-compose"
 sleep 5
 clear
 
+mkdir movieSpider_stack && cd movieSpider_stack
+
 echo -e "\033[31m[*] 定义的环境变量如下:"
-echo -e "\033[31mexport Mysql_Password=P@ssw0rd
+echo -e "\033[31m export Mysql_Password=P@ssw0rd
 export Mysql_Port=3306
 export Aria2_Password=whVi763s5QrctiiyUxIs
 export Aria2_ConfigDir=$PWD/aria2/config
