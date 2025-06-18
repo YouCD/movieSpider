@@ -158,8 +158,7 @@ Aria2cList:
 # 如果没有Telegram 就请忽略
 #TG:
   # Telegram 网络代理
-#  Proxy:
-#    Url: socks5://127.0.0.1:1080
+#  ProxyUrl: socks5://127.0.0.1:1080
 #    Enable: false
   # Telegram 机器人 token
 #  BotToken: "TOKEN"
