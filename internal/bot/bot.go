@@ -29,9 +29,9 @@ var (
 )
 
 const (
-	CMDMoveDownload     = "/movie_download"
-	CMDReportDownload   = "/report_download"
-	CMDReportFeedVideos = "/report_feedvioes"
+	CMDMoveDownload     = "movie_download"
+	CMDReportDownload   = "report_download"
+	CMDReportFeedVideos = "report_feedvioes"
 )
 
 type TGBot struct {
@@ -93,66 +93,66 @@ func (t *TGBot) StartBot() {
 	u := tgbotapi.NewUpdate(0)
 	updates := t.bot.GetUpdatesChan(u)
 	for update := range updates {
-		index := 1
-		pageNum = &index
-		if update.Message != nil {
-			switch {
-			case strings.Contains(update.Message.Text, CMDReportDownload):
-				// 如果参数长度不够直接continue 防止地址越界
-				_, ok := t.checkPars(update.Message.Text, update.Message.Chat.ID, update, CMDReportDownload)
-				if !ok {
-					continue
-				}
-				aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
-				if err != nil {
-					log.Error(err)
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "aria2下载器服务异常")
-					msg.ReplyToMessageID = update.Message.MessageID
-					if _, err := t.bot.Send(msg); err != nil {
-						log.Error(err)
-					}
-					continue
-				}
+		if update.Message == nil { // ignore any non-Message updates
+			continue
+		}
 
-				files := aria2Server.CurrentActiveAndStopFiles()
-				var bs string
-				for _, file := range files {
-					if utf8.RuneCountInString(file.FileName) > 40 {
-						nameRune := []rune(file.FileName)
-						bs += fmt.Sprintf("%-40s | %s\n", string(nameRune[0:40]), file.Completed)
-					} else {
-						bs += fmt.Sprintf("%-40s | %s\n", file.FileName, file.Completed)
-					}
-				}
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, bs)
+		if !update.Message.IsCommand() { // ignore any non-command Messages
+			continue
+		}
+
+		switch update.Message.Command() {
+		case CMDReportDownload: // movie_download 指令
+			aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+			if err != nil {
+				log.Error(err)
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "aria2下载器服务异常")
 				msg.ReplyToMessageID = update.Message.MessageID
 				if _, err := t.bot.Send(msg); err != nil {
 					log.Error(err)
 				}
+				continue
+			}
 
-			case strings.Contains(update.Message.Text, CMDReportFeedVideos):
-				_, ok := t.checkPars(update.Message.Text, update.Message.Chat.ID, update, CMDReportFeedVideos)
-				if !ok {
-					continue
-				}
-				t.SendReportFeedVideosMsg(update.Message.Chat.ID, int64(update.Message.MessageID))
-
-			// movie_download 指令
-			case strings.Contains(update.Message.Text, CMDMoveDownload):
-				// 如果参数长度不够直接continue 防止地址越界
-				pars, ok := t.checkPars(update.Message.Text, update.Message.Chat.ID, update, CMDMoveDownload)
-				if !ok {
-					continue
-				}
-				downloader := download.NewDownloader(config.Config.Downloader.Scheduling)
-				downloadMsg := downloader.DownloadByName(pars[1], pars[2])
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, downloadMsg)
-				msg.ReplyToMessageID = update.Message.MessageID
-				if _, err := t.bot.Send(msg); err != nil {
-					log.Error(err)
+			files := aria2Server.CurrentActiveAndStopFiles()
+			var bs string
+			for _, file := range files {
+				if utf8.RuneCountInString(file.FileName) > 40 {
+					nameRune := []rune(file.FileName)
+					bs += fmt.Sprintf("%-40s | %s\n", string(nameRune[0:40]), file.Completed)
+				} else {
+					bs += fmt.Sprintf("%-40s | %s\n", file.FileName, file.Completed)
 				}
 			}
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, bs)
+			msg.ReplyToMessageID = update.Message.MessageID
+			if _, err := t.bot.Send(msg); err != nil {
+				log.Error(err)
+			}
+		case CMDReportFeedVideos:
+			t.SendReportFeedVideosMsg(update.Message.Chat.ID, int64(update.Message.MessageID))
+		case CMDMoveDownload:
+			update.Message.Entities = []tgbotapi.MessageEntity{{Type: "bot_command", Offset: 0, Length: 15}}
+
+			arguments := update.Message.CommandArguments()
+			pars := tools.RemoveSpaceItem(strings.Split(arguments, " "))
+
+			downloader := download.NewDownloader(config.Config.Downloader.Scheduling)
+			downloadMsg := downloader.DownloadByName(pars[1], pars[2])
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, downloadMsg)
+			msg.ReplyToMessageID = update.Message.MessageID
+			if _, err := t.bot.Send(msg); err != nil {
+				log.Error(err)
+			}
+
+		default:
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "不支持此指令")
+			msg.ReplyToMessageID = update.Message.MessageID
+			if _, err := t.bot.Send(msg); err != nil {
+				log.Error(err)
+			}
 		}
+
 	}
 }
 
@@ -209,55 +209,6 @@ func (t *TGBot) checkUser(chatID int64, update tgbotapi.Update) bool {
 		return false
 	}
 	return ok
-}
-
-// checkPars
-//
-//	@Description: 检查参数
-//	@receiver t
-//	@param pars
-//	@param ChatID
-//	@param update
-//	@param cmd
-//	@return []string
-//	@return bool
-func (t *TGBot) checkPars(pars string, chatID int64, update tgbotapi.Update, cmd string) ([]string, bool) {
-	log.Infof("Msg: %s", update.Message.Text)
-	cmdAndargs := tools.RemoveSpaceItem(strings.Split(pars, " "))
-	switch cmd {
-	case CMDMoveDownload:
-		flag := t.checkArgsLen(chatID, update, cmdAndargs, 2)
-		return cmdAndargs, flag
-	case CMDReportFeedVideos:
-		return cmdAndargs, true
-	case CMDReportDownload:
-		return cmdAndargs, true
-	default:
-		return cmdAndargs, false
-	}
-}
-
-// checkArgsLen
-//
-//	@Description: 检查参数长度
-//	@receiver t
-//	@param ChatID
-//	@param update
-//	@param cmdAndargs
-//	@param length
-//	@return bool
-func (t *TGBot) checkArgsLen(chatID int64, update tgbotapi.Update, cmdAndargs []string, length int) bool {
-	if len(cmdAndargs) < length {
-		msg := tgbotapi.NewMessage(chatID, "参数长度不够")
-		msg.ReplyToMessageID = update.Message.MessageID
-		if _, err := t.bot.Send(msg); err != nil {
-			log.Error(err)
-			return false
-		}
-		log.Warnf("参数长度不够")
-		return false
-	}
-	return true
 }
 
 // downloadNotify
