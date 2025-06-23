@@ -3,7 +3,7 @@ services:
     image: swr.cn-north-4.myhuaweicloud.com/youcd/moviespider_proxy
     container_name: moviespider_proxy
     ports:
-      - "5010:5010"
+      - "3000:3000"
     restart: always
     volumes:
       - "./IpProxyPool/config.yaml:/app/conf/config.yaml"

@@ -11,7 +11,7 @@
 * [glodls](https://glodls.to)
 * [knaben](https://rss.knaben.eu)
 * ~~[rarbg](http://rarbg.to/)~~
-* [TGx](https://tgx.rs)
+* ~~[TGx](https://tgx.rs)~~
 * [torlock](https://www.torlock.com)
 * ~~[magnetdl](https://www.magnetdl.com)~~
 * [ThePirateBay](https://thepiratebay.org/search.php?q=top100:200)
@@ -130,18 +130,6 @@ Feed:
     Scheduling: "*/3 * * * *"
     Url: "https://glodls.to/rss.php?cat=1,41"
     UseIPProxy: true
-  TGX:
-    - Scheduling: "*/3 * * * *"
-      Url: "https://tgx.rs/rss"
-      Name: rss
-    # 24小时归档数据
-    - Scheduling: "0 1 * * *"
-      Url: "https://tgx.rs/cache/tgx24hdump.txt.gz"
-      Name: dump
-    - Scheduling: "*/3 * * * *"
-      Url: "https://tgx.rs/torrents.php?c3=1&c42=1&c41=1&c11=1&search=&lang=0&nox=2#resultss"
-      Name: web
-
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie

@@ -7,7 +7,6 @@ import (
 	"movieSpider/internal/model"
 	"movieSpider/internal/spider/feedspider"
 	"movieSpider/internal/types"
-	"strings"
 
 	"github.com/youcd/toolkit/log"
 )
@@ -39,21 +38,6 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// Knaben
 	feedKnaben := feedspider.NewFeedKnaben()
 
-	// TGX
-	var TGXRss feedspider.Feeder
-	var TGXDump feedspider.Feeder
-	// var TgxWeb feedspider.Feeder
-	for _, tgx := range config.Config.Feed.TGX {
-		switch strings.ToLower(tgx.Name) {
-		case "rss":
-			TGXRss = feedspider.NewTgx(tgx.Scheduling, tgx.Url, tgx.UseIPProxy)
-		case "dump":
-			TGXDump = feedspider.NewTgxDump(tgx.Scheduling, tgx.Url, tgx.UseIPProxy)
-			// case "web":
-			//	TgxWeb = feedspider.NewTgxWeb(tgx.Scheduling, tgx.URL, tgx.UseIPProxy)
-		}
-	}
-
 	// TORLOCK
 	feedTorlockTV, feedTorlockMovie := createFeederWithURLs(config.Config.Feed.TORLOCK, feedspider.NewTorlock)
 	// 1337x
@@ -73,8 +57,8 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			//feedBTBT,
 			feedEZTV,
 			feedGLODLS,
-			TGXDump,
-			TGXRss,
+			//TGXDump,
+			//TGXRss,
 			// TgxWeb,
 			feedTorlockMovie,
 			feedTorlockTV,

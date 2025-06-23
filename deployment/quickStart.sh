@@ -80,18 +80,6 @@ Feed:
     Scheduling: "*/3 * * * *"
     Url: "https://glodls.to/rss.php?cat=1,41"
     UseIPProxy: true
-  TGX:
-    - Scheduling: "*/3 * * * *"
-      Url: "https://tgx.rs/rss"
-      Name: rss
-    # 24小时归档数据
-    - Scheduling: "0 1 * * *"
-      Url: "https://tgx.rs/cache/tgx24hdump.txt.gz"
-      Name: dump
-    - Scheduling: "*/3 * * * *"
-      Url: "https://tgx.rs/torrents.php?c3=1&c42=1&c41=1&c11=1&search=&lang=0&nox=2#resultss"
-      Name: web
-
   TORLOCK:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
@@ -138,7 +126,7 @@ Global:
   LogLevel: info
   Report: true
   # 网络代理池
-  IPProxyPool: "http://127.0.0.1:3001"
+  IPProxyPool: "http://moviespider_proxy:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
   NameParserModel: http://moviespider_name_parser_model:8000 # 使用模型进行解析种子名称
   CloudflareBypass: http://moviespider_cloudflare_bypass:8989 # Cloudflare 绕过代理

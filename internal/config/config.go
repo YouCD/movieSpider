@@ -88,7 +88,6 @@ type config struct {
 		BTBT         *types.BaseFeed `json:"BTBT" yaml:"BTBT" validate:"required"`
 		EZTV         *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
 		GLODLS       *types.BaseFeed `json:"GLODLS" yaml:"GLODLS" validate:"required"`
-		TGX          []*tgx          `json:"TGX" yaml:"TGX" validate:"required"`
 		TORLOCK      []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
 		Web1337x     []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
 		ThePirateBay *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
