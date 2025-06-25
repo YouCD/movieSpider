@@ -1,22 +1,18 @@
 package model
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	log1 "log"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
+	"movieSpider/internal/nameParser"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
-	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"time"
-
-	jsoniter "github.com/json-iterator/go"
 
 	"github.com/youcd/toolkit/log"
 	"gorm.io/driver/mysql"
@@ -142,7 +138,7 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 		return nil, fmt.Errorf("feedVideo.TorrentName is empty: %#v", feedVideo)
 	}
 	// 使用模型解析种子名
-	typeStr, newName, year, _, err := NameParserModelHandler(feedVideo.TorrentName)
+	typeStr, newName, year, resolution, err := nameParser.NameParserModelHandler(feedVideo.TorrentName)
 	if err != nil {
 		log.Warnf("TorrentName: %#v,err: %s", feedVideo.TorrentName, err)
 		return nil, err
@@ -150,53 +146,7 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	feedVideo.Name = newName
 	feedVideo.Year = year
 	feedVideo.Type = typeStr
+	// {"input": "The Buccaneers 2023 S02E01 1080p HEVC x265-MeGusta", "output": {"type": "tv", "name": "The.Bucaneers", "year": 2023, "resolution": 1080}}
+	log.Infow("nameParser", "input", feedVideo.TorrentName, "type", typeStr, "name", newName, "year", year, "resolution", resolution)
 	return feedVideo, nil
-}
-
-var (
-	httpClient = &http.Client{
-		Transport: &http.Transport{
-			MaxIdleConns:        10, // 复用连接
-			MaxIdleConnsPerHost: 10,
-		},
-		//Timeout: 30 * time.Second, // 超时时间
-	}
-)
-
-func NameParserModelHandler(name string) (string, string, string, string, error) {
-	var reqStruct struct {
-		RawName string `json:"raw_name"`
-	}
-	reqStruct.RawName = name
-	jsonData, _ := jsoniter.Marshal(reqStruct)
-
-	req, err := http.NewRequest("POST", config.Config.Global.NameParserModel+"/name", bytes.NewReader(jsonData))
-	if err != nil {
-		return "", "", "", "", fmt.Errorf("创建请求失败: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return "", "", "", "", fmt.Errorf("请求失败: %w", err)
-	}
-	defer func() {
-		if err = resp.Body.Close(); err != nil {
-			log.Errorf("关闭请求失败: %v", err)
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", "", "", "", fmt.Errorf("HTTP 错误: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", "", "", "", fmt.Errorf("读取响应失败: %w", err)
-	}
-	newName := jsoniter.Get(body, "output").Get("name").ToString()
-	year := jsoniter.Get(body, "output").Get("year").ToString()
-	resolution := jsoniter.Get(body, "output").Get("resolution").ToString()
-	typeStr := jsoniter.Get(body, "output").Get("type").ToString()
-	return typeStr, newName, year, resolution, nil
 }

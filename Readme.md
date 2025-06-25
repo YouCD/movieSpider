@@ -46,7 +46,7 @@ report_feedvioes - 报告Feed资源
   report_feedvioes - 报告Feed资源
   ```
 * [x] 集成DHT网络：感谢[nbdy/dhtc](https://github.com/nbdy/dhtc)
-* [x] 引入transformers模型： 提高种子名规范化能力
+* [x] 微调Qwen2.5-0.5B模型： 提高种子名规范化能力
 * [x] 引入[CloudflareBypassForScraping](https://github.com/sarperavci/CloudflareBypassForScraping)： 自动处理Cloudflare防护
 
 

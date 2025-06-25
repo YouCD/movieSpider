@@ -20,6 +20,7 @@ type downloader struct {
 //nolint:tagliatelle
 type global struct {
 	LogLevel         string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
+	LogFile          string `json:"LogFile" yaml:"LogFile" validate:"omitempty"`
 	Report           bool   `json:"Report" yaml:"Report" validate:"required"`
 	IPProxyPool      string `json:"IPProxyPool" yaml:"IPProxyPool" validate:"omitempty,http_url"`
 	DHTThread        int    `json:"DHTThread" yaml:"DHTThread"`
@@ -92,9 +93,8 @@ type config struct {
 		Web1337x     []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
 		ThePirateBay *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
 		Knaben       *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
-		// Rarbg2       []*BaseRT       `json:"Rarbg2" yaml:"Rarbg2" validate:"required"`
-		TheRarbg []*BaseRT `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
-		Extto    []*BaseRT `json:"Extto" yaml:"Extto" validate:"required"`
+		TheRarbg     []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
+		Extto        []*BaseRT       `json:"Extto" yaml:"Extto" validate:"required"`
 	} `json:"Feed" yaml:"Feed" validate:"required"`
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
 	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`
@@ -143,15 +143,28 @@ func InitConfig(configFile string) {
 		}
 		if err = ValidateFc(Config); err == nil {
 			Config = c
+			if Config.Global.LogFile != "" {
+				log.SetFileName(Config.Global.LogFile)
+				log.InitLogBoth()
+			} else {
+				// 打印 日志级别
+				log.Init(true)
+			}
 			log.SetLogLevel(Config.Global.LogLevel)
+			log.Debug("日志级别： ", Config.Global.LogLevel)
 		}
 
 	})
-	// 打印 日志级别
-	log.Init(true)
+
+	if Config.Global.LogFile != "" {
+		log.SetFileName(Config.Global.LogFile)
+		log.InitLogBoth()
+	} else {
+		// 打印 日志级别
+		log.Init(true)
+	}
 	log.SetLogLevel(Config.Global.LogLevel)
 	log.Debug("日志级别： ", Config.Global.LogLevel)
-
 	if err = ValidateFc(Config); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
