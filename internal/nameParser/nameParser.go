@@ -110,7 +110,7 @@ func newNameParserReq(name string) *nameParserReq {
 		}{
 			{
 				Role:    "user",
-				Content: name,
+				Content: fmt.Sprintf("请规范化种子名: %s", name),
 			},
 		},
 		Stream: false,
