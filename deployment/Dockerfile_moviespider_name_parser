@@ -1,0 +1,2 @@
+FROM ghcr.io/ggml-org/llama.cpp:server
+ADD Qwen2.5-0.5B-self-F16_Q4_k_M.gguf /models/Qwen2.5-0.5B-self-F16_Q4_k_M.gguf
