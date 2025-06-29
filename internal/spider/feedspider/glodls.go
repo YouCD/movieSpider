@@ -79,7 +79,7 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
 		bytes, _ := json.Marshal(v)
 
 		fVideo.RowData = sql.NullString{String: string(bytes)}
-
+		fVideo.Web = g.web
 		videosA = append(videosA, fVideo)
 	}
 	var wg sync.WaitGroup
@@ -125,7 +125,7 @@ func (g *Glodls) fetchMagnet(url string) (magnet string, err error) {
 	selector := "#downloadbox > table > tbody > tr > td:nth-child(1) > a:nth-child(2)"
 	magnet, exists := doc.Find(selector).Attr("href")
 	if !exists {
-		return "", fmt.Errorf("GLODLS: 查找href出错，err:%w", err)
+		return "", fmt.Errorf("GLODLS: 查找href出错")
 	}
 	return magnet, nil
 }

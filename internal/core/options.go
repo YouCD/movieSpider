@@ -52,6 +52,8 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 
 	feedThePirateBay := feedspider.NewThePirateBay()
 
+	// Uindex
+	uindexTv, uindexMovie := createFeederWithURLs(config.Config.Feed.Uindex, feedspider.NewUindex)
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
 			//feedBTBT,
@@ -72,6 +74,7 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			feedTheRarbg2Movie,
 			exttoTv,
 			exttoMovie,
+			uindexTv, uindexMovie,
 		)
 		ms.feeds = append(ms.feeds, feeds...)
 	})

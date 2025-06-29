@@ -121,7 +121,13 @@ Feed:
       Url: "https://search.extto.com/browse/?page_size=100&cat=1&sort=age&order=desc&age=0"
       ResourceType: movie
       UseCloudflareBypass: true
-
+  Uindex:
+    - Scheduling: "*/3 * * * *"
+      Url: "https://uindex.org/top.php?c=2"
+      ResourceType: tv
+    - Scheduling: "*/3 * * * *"
+      Url: "https://uindex.org/top.php?c=1"
+      ResourceType: movie
 Global:
   LogLevel: info
   Report: true

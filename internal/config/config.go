@@ -7,6 +7,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-playground/validator/v10"
+	"github.com/natefinch/lumberjack"
 	"github.com/spf13/viper"
 	"github.com/youcd/toolkit/log"
 )
@@ -58,21 +59,6 @@ type DouBan struct {
 	URL        string    `json:"URL,omitempty" yaml:"URL,omitempty" validate:"omitempty"`
 }
 
-/*
-//nolint:tagliatelle
-type tmDB struct {
-	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	APIKey     string `json:"APIKey" yaml:"APIKey" validate:"required"`
-}
-
-*/
-
-//nolint:tagliatelle
-type tgx struct {
-	types.BaseFeed `mapstructure:",squash"`
-	Name           string `json:"Name" yaml:"Name" validate:"required"`
-}
-
 //nolint:tagliatelle
 type BaseRT struct {
 	types.BaseFeed `mapstructure:",squash"`
@@ -95,6 +81,7 @@ type config struct {
 		Knaben       *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
 		TheRarbg     []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
 		Extto        []*BaseRT       `json:"Extto" yaml:"Extto" validate:"required"`
+		Uindex       []*BaseRT       `json:"Uindex" yaml:"Uindex" validate:"required"`
 	} `json:"Feed" yaml:"Feed" validate:"required"`
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
 	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`
@@ -143,12 +130,13 @@ func InitConfig(configFile string) {
 		}
 		if err = ValidateFc(Config); err == nil {
 			Config = c
+			logConfig := &log.Config{
+				Stdout: true,
+			}
 			if Config.Global.LogFile != "" {
-				log.SetFileName(Config.Global.LogFile)
-				log.InitLogBoth()
-			} else {
-				// 打印 日志级别
-				log.Init(true)
+				logConfig.LumberjackCfg = &lumberjack.Logger{
+					Filename: Config.Global.LogFile,
+				}
 			}
 			log.SetLogLevel(Config.Global.LogLevel)
 			log.Debug("日志级别： ", Config.Global.LogLevel)
@@ -156,13 +144,16 @@ func InitConfig(configFile string) {
 
 	})
 
-	if Config.Global.LogFile != "" {
-		log.SetFileName(Config.Global.LogFile)
-		log.InitLogBoth()
-	} else {
-		// 打印 日志级别
-		log.Init(true)
+	logConfig := &log.Config{
+		Stdout: true,
 	}
+	if Config.Global.LogFile != "" {
+		logConfig.LumberjackCfg = &lumberjack.Logger{
+			Filename: Config.Global.LogFile,
+		}
+	}
+	// 打印 日志级别
+	log.Init(logConfig)
 	log.SetLogLevel(Config.Global.LogLevel)
 	log.Debug("日志级别： ", Config.Global.LogLevel)
 	if err = ValidateFc(Config); err != nil {

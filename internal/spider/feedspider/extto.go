@@ -18,10 +18,7 @@ type Extto struct {
 }
 
 func NewExtto(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy, useCloudflareBypass bool) Feeder {
-	parse, err := url.Parse(siteURL)
-	if err != nil {
-		panic(err)
-	}
+	parse, _ := url.Parse(siteURL)
 	return &Extto{
 		BaseFeeder: BaseFeeder{
 			BaseFeed: types.BaseFeed{

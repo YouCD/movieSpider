@@ -65,7 +65,13 @@ Feed:
     - Scheduling: "*/3 * * * *"
       Url: "https://therarbg.to/api/v1/recommendation-list/Movies/"
       ResourceType: movie
-
+  Uindex:
+    - Scheduling: "*/3 * * * *"
+      Url: "https://uindex.org/top.php?c=2"
+      ResourceType: tv
+    - Scheduling: "*/3 * * * *"
+      Url: "https://uindex.org/top.php?c=1"
+      ResourceType: movie
 Global:
   LogLevel: info
   Report: true
