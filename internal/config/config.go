@@ -20,13 +20,12 @@ type downloader struct {
 
 //nolint:tagliatelle
 type global struct {
-	LogLevel         string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
-	LogFile          string `json:"LogFile" yaml:"LogFile" validate:"omitempty"`
-	Report           bool   `json:"Report" yaml:"Report" validate:"required"`
-	IPProxyPool      string `json:"IPProxyPool" yaml:"IPProxyPool" validate:"omitempty,http_url"`
-	DHTThread        int    `json:"DHTThread" yaml:"DHTThread"`
-	NameParserModel  string `json:"NameParserModel" yaml:"NameParserModel"  validate:"http_url"`
-	CloudflareBypass string `json:"CloudflareBypass" yaml:"CloudflareBypass" validate:"http_url"`
+	LogLevel        string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
+	LogFile         string `json:"LogFile" yaml:"LogFile" validate:"omitempty"`
+	Report          bool   `json:"Report" yaml:"Report" validate:"required"`
+	IPProxyPool     string `json:"IPProxyPool" yaml:"IPProxyPool" validate:"omitempty,http_url"`
+	DHTThread       int    `json:"DHTThread" yaml:"DHTThread"`
+	NameParserModel string `json:"NameParserModel" yaml:"NameParserModel"  validate:"http_url"`
 }
 
 //nolint:tagliatelle
@@ -72,16 +71,16 @@ type config struct {
 	DouBan       *DouBan  `json:"DouBan" yaml:"DouBan" validate:"required"`
 	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
 	Feed         struct {
-		BTBT         *types.BaseFeed `json:"BTBT" yaml:"BTBT" validate:"required"`
-		EZTV         *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
-		GLODLS       *types.BaseFeed `json:"GLODLS" yaml:"GLODLS" validate:"required"`
-		TORLOCK      []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
-		Web1337x     []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
-		ThePirateBay *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
-		Knaben       *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
-		TheRarbg     []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
-		Extto        []*BaseRT       `json:"Extto" yaml:"Extto" validate:"required"`
-		Uindex       []*BaseRT       `json:"Uindex" yaml:"Uindex" validate:"required"`
+		BTBT          *types.BaseFeed `json:"BTBT" yaml:"BTBT" validate:"required"`
+		EZTV          *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
+		GLODLS        *types.BaseFeed `json:"GLODLS" yaml:"GLODLS" validate:"required"`
+		TORLOCK       []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
+		Web1337x      []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
+		ThePirateBay  *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
+		Knaben        *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
+		TheRarbg      []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
+		Uindex        []*BaseRT       `json:"Uindex" yaml:"Uindex" validate:"required"`
+		Ilcorsaronero []*BaseRT       `json:"Ilcorsaronero" yaml:"Ilcorsaronero" validate:"required"`
 	} `json:"Feed" yaml:"Feed" validate:"required"`
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
 	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`

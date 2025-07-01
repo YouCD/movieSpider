@@ -42,54 +42,48 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	feedTorlockTV, feedTorlockMovie := createFeederWithURLs(config.Config.Feed.TORLOCK, feedspider.NewTorlock)
 	// 1337x
 	feed1337xTV, feed1337xMovie := createFeederWithURLs(config.Config.Feed.Web1337x, feedspider.NewWeb1337x)
-	// rarbg2
-	// feedRarbg2TV, feedrarbg2Movie := createFeederWithURLs(config.Config.Feed.Rarbg2, feedspider.NewRarbg2)
+
 	// therarbg
 	feedTheRarbg2TV, feedTheRarbg2Movie := createFeederWithURLs(config.Config.Feed.TheRarbg, feedspider.NewTheRarbg)
-
-	// extto
-	exttoTv, exttoMovie := createFeederWithURLs(config.Config.Feed.Extto, feedspider.NewExtto)
 
 	feedThePirateBay := feedspider.NewThePirateBay()
 
 	// Uindex
 	uindexTv, uindexMovie := createFeederWithURLs(config.Config.Feed.Uindex, feedspider.NewUindex)
+
+	// NewIlcorsaronero
+	IlcorsaroneroTv, IlcorsaroneroMovie := createFeederWithURLs(config.Config.Feed.Uindex, feedspider.NewIlcorsaronero)
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
-			//feedBTBT,
 			feedEZTV,
 			feedGLODLS,
-			//TGXDump,
-			//TGXRss,
-			// TgxWeb,
 			feedTorlockMovie,
 			feedTorlockTV,
 			feed1337xMovie,
 			feed1337xTV,
 			feedThePirateBay,
 			feedKnaben,
-			//feedRarbg2TV,
-			//feedrarbg2Movie,
 			feedTheRarbg2TV,
 			feedTheRarbg2Movie,
-			exttoTv,
-			exttoMovie,
-			uindexTv, uindexMovie,
+			uindexTv,
+			uindexMovie,
+			IlcorsaroneroTv,
+			IlcorsaroneroMovie,
 		)
 		ms.feeds = append(ms.feeds, feeds...)
 	})
 }
 
-type createFunc func(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy, useCloudflareBypass bool) feedspider.Feeder
+type createFunc func(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) feedspider.Feeder
 
 func createFeederWithURLs(urls []*config.BaseRT, create createFunc) (feedspider.Feeder, feedspider.Feeder) {
 	var tv, movie feedspider.Feeder
 	for _, r := range urls {
 		if r.ResourceType == types.VideoTypeTV {
-			tv = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy, r.UseCloudflareBypass)
+			tv = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
 		}
 		if r.ResourceType == types.VideoTypeMovie {
-			movie = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy, r.UseCloudflareBypass)
+			movie = create(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
 		}
 	}
 	return tv, movie

@@ -72,14 +72,6 @@ services:
       start_period: 10s
     networks:
       - movie_spider
-  moviespider_cloudflare_bypass:
-    container_name: moviespider_cloudflare_bypass
-    image: ghcr.nju.edu.cn/sarperavci/cloudflarebypassforscraping
-    restart: always
-    ports:
-      - "8989:8000"
-    networks:
-      - movie_spider
 
   moviespider_core:
     container_name: moviespider_core

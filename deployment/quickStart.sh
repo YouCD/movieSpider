@@ -65,6 +65,7 @@ ExcludeWords:
   - 720p
   - dvsux
   - 480p
+  - 360p
   #- hdr
   - .dv.
   - .dolby.vision
@@ -104,7 +105,7 @@ Feed:
     UseIPProxy: true
   Knaben:
     Scheduling: "*/3 * * * *"
-    Url: "https://rss.knaben.eu////hidexxx"
+    Url: "https://rss.knaben.org////hidexxx"
   TheRarbg:
     - Scheduling: "*/3 * * * *"
       Url: "https://therarbg.to/api/v1/recommendation-list/tv/"
@@ -112,21 +113,19 @@ Feed:
     - Scheduling: "*/3 * * * *"
       Url: "https://therarbg.to/api/v1/recommendation-list/Movies/"
       ResourceType: movie
-  Extto:
-    - Scheduling: "*/3 * * * *"
-      Url: "https://search.extto.com/browse/?cat=2&page_size=100&sort=age&order=desc&age=0"
-      ResourceType: tv
-      UseCloudflareBypass: true
-    - Scheduling: "*/3 * * * *"
-      Url: "https://search.extto.com/browse/?page_size=100&cat=1&sort=age&order=desc&age=0"
-      ResourceType: movie
-      UseCloudflareBypass: true
   Uindex:
     - Scheduling: "*/3 * * * *"
       Url: "https://uindex.org/top.php?c=2"
       ResourceType: tv
     - Scheduling: "*/3 * * * *"
       Url: "https://uindex.org/top.php?c=1"
+      ResourceType: movie
+  Ilcorsaronero:
+    - Scheduling: "*/3 * * * *"
+      Url: "https://ilcorsaronero.link/cat/serie-tv"
+      ResourceType: tv
+    - Scheduling: "*/3 * * * *"
+      Url: "https://ilcorsaronero.link/cat/film"
       ResourceType: movie
 Global:
   LogLevel: info
@@ -135,7 +134,6 @@ Global:
   IPProxyPool: "http://moviespider_proxy:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
   NameParserModel: http://moviespider_name_parser_model:8000 # 使用模型进行解析种子名称
-  CloudflareBypass: http://moviespider_cloudflare_bypass:8989 # Cloudflare 绕过代理
 
 # Downloader 下载
 Downloader:

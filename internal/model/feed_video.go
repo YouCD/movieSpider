@@ -18,10 +18,18 @@ import (
 //	@return videos
 //	@return err
 func (m *MovieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVideo, err error) {
-	if err := m.db.Model(&types.FeedVideo{}).Select(" id,name").Where(" name like ?", fmt.Sprintf("%%%s%%", name)).Find(&videos).Error; err != nil {
+	if err := m.db.Model(&types.FeedVideo{}).Select("id,name").Where(" name like ?", fmt.Sprintf("%%%s%%", name)).Find(&videos).Error; err != nil {
 		return nil, fmt.Errorf("FindLikeTVFromFeedVideo,err %w", err)
 	}
 	return
+}
+func (m *MovieDB) GetFeedVideoByName(name string) (*types.FeedVideo, error) {
+	var video *types.FeedVideo
+	err := m.db.Model(&types.FeedVideo{}).Where("torrent_name = ?", name).First(&video).Error
+	if err != nil {
+		return nil, err
+	}
+	return video, err
 }
 
 // GetFeedVideoTVByNames 通过 名称 获取 feedVideo tv

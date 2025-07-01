@@ -95,15 +95,13 @@ func NewMovieDB() *MovieDB {
 func (m *MovieDB) SaveFeedVideoFromChan() {
 	go func() {
 		for {
-			feedVideo, err := FilterVideo(<-m.feedVideoCh)
+			item := <-m.feedVideoCh
+			feedVideo, err := FilterVideo(item)
 			if err != nil {
-				log.Warn(err)
+				log.Debugf("web:%s,err:%s", item.Web, err)
 				continue
 			}
-			if feedVideo.Name == "" {
-				log.Warnf("feedVideo.Name is empty: %v", feedVideo)
-				continue
-			}
+
 			if err := NewMovieDB().CreatFeedVideo(feedVideo); err != nil {
 				if errors.Is(err, ErrDataExist) {
 					log.Debugf("%s.%s err: %s", strings.ToUpper(feedVideo.Web), feedVideo.Type, err)
@@ -137,16 +135,27 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	if feedVideo.TorrentName == "" {
 		return nil, fmt.Errorf("feedVideo.TorrentName is empty: %#v", feedVideo)
 	}
+	// 解析前先查库
+	video, err := NewMovieDB().GetFeedVideoByName(feedVideo.TorrentName)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Error(err)
+	}
+	if video != nil {
+		return nil, fmt.Errorf("torrent_name:%s, err:%w", feedVideo.TorrentName, ErrFeedVideoExist)
+	}
+
 	// 使用模型解析种子名
 	typeStr, newName, year, resolution, err := nameParser.NameParserModelHandler(feedVideo.TorrentName)
 	if err != nil {
 		log.Warnf("TorrentName: %#v,err: %s", feedVideo.TorrentName, err)
 		return nil, err
 	}
+	if resolution == "" {
+		return nil, fmt.Errorf("feedVideo.TorrentName: %#v,resolution is empty", feedVideo.TorrentName)
+	}
 	feedVideo.Name = newName
 	feedVideo.Year = year
 	feedVideo.Type = typeStr
-	// {"input": "The Buccaneers 2023 S02E01 1080p HEVC x265-MeGusta", "output": {"type": "tv", "name": "The.Bucaneers", "year": 2023, "resolution": 1080}}
 	log.Infow("nameParser", "input", feedVideo.TorrentName, "type", typeStr, "name", newName, "year", year, "resolution", resolution)
 	return feedVideo, nil
 }

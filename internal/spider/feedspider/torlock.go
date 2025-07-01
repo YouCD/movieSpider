@@ -17,12 +17,12 @@ type Torlock struct {
 	BaseFeeder
 }
 
-func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy, useCloudflareBypass bool) Feeder {
+func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) Feeder {
 	return &Torlock{
 		typ: resourceType,
 		BaseFeeder: BaseFeeder{
 			web:      "torlock",
-			BaseFeed: types.BaseFeed{Url: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy, UseCloudflareBypass: useCloudflareBypass},
+			BaseFeed: types.BaseFeed{Url: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy},
 		},
 	}
 }

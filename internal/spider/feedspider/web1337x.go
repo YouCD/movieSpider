@@ -18,13 +18,13 @@ type Web1337x struct {
 	webHost string
 }
 
-func NewWeb1337x(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy, useCloudflareBypass bool) Feeder {
+func NewWeb1337x(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) Feeder {
 	parse, _ := url.Parse(siteURL)
 	return &Web1337x{
 		typ: resourceType,
 		BaseFeeder: BaseFeeder{
 			web:      "1337x",
-			BaseFeed: types.BaseFeed{Url: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy, UseCloudflareBypass: useCloudflareBypass},
+			BaseFeed: types.BaseFeed{Url: siteURL, Scheduling: scheduling, UseIPProxy: useIPProxy},
 		},
 		webHost: fmt.Sprintf("%s://%s", parse.Scheme, parse.Host),
 	}

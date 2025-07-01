@@ -8,10 +8,9 @@ import (
 
 //nolint:tagliatelle,revive
 type BaseFeed struct {
-	Scheduling          string `json:"Scheduling" yaml:"Scheduling" validate:"cron" `
-	Url                 string `son:"URL" yaml:"URL" validate:"http_url" `
-	UseIPProxy          bool   `json:"UseIPProxy,omitempty" yaml:"UseIPProxy,omitempty"`
-	UseCloudflareBypass bool   `json:"UseCloudflareBypass,omitempty" yaml:"UseCloudflareBypass,omitempty"`
+	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron" `
+	Url        string `son:"URL" yaml:"URL" validate:"http_url" `
+	UseIPProxy bool   `json:"UseIPProxy,omitempty" yaml:"UseIPProxy,omitempty"`
 }
 
 //nolint:tagliatelle

@@ -25,7 +25,7 @@ func Test_torlock_Crawler(t *testing.T) {
 			//	}
 			//}
 			if r.ResourceType == types.VideoTypeMovie {
-				videos, err = NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy, r.UseCloudflareBypass).Crawler()
+				videos, err = NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy).Crawler()
 				if err != nil {
 					log.Errorf("err: %s", err)
 					return

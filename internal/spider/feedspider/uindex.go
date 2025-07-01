@@ -13,22 +13,19 @@ import (
 )
 
 type Uindex struct {
-	urlBase string
 	webHost string
 	typ     types.VideoType
 	BaseFeeder
 }
 
-func NewUindex(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy, useCloudflareBypass bool) Feeder {
+func NewUindex(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) Feeder {
 	parse, _ := url.Parse(siteURL)
-
 	return &Uindex{
 		BaseFeeder: BaseFeeder{
 			BaseFeed: types.BaseFeed{
-				Scheduling:          scheduling,
-				Url:                 siteURL,
-				UseIPProxy:          useIPProxy,
-				UseCloudflareBypass: useCloudflareBypass,
+				Scheduling: scheduling,
+				Url:        siteURL,
+				UseIPProxy: useIPProxy,
 			},
 			web: "Uindex",
 		},

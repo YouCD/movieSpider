@@ -18,6 +18,7 @@ ExcludeWords:
   - 720p
   - dvsux
   - 480p
+  - 360p
   #- hdr
   - .dv.
   - .dolby.vision
@@ -57,7 +58,7 @@ Feed:
     UseIPProxy: true
   Knaben:
     Scheduling: "*/3 * * * *"
-    Url: "https://rss.knaben.eu////hidexxx"
+    Url: "https://rss.knaben.org////hidexxx"
   TheRarbg:
     - Scheduling: "*/3 * * * *"
       Url: "https://therarbg.to/api/v1/recommendation-list/tv/"
@@ -71,6 +72,13 @@ Feed:
       ResourceType: tv
     - Scheduling: "*/3 * * * *"
       Url: "https://uindex.org/top.php?c=1"
+      ResourceType: movie
+  Ilcorsaronero:
+    - Scheduling: "*/3 * * * *"
+      Url: "https://ilcorsaronero.link/cat/serie-tv"
+      ResourceType: tv
+    - Scheduling: "*/3 * * * *"
+      Url: "https://ilcorsaronero.link/cat/film"
       ResourceType: movie
 Global:
   LogLevel: info

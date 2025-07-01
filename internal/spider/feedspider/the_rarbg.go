@@ -22,6 +22,7 @@ type theRarbgItem struct {
 	Imdb       string `json:"imdb"`
 	Name       string `json:"name"`
 	DetailPage string `json:"detail_page"`
+	Poster     string `json:"poster"`
 }
 type TheRarbg struct {
 	BaseFeeder
@@ -29,7 +30,7 @@ type TheRarbg struct {
 	webHost string
 }
 
-func NewTheRarbg(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy, useCloudflareBypass bool) Feeder {
+func NewTheRarbg(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) Feeder {
 	parse, err := url.Parse(siteURL)
 	if err != nil {
 		panic(err)
@@ -37,10 +38,9 @@ func NewTheRarbg(scheduling string, resourceType types.VideoType, siteURL string
 	return &TheRarbg{
 		BaseFeeder: BaseFeeder{
 			BaseFeed: types.BaseFeed{
-				Scheduling:          scheduling,
-				Url:                 siteURL,
-				UseIPProxy:          useIPProxy,
-				UseCloudflareBypass: useCloudflareBypass,
+				Scheduling: scheduling,
+				Url:        siteURL,
+				UseIPProxy: useIPProxy,
 			},
 			web: "the_rarbg",
 		},
@@ -105,7 +105,7 @@ func (r *TheRarbg) moviePageURL(pageURL string) (string, error) {
 		return "", fmt.Errorf("moviePageURL: %w", err)
 	}
 	magnet := ""
-	doc.Find("body > div.topnav > div:nth-child(4) > div.postContL.col-12.col-md-9.col-lg-11 > div.table-responsive > table > tbody > tr > td > button > a").Each(func(_ int, s *goquery.Selection) {
+	doc.Find("body > div.topnav > div:nth-child(4) > div.postContL.col-12.col-md-9.col-lg-11 > div.table-responsive > table > tbody > tr:nth-child(2) > td > div > div.download-primary > a").Each(func(_ int, s *goquery.Selection) {
 		val, exists := s.Attr("href")
 		if !exists {
 			return

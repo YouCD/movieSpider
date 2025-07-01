@@ -18,8 +18,9 @@
 * [1337x](https://1337x.to/)
 * ~~[rarbg2](https://en.rarbg2.xyz)~~
 * [TheRARBG](https://therarbg.com/)
-* [EXT](https://extto.com/)
+* ~~[EXT](https://extto.com/)~~ 效果不理想
 * [uindex](https://uindex.org/)
+* [Ilcorsaronero](https://ilcorsaronero.link/)
 
 ## 使用TG
 
@@ -48,7 +49,7 @@ report_feedvioes - 报告Feed资源
   ```
 * [x] 集成DHT网络：感谢[nbdy/dhtc](https://github.com/nbdy/dhtc)
 * [x] 微调Qwen2.5-0.5B模型： 提高种子名规范化能力
-* [x] 引入[CloudflareBypassForScraping](https://github.com/sarperavci/CloudflareBypassForScraping)： 自动处理Cloudflare防护
+* [x] ~~引入[CloudflareBypassForScraping](https://github.com/sarperavci/CloudflareBypassForScraping)： 自动处理Cloudflare防护~~
 
 
 * [ ] 自动化下载字幕
@@ -115,6 +116,7 @@ ExcludeWords:
   - 720p
   - dvsux
   - 480p
+  - 360p
   #- hdr
   - .dv.
   - .dolby.vision
@@ -154,7 +156,7 @@ Feed:
     Url: "https://thepiratebay.party/rss/top100/200"
   Knaben:
     Scheduling: "*/3 * * * *"
-    Url: "https://rss.knaben.eu////hidexxx"
+    Url: "https://rss.knaben.org////hidexxx"
   TheRarbg:
     - Scheduling: "*/3 * * * *"
       Url: "https://therarbg.to/api/v1/recommendation-list/tv/"
@@ -162,21 +164,19 @@ Feed:
     - Scheduling: "*/3 * * * *"
       Url: "https://therarbg.to/api/v1/recommendation-list/Movies/"
       ResourceType: movie
-  Extto:
-    - Scheduling: "*/3 * * * *"
-      Url: "https://search.extto.com/browse/?cat=2&page_size=100&sort=age&order=desc&age=0"
-      ResourceType: tv
-      UseCloudflareBypass: true
-    - Scheduling: "*/3 * * * *"
-      Url: "https://search.extto.com/browse/?page_size=100&cat=1&sort=age&order=desc&age=0"
-      ResourceType: movie
-      UseCloudflareBypass: true
   Uindex:
     - Scheduling: "*/3 * * * *"
       Url: "https://uindex.org/top.php?c=2"
       ResourceType: tv
     - Scheduling: "*/3 * * * *"
       Url: "https://uindex.org/top.php?c=1"
+      ResourceType: movie
+  Ilcorsaronero:
+    - Scheduling: "*/3 * * * *"
+      Url: "https://ilcorsaronero.link/cat/serie-tv"
+      ResourceType: tv
+    - Scheduling: "*/3 * * * *"
+      Url: "https://ilcorsaronero.link/cat/film"
       ResourceType: movie
 Global:
   LogLevel: info
@@ -185,7 +185,6 @@ Global:
   IPProxyPool: "http://127.0.0.1:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
   NameParserModel: http://127.0.0.1:8000 # 使用模型进行解析种子名称
-  CloudflareBypass: http://127.0.0.1:8989 # Cloudflare 绕过代理
   
 # Downloader 下载
 Downloader:
