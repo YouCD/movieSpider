@@ -100,7 +100,10 @@ func (t *TGBot) StartBot() {
 		if !update.Message.IsCommand() { // ignore any non-command Messages
 			continue
 		}
-
+		if !t.checkUser(update.Message.Chat.ID, update) {
+			log.Warnf("用户 %s(%d) 没有权限执行命令 %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Command())
+			continue
+		}
 		switch update.Message.Command() {
 		case CMDReportDownload: // movie_download 指令
 			aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)

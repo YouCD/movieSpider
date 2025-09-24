@@ -1,14 +1,15 @@
 package job
 
 import (
-	"github.com/olekukonko/tablewriter"
-	"github.com/robfig/cron/v3"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"os"
 	"strconv"
+
+	"github.com/olekukonko/tablewriter"
+	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 )
 
 type Report struct {
@@ -82,7 +83,10 @@ func reportFeedVideoStatistics() {
 		Total += reportCount.Count
 		table.Append([]string{reportCount.Web, strconv.Itoa(reportCount.Count)})
 	}
-
+	if Total == 0 {
+		log.Info("无下载资源")
+		return
+	}
 	table.SetFooter([]string{"总数", strconv.Itoa(Total)})
 	log.Info("\n\n下载统计: ")
 	table.Render()
@@ -100,7 +104,10 @@ func reportAria2DownloadQueue() {
 		log.Info("Report: aria2 下载队列为空")
 		return
 	}
-
+	if len(task) == 0 {
+		log.Info("Report: aria2 队列为空")
+		return
+	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Gid", "Names", "Type"})
 	for k, v := range task {
