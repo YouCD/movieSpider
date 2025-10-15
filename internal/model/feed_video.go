@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
+	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"strings"
 	"time"
@@ -92,6 +93,10 @@ func (m *MovieDB) findTV(names []string, query string, argsFunc func(name string
 	log.Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", names)
 	//nolint:perfsprint
 	for _, n := range names {
+		if tools.ContainsChinese(n) {
+			continue
+		}
+		log.Debugf("findTV 获取数据: %s.", n)
 		if err := m.db.Model(&types.FeedVideo{}).Where(query, argsFunc(n)).Find(&firstVideos).Error; err != nil {
 			return nil, fmt.Errorf("查找失败, err:%w", err)
 		}

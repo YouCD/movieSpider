@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	log1 "log"
@@ -118,6 +119,9 @@ func (m *MovieDB) SaveFeedVideoFromChan() {
 		}
 	}()
 }
+func (m *MovieDB) GetDB() *gorm.DB {
+	return m.db
+}
 
 func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	//  如果是空值，跳过
@@ -145,7 +149,7 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	}
 
 	// 使用模型解析种子名
-	typeStr, newName, year, resolution, err := nameParser.NameParserModelHandler(feedVideo.TorrentName)
+	typeStr, newName, year, resolution, err := nameParser.NameParserModelHandler(context.Background(), feedVideo.TorrentName)
 	if err != nil {
 		log.Warnf("TorrentName: %#v,err: %s", feedVideo.TorrentName, err)
 		return nil, err

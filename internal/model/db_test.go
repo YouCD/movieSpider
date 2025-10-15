@@ -177,7 +177,3 @@ func Test_movieDB_IsDatePublished(t *testing.T) {
 	}
 	fmt.Println(obj.IsDatePublished())
 }
-
-func Test_torrentName2info(t *testing.T) {
-	fmt.Println(torrentName2info("BBC Proms 2024 - Prom 18 - Sam Smith at the Proms (1080p, soft English subtitles)"))
-}

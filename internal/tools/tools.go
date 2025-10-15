@@ -51,3 +51,13 @@ func ByteCountBinary(b int64) string {
 	}
 	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }
+
+// ContainsChinese 判断字符串中是否包含中文
+func ContainsChinese(s string) bool {
+	for _, r := range s {
+		if r >= '\u4e00' && r <= '\u9fff' {
+			return true
+		}
+	}
+	return false
+}

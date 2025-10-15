@@ -3,14 +3,15 @@ package douban
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/config"
 	httpClient2 "movieSpider/internal/httpclient"
 	"movieSpider/internal/types"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/youcd/toolkit/log"
 )
 
 func TestDouBan_Crawler(t *testing.T) {
@@ -20,7 +21,7 @@ func TestDouBan_Crawler(t *testing.T) {
 		return
 	}
 	request.Header.Set("User-Agent", "go")
-	client := httpClient2.NewHTTPClient()
+	client := httpClient2.HTTPClient
 	resp, err := client.Do(request)
 	if err != nil {
 		log.Error(err)
@@ -56,7 +57,7 @@ func TestDouBan_Crawler1(t *testing.T) {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
 
 	d := &DouBan{
-		url:        "https://movie.douban.com/people/251312920/wish",
+		url:        "https://movie.douban.com/people/251312920/wish?start=60&sort=time&type=all&filter=all&mode=grid",
 		scheduling: "tt.fields.scheduling",
 	}
 	videos := d.Crawler()

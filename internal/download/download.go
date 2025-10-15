@@ -100,10 +100,10 @@ func (d *Download) downloadTvTask() (err error) {
 	}
 
 	// 推送 磁力连接至 aria2
-	err = d.aria2Download(needDownloadFeedVideo...)
-	if err != nil {
-		log.Error(err)
-	}
+	//err = d.aria2Download(needDownloadFeedVideo...)
+	//if err != nil {
+	//	log.Error(err)
+	//}
 
 	// 更新feedVideo的下载状态，记录这一次下载的视频
 	for _, video := range needDownloadFeedVideo {

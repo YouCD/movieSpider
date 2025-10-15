@@ -13,7 +13,7 @@ import (
 
 const prompt = `规范化BT种子名称，移除广告和无关信息，按以下格式输出：类型,年份,规范名称,分辨率`
 
-func NameParserModelHandler(name string) (string, string, string, string, error) {
+func NameParserModelHandler(ctx context.Context, name string) (string, string, string, string, error) {
 	// +"/v1/chat/completions
 	conf := openai.DefaultAnthropicConfig("", config.Config.Global.NameParserModel+"/v1")
 	conf.APIType = openai.APITypeOpenAI
@@ -21,7 +21,7 @@ func NameParserModelHandler(name string) (string, string, string, string, error)
 	client := openai.NewClientWithConfig(conf)
 
 	resp, err := client.CreateChatCompletion(
-		context.Background(),
+		ctx,
 		openai.ChatCompletionRequest{
 			Messages: []openai.ChatCompletionMessage{
 				{Role: "system", Content: prompt},
