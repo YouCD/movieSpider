@@ -16,14 +16,12 @@ import (
 
 //nolint:tagliatelle
 type theRarbgItem struct {
-	URL        string `json:"url"`
-	Thumbnail  string `json:"thumbnail"`
-	Rating     string `json:"rating"`
-	Imdb       string `json:"imdb"`
-	Name       string `json:"name"`
-	DetailPage string `json:"detail_page"`
-	Poster     string `json:"poster"`
+	Url    string `json:"url"`
+	Rating string `json:"rating"`
+	Name   string `json:"name"`
+	Poster string `json:"poster"`
 }
+
 type TheRarbg struct {
 	BaseFeeder
 	typ     types.VideoType
@@ -62,7 +60,7 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 
 	videosArr := make([]*types.FeedVideoBase, 0)
 	for _, item := range result {
-		URLStr := fmt.Sprintf("%s%s", r.webHost, item.DetailPage)
+		URLStr := fmt.Sprintf("%s%s", r.webHost, item.Url)
 		videosArr = append(videosArr, &types.FeedVideoBase{
 			TorrentName: item.Name,
 			TorrentURL:  URLStr,
@@ -92,7 +90,6 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 		}(videoBase)
 	}
 	wg.Wait()
-	log.Infof("the_rarbg: %v", len(videos))
 	return videos, nil
 }
 

@@ -72,7 +72,6 @@ type config struct {
 	DouBan       *DouBan  `json:"DouBan" yaml:"DouBan" validate:"required"`
 	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
 	Feed         struct {
-		BTBT          *types.BaseFeed `json:"BTBT" yaml:"BTBT" validate:"required"`
 		EZTV          *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
 		GLODLS        *types.BaseFeed `json:"GLODLS" yaml:"GLODLS" validate:"required"`
 		TORLOCK       []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
