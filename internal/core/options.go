@@ -52,7 +52,7 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	uindexTv, uindexMovie := createFeederWithURLs(config.Config.Feed.Uindex, feedspider.NewUindex)
 
 	// NewIlcorsaronero
-	IlcorsaroneroTv, IlcorsaroneroMovie := createFeederWithURLs(config.Config.Feed.Uindex, feedspider.NewIlcorsaronero)
+	IlcorsaroneroTv, IlcorsaroneroMovie := createFeederWithURLs(config.Config.Feed.Ilcorsaronero, feedspider.NewIlcorsaronero)
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
 			feedEZTV,

@@ -78,7 +78,7 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 			defer wg.Done()
 			magnet, err := r.moviePageURL(videoBase.TorrentURL)
 			if err != nil {
-				log.Warnf("rarbg2: %s", err)
+				log.Warnf("the_rarbg: %s", err)
 				return
 			}
 			videos = append(videos, &types.FeedVideoBase{
@@ -88,9 +88,11 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 				Type:        videoBase.Type,
 				Web:         videoBase.Web,
 			})
+
 		}(videoBase)
 	}
 	wg.Wait()
+	log.Infof("the_rarbg: %v", len(videos))
 	return videos, nil
 }
 
@@ -105,7 +107,18 @@ func (r *TheRarbg) moviePageURL(pageURL string) (string, error) {
 		return "", fmt.Errorf("moviePageURL: %w", err)
 	}
 	magnet := ""
-	doc.Find("body > div.topnav > div:nth-child(4) > div.postContL.col-12.col-md-9.col-lg-11 > div.table-responsive > table > tbody > tr:nth-child(2) > td > div > div.download-primary > a").Each(func(_ int, s *goquery.Selection) {
+	selectorA := "body > div.topnav > div:nth-child(5) > div.postContL.col-12.col-md-9.col-lg-11 > div.table-responsive > table > tbody > tr:nth-child(2) > td > div > div.download-primary > a.btn-download.magnet-btn"
+	selectorB := "body > div.topnav > div:nth-child(4) > div.postContL.col-12.col-md-9.col-lg-11 > div.table-responsive > table > tbody > tr:nth-child(2) > td > div > div.download-primary > a.btn-download.magnet-btn"
+	magnet = r.getMagnet(doc, selectorA)
+	if magnet == "" {
+		magnet = r.getMagnet(doc, selectorB)
+	}
+	return magnet, nil
+}
+
+func (r *TheRarbg) getMagnet(doc *goquery.Document, selector string) string {
+	var magnet string
+	doc.Find(selector).Each(func(_ int, s *goquery.Selection) {
 		val, exists := s.Attr("href")
 		if !exists {
 			return
@@ -115,6 +128,5 @@ func (r *TheRarbg) moviePageURL(pageURL string) (string, error) {
 			return
 		}
 	})
-
-	return magnet, nil
+	return magnet
 }

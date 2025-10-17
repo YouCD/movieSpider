@@ -123,9 +123,6 @@ ExcludeWords:
   - .dolby.vision
 
 Feed:
-  BTBT:
-    Scheduling: "*/5 * * * *"
-    Url: "https://www.1lou.me/forum-1.htm"
   EZTV:
     Scheduling: "*/5 * * * *"
     Url: "https://eztvx.to/ezrss.xml"

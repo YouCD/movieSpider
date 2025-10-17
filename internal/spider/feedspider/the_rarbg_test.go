@@ -1,9 +1,7 @@
 package feedspider
 
 import (
-	"errors"
 	"movieSpider/internal/config"
-	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"testing"
 
@@ -19,15 +17,16 @@ func TestNewTheRarbg(t *testing.T) {
 				t.Error(err)
 			}
 			for _, video := range videos {
-				filterVideo, err := model.FilterVideo(video)
-				if err != nil {
-					if errors.Is(err, model.ErrFeedVideoExclude) {
-						log.Warnf("err: %s    %#v", err, video)
-						continue
-					}
-					continue
-				}
-				log.Infof("%#v", filterVideo)
+				log.Infof("%#v", video)
+				//filterVideo, err := model.FilterVideo(video)
+				//if err != nil {
+				//	if errors.Is(err, model.ErrFeedVideoExclude) {
+				//		log.Warnf("err: %s    %#v", err, video)
+				//		continue
+				//	}
+				//	continue
+				//}
+				//log.Infof("%#v", filterVideo)
 			}
 		}
 	}
