@@ -3,6 +3,7 @@ package httpclient
 import (
 	"crypto/tls"
 	"fmt"
+	"movieSpider/internal/config"
 	"movieSpider/internal/ipproxy"
 	"net/http"
 	"net/url"
@@ -54,12 +55,12 @@ func NewIPProxyPoolHTTPClient(exampleURL string) (*http.Client, string) {
 		MaxConnsPerHost:       20,
 		MaxIdleConns:          20,
 		MaxIdleConnsPerHost:   20,
-		IdleConnTimeout:       20 * time.Second,
-		ResponseHeaderTimeout: time.Second * time.Duration(60),
+		IdleConnTimeout:       time.Second * time.Duration(config.Config.Global.Timeout),
+		ResponseHeaderTimeout: time.Second * time.Duration(config.Config.Global.Timeout),
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 	}
 	log.Debugf("use proxy: %s", proxy)
-	return &http.Client{Transport: netTransport, Timeout: time.Second * 30}, proxy
+	return &http.Client{Transport: netTransport, Timeout: time.Second * time.Duration(config.Config.Global.Timeout)}, proxy
 }
 
 func NewIPProxyPoolHTTPClientDel(exampleURL string) (*http.Client, string) {

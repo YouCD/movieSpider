@@ -17,8 +17,8 @@ SpiderDouBan -> DataBase: 存储数据
 
 FeedSpider -> 磁力网站: 定时获取各大Feed的数据
 磁力网站 --> FeedSpider: 返回电影或电视剧数据
-FeedSpider -> FeedSpider: 解析数据
-
+FeedSpider -> AI: 推送原始种子名
+AI --> FeedSpider: 返回规范的种子名
 FeedSpider --> DataBase: 存储数据
 group#Gold #LightBlue 通过电影名查询，如果feed数据中有DataBase[想看清单]中的条目
     downloader -> DataBase: 通过电影名查询feed数据中有DataBase[想看清单]中的条目;
@@ -28,10 +28,4 @@ group#Gold #LightBlue 通过电影名查询，如果feed数据中有DataBase[想
     Aria2 -> Aria2: 通过Magnet链接下载
     Aria2 -> TG: 推送消息
 end
-
-
-
-
-
-
 @enduml

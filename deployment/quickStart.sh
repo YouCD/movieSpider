@@ -134,6 +134,7 @@ Global:
   IPProxyPool: "http://moviespider_proxy:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
   NameParserModel: http://moviespider_name_parser_model:8000 # 使用模型进行解析种子名称
+  Timeout: 60
 
 # Downloader 下载
 Downloader:

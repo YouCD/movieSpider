@@ -26,6 +26,7 @@ type global struct {
 	IPProxyPool     string `json:"IPProxyPool" yaml:"IPProxyPool" validate:"omitempty,http_url"`
 	DHTThread       int    `json:"DHTThread" yaml:"DHTThread"`
 	NameParserModel string `json:"NameParserModel" yaml:"NameParserModel"  validate:"http_url"`
+	Timeout         int    `json:"Timeout" yaml:"Timeout" validate:"required"`
 }
 
 //nolint:tagliatelle

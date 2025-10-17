@@ -48,7 +48,8 @@ report_feedvioes - 报告Feed资源
   report_feedvioes - 报告Feed资源
   ```
 * [x] 集成DHT网络：感谢[nbdy/dhtc](https://github.com/nbdy/dhtc)
-* [x] 微调Qwen2.5-0.5B模型： 提高种子名规范化能力
+* [x] ~~微调Qwen2.5-0.5B模型： 提高种子名规范化能力~~
+* [x] 微调Qwen3-0.6B模型： 提高种子名规范化能力
 * [x] ~~引入[CloudflareBypassForScraping](https://github.com/sarperavci/CloudflareBypassForScraping)： 自动处理Cloudflare防护~~
 
 
@@ -58,7 +59,7 @@ report_feedvioes - 报告Feed资源
 
 ## 时序图
 
-![时序图](http://www.plantuml.com/plantuml/png/bLFBRjD05DtFLupKTJSiKmcLg28RMD5TrSM0Xs39s94p5jkcbBIbE0Jr0IGXF49n9HGt1T5Q2DEVoJoouXSOPspPqoP8R2phpdcSSprUhXFa4k-n1OX9B0plathDDB0BG4tEpGTc3Ta4tflELXolZ6pjG9mr-Vv06wqWWigeZdM5snWRIaKR6yuJstBGrV4jrqGtjCbg1O1Y2hXuCpKlGT6we2-FsDFllBV7Erlyu0UDpzZXYFaXK1YuAE55UWccgEWPzGzrvMjG4GnOlwt9NYLafKkG3j_GpPCK1lBQ2OeF6lHvbyUl-DUt4XbssEjp5Pwsj-Zd847B0YcvY9uMoCLafii3sksdcNQEv8i8cdGtK5pTLoEgChFopQzHTHsljb1nB0Ckt36hZqZPyZ2SR7J4vRQAGDi-UtyiJZ_z-VM2Vjba_Tv3gQpeusZ8UhkPz9hwJchnw_8iAVpk8--6049Ok13QMcUR_R_7qjGamydAkL-sKvYhmddxlHvLNTaIPAsJoKQ31puTfajU-cSlEcgkAPTrzc5RXADnz9DUV1j7UoAE4wOIpXtIJTn5LHkJoVvlrZgU1LwjP5dO-Gvhd09i6s1PFkIl_XS0)
+![时序图](https://www.plantuml.com/plantuml/png/bL9FRn915B_FfvYavruyqiGKqaYQwCdUcXucxeYRBBk4pkgrj4XRAOZf7nMGgbYtYO5IZIqnOhyCRsOu-HKSEhjPfWMJSY2Rztxlz-UzMLnd9C_yh8EOpHoAizvpcpxEsHRD8vHJBVk9dICkmxgsvFafuXeDULuI-ssZj4GOIP5rQZ8yeDJIB4RPybwuZaTkbfDvczmpAYjfX2PTuFdxeNW2o-ebl3xYMpz4iopgHN7m4mRd_B37ArsaCNXUmIV74pX4zLz2vT1alWMLGPktQWRjpO4eT093vnrideOm5CSUeqIx0AyQOl16V7klaDqwVtkXpKEj25-2CLe528SdqTS1OZBbwUe06gtGqywH-f112NQ3SDRKJIudCA-UZZOAK3s6e2o22dHgKAkWvF8CPXaKvTwMCXDZ9pbdHyxaFJytb_OS2yyzj3FFMChnAHvjrENLjhQhkFZnYJpx_FVt7dpTvAtcKyMinuVz3c_kHjIh-gRwI6kgDrxEXq-YqKLO_UB7OvnWkjZTDHQkHIASYXphHLl2CIkUTOlRLlNpZawY5won2__D1RtIgbPPun-tPRStxF-2o-_3VbaE1kD9JHmhX9juH38kPQFzFxnwCWsyaewyy8iTNZX3rBNGelhpiyu_)
 
 
 # 部署
@@ -185,7 +186,7 @@ Global:
   IPProxyPool: "http://127.0.0.1:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
   NameParserModel: http://127.0.0.1:8000 # 使用模型进行解析种子名称
-  
+  Timeout: 60
 # Downloader 下载
 Downloader:
   Scheduling: "*/60 * * * *"
