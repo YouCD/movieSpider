@@ -58,10 +58,10 @@ Feed:
     Url: "https://rss.knaben.org////hidexxx"
   TheRarbg:
     - Scheduling: "*/3 * * * *"
-      Url: "https://therarbg.to/api/v1/recommendation-list-v2/TV/"
+      Url: "https://therarbg.to/get-posts/category:TV:order:-se/"
       ResourceType: tv
     - Scheduling: "*/3 * * * *"
-      Url: "https://therarbg.to/api/v1/recommendation-list-v2/Movies/"
+      Url: "https://therarbg.to/get-posts/category:Movies:order:-se/"
       ResourceType: movie
   Uindex:
     - Scheduling: "*/3 * * * *"

@@ -10,7 +10,7 @@ import (
 
 func TestNewTheRarbg(t *testing.T) {
 	for _, r := range config.Config.Feed.TheRarbg {
-		if r.ResourceType == types.VideoTypeMovie {
+		if r.ResourceType == types.VideoTypeTV {
 			feeder := NewTheRarbg(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
 			videos, err := feeder.Crawler()
 			if err != nil {

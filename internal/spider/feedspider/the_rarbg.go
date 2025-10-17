@@ -2,16 +2,14 @@ package feedspider
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"movieSpider/internal/types"
 	"net/url"
 	"strings"
 	"sync"
 
-	"github.com/youcd/toolkit/log"
-
 	"github.com/PuerkitoBio/goquery"
+	"github.com/youcd/toolkit/log"
 )
 
 //nolint:tagliatelle
@@ -53,64 +51,87 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 		return nil, fmt.Errorf("%s new request,url: %s, err: %w", r.web, r.Url, err)
 	}
 
-	var result []*theRarbgItem
-	if err = json.Unmarshal(resp, &result); err != nil {
-		return nil, fmt.Errorf("%s json unmarshal, err: %w", r.web, err)
+	//var result []*theRarbgItem
+	//if err = json.Unmarshal(resp, &result); err != nil {
+	//	return nil, fmt.Errorf("%s json unmarshal, err: %w", r.web, err)
+	//}
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(resp))
+	if err != nil {
+		return nil, fmt.Errorf("moviePageURL: %w", err)
 	}
+	var urls []string
+	doc.Find("tbody > tr > td.cellName > div >  a:nth-child(1)").Each(func(_ int, s *goquery.Selection) {
+		val, exists := s.Attr("href")
+		if !exists {
+			return
+		}
+		if strings.Contains(val, "post-detail") {
+			urls = append(urls, fmt.Sprintf("%s%s", r.webHost, val))
+			return
+		}
+	})
 
-	videosArr := make([]*types.FeedVideoBase, 0)
-	for _, item := range result {
-		URLStr := fmt.Sprintf("%s%s", r.webHost, item.Url)
-		videosArr = append(videosArr, &types.FeedVideoBase{
-			TorrentName: item.Name,
-			TorrentURL:  URLStr,
-			Type:        r.typ.String(),
-			Web:         r.web,
-		})
-	}
+	//videosArr := make([]*types.FeedVideoBase, 0)
+	//for _, item := range result {
+	//	URLStr := fmt.Sprintf("%s%s", r.webHost, item.Url)
+	//	videosArr = append(videosArr, &types.FeedVideoBase{
+	//		TorrentName: item.Name,
+	//		TorrentURL:  URLStr,
+	//		Type:        r.typ.String(),
+	//		Web:         r.web,
+	//	})
+	//}
 	var videos []*types.FeedVideoBase
 	var wg sync.WaitGroup
-	for _, videoBase := range videosArr {
+	for _, urlItem := range urls {
 		wg.Add(1)
-		go func(videoBase *types.FeedVideoBase) {
+		go func(u string) {
 			defer wg.Done()
-			magnet, err := r.moviePageURL(videoBase.TorrentURL)
+			name, magnet, err := r.moviePageURL(u)
 			if err != nil {
 				log.Warnf("the_rarbg: %s", err)
 				return
 			}
+
 			videos = append(videos, &types.FeedVideoBase{
-				TorrentName: videoBase.TorrentName,
-				TorrentURL:  videoBase.TorrentURL,
+				TorrentName: name,
+				TorrentURL:  urlItem,
 				Magnet:      magnet,
-				Type:        videoBase.Type,
-				Web:         videoBase.Web,
+				Type:        r.typ.String(),
+				Web:         r.web,
 			})
 
-		}(videoBase)
+		}(urlItem)
 	}
 	wg.Wait()
 	return videos, nil
 }
 
-func (r *TheRarbg) moviePageURL(pageURL string) (string, error) {
+func (r *TheRarbg) moviePageURL(pageURL string) (string, string, error) {
 	resp, err := r.HTTPRequest(pageURL)
 	if err != nil {
-		return "", fmt.Errorf("连接请求: %w", err)
+		return "", "", fmt.Errorf("连接请求: %w", err)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(resp))
 	if err != nil {
-		return "", fmt.Errorf("moviePageURL: %w", err)
+		return "", "", fmt.Errorf("moviePageURL: %w", err)
 	}
 	magnet := ""
 	selectorA := "body > div.topnav > div:nth-child(5) > div.postContL.col-12.col-md-9.col-lg-11 > div.table-responsive > table > tbody > tr:nth-child(2) > td > div > div.download-primary > a.btn-download.magnet-btn"
 	selectorB := "body > div.topnav > div:nth-child(4) > div.postContL.col-12.col-md-9.col-lg-11 > div.table-responsive > table > tbody > tr:nth-child(2) > td > div > div.download-primary > a.btn-download.magnet-btn"
+	selectorC := "h4.text-center.m-4"
 	magnet = r.getMagnet(doc, selectorA)
 	if magnet == "" {
 		magnet = r.getMagnet(doc, selectorB)
 	}
-	return magnet, nil
+
+	var name string
+
+	doc.Find(selectorC).Each(func(_ int, s *goquery.Selection) {
+		name = s.Text()
+	})
+	return name, magnet, nil
 }
 
 func (r *TheRarbg) getMagnet(doc *goquery.Document, selector string) string {
