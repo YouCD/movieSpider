@@ -63,7 +63,7 @@ services:
     restart: always
     ports:
       - "8000:8000"
-    command: --host 0.0.0.0 --port 8000 --top-k 20 --top-p 0.8 --no-webui -m /models/Qwen2.5-0.5B-self-F16_Q4_k_M.gguf
+    command: -a Qwen3-0.6B --reasoning-format deepseek --jinja --host 0.0.0.0 --port 8000 --top-k 20 --top-p 0.8 --no-webui -m /models/Qwen3-0.6B-Instruct-2025_10_14_19_30.gguf
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 10s
