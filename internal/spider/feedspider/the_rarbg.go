@@ -46,15 +46,12 @@ func NewTheRarbg(scheduling string, resourceType types.VideoType, siteURL string
 }
 
 func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
+	log.Debugw(r.web, "type", r.typ, "url", r.Url)
 	resp, err := r.HTTPRequest(r.Url)
 	if err != nil {
 		return nil, fmt.Errorf("%s new request,url: %s, err: %w", r.web, r.Url, err)
 	}
 
-	//var result []*theRarbgItem
-	//if err = json.Unmarshal(resp, &result); err != nil {
-	//	return nil, fmt.Errorf("%s json unmarshal, err: %w", r.web, err)
-	//}
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(resp))
 	if err != nil {
 		return nil, fmt.Errorf("moviePageURL: %w", err)
@@ -71,18 +68,9 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 		}
 	})
 
-	//videosArr := make([]*types.FeedVideoBase, 0)
-	//for _, item := range result {
-	//	URLStr := fmt.Sprintf("%s%s", r.webHost, item.Url)
-	//	videosArr = append(videosArr, &types.FeedVideoBase{
-	//		TorrentName: item.Name,
-	//		TorrentURL:  URLStr,
-	//		Type:        r.typ.String(),
-	//		Web:         r.web,
-	//	})
-	//}
 	var videos []*types.FeedVideoBase
 	var wg sync.WaitGroup
+	log.Debugw(r.web, "type", r.typ, "urls", len(urls))
 	for _, urlItem := range urls {
 		wg.Add(1)
 		go func(u string) {
@@ -104,6 +92,7 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 		}(urlItem)
 	}
 	wg.Wait()
+	log.Debugw(r.web, "type", r.typ, "videos", len(videos))
 	return videos, nil
 }
 

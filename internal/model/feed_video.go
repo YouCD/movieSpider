@@ -134,73 +134,6 @@ func (m *MovieDB) CountFeedVideo() (counts []*types.ReportCount, err error) {
 	return
 }
 
-// GetFeedVideoMovieByName 通过 名称 获得 feedVideo movie
-//
-//	@Description:
-//	@receiver m
-//	@param names
-//	@return videos
-//	@return err
-func (m *MovieDB) GetFeedVideoMovieByName(names ...string) (videos []*types.FeedVideo, err error) {
-	var videos1 []*types.FeedVideo
-	log.Debugf("GetFeedVideoMovieByName 开始第一次查找Movie数据: %s.", names)
-	for _, n := range names {
-		// var likeName string
-		// likeName = fmt.Sprintf("%%%s%%", n)
-		// 只查找 没有下载过 && 类型为movie数据   and download=0
-		//nolint:rowserrcheck
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name = ? and magnet!="" and  type="movie" `, n).Rows()
-		if err != nil {
-			return nil, fmt.Errorf("查找失败, err:%w", err)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			var video types.FeedVideo
-			err = m.db.ScanRows(rows, &video)
-			if err != nil {
-				return nil, fmt.Errorf("GetFeedVideoMovieByName, err:%w", err)
-			}
-			// 将feedVideo的名称设置为搜索的名称
-			video.Name = n
-			videos1 = append(videos1, &video)
-		}
-	}
-	if len(videos1) > 0 {
-		return videos1, nil
-	}
-
-	for _, n := range names {
-		// 查找 没有下载过 && 类型不等于TV的数据
-
-		/*
-			var likeName string
-			if strings.Contains(n, ".") {
-				likeName = fmt.Sprintf("%%.%s.%%", n)
-			} else {
-				likeName = fmt.Sprintf("%%%s%%", n)
-			}
-		*/
-		//nolint:rowserrcheck
-		rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download=0 and type="movie"`, n).Rows()
-		// rows, err := m.db.Model(&types.FeedVideo{}).Where(`name like ? and magnet!="" and download=0 and type!="tv"`, n).Rows()
-		if err != nil {
-			return nil, fmt.Errorf("查找失败, err:%w", err)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			var video types.FeedVideo
-			err = m.db.ScanRows(rows, &video)
-			if err != nil {
-				return nil, fmt.Errorf("GetFeedVideoMovieByName, err:%w", err)
-			}
-			video.Name = n
-			videos = append(videos, &video)
-		}
-	}
-	//nolint:nakedret
-	return
-}
-
 func (m *MovieDB) GetFeedVideoMovieByNames(names ...string) ([]*types.FeedVideo, error) {
 	log.Debugf("开始第一次查找Movie数据: %s.", names)
 	firstQuery := `name = ? and magnet!="" and type="movie"`
@@ -273,7 +206,7 @@ func (m *MovieDB) CreatFeedVideo(video *types.FeedVideo) (err error) {
 		}
 		return fmt.Errorf("%s err:%w", video.Name, err)
 	}
-	log.Debugf("CreatFeedVideo 数据已添加 video: %#v", video)
+	log.Debugf("CreatFeedVideo 数据已添加 video.TorrentName: %s", video.TorrentName)
 	return
 }
 
@@ -289,4 +222,37 @@ func (m *MovieDB) UpdateFeedVideo(video *types.FeedVideo) (err error) {
 		return err
 	}
 	return
+}
+
+// UpdateFeedVideos
+//
+//	@Description: 批量更新feed视频 所有字段
+//	@receiver m
+//	@param videos
+//	@return err
+func (m *MovieDB) UpdateFeedVideos(videos ...*types.FeedVideo) (err error) {
+	if len(videos) == 0 {
+		return nil
+	}
+	log.Debugw("MovieDB", "数据量", len(videos))
+
+	// 使用事务确保数据一致性
+	tx := m.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		return err
+	}
+
+	for _, video := range videos {
+		if err := tx.Model(&types.FeedVideo{}).Where("id=?", video.ID).Updates(video).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit().Error
 }

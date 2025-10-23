@@ -29,8 +29,7 @@ func (t *ThePirateBay) Crawler() ([]*types.FeedVideoBase, error) {
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.Debugf("%s Data: %#v", strings.ToUpper(t.web), fd.String())
-
+	log.Debugw(t.web, "Data", fd.String())
 	videos := make([]*types.FeedVideoBase, 0)
 	for _, v := range fd.Items {
 		if len(v.Categories) < 1 {

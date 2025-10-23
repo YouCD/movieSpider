@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
-	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
@@ -35,8 +34,7 @@ func (t *Torlock) Crawler() ([]*types.FeedVideoBase, error) {
 		if err != nil {
 			return nil, ErrFeedParseURL
 		}
-		log.Debugf("%s Data: %#v", strings.ToUpper(t.web), fd.String())
-
+		log.Debugw(t.web, "type", t.typ, "Data", fd.String())
 		var videos1 []*types.FeedVideoBase
 		for _, v := range fd.Items {
 			// 片名
@@ -63,7 +61,7 @@ func (t *Torlock) Crawler() ([]*types.FeedVideoBase, error) {
 		if err != nil {
 			return nil, ErrFeedParseURL
 		}
-		log.Debugf("TORLOCK.tv Data: %#v", fd.String())
+		log.Debugw(t.web, "type", t.typ, "Data", fd.String())
 		var videos1 []*types.FeedVideoBase
 		for _, v := range fd.Items {
 			var fVideo types.FeedVideoBase

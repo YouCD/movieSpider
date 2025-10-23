@@ -26,64 +26,55 @@ func NewDownloader(scheduling string) *Download {
 }
 
 func (d *Download) downloadTask() {
-	if err := d.downloadMovieTask(); err != nil {
+	if err := d.download(types.VideoTypeTV, model.NewMovieDB().GetFeedVideoTVByNames); err != nil {
 		log.Error(err)
 	}
-	if err := d.downloadTvTask(); err != nil {
+	if err := d.download(types.VideoTypeMovie, model.NewMovieDB().GetFeedVideoMovieByNames); err != nil {
 		log.Error(err)
 	}
 }
 
-// downloadTvTask
-//
-//	@Description: 下载电视剧
-//	@receiver d
-//	@return err
-//
-//nolint:nakedret
-func (d *Download) downloadTvTask() (err error) {
-	log.Info("Downloader tv working...")
-	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.VideoTypeTV)
+func (d *Download) download(tvOrMovie types.VideoType, f func(names ...string) ([]*types.FeedVideo, error)) (err error) {
+	log.Infow(tvOrMovie.String(), "Downloader working...")
+	videos, err := model.NewMovieDB().FetchDouBanVideoByType(tvOrMovie)
 	if err != nil {
 		return fmt.Errorf("FetchDouBanVideoByType,err: %w", err)
 	}
 
 	//  FilterMap 暂存 电视剧名相同的视频
 	var FilterMap = make(map[string][]*types.FeedVideo)
-	log.Info("查找需要下载的tv.")
 
+	var videoList []*types.FeedVideo
 	// 归类同一个电视剧名的 feedVideo
 	for douBanVideo, name := range videos {
-		// 获取 tv
-		videoList, err := model.NewMovieDB().GetFeedVideoTVByNames(name...)
+		log.Infow(tvOrMovie.String(), "douBanVideo", douBanVideo.Names)
+		videoList, err = f(name...)
 		if err != nil {
 			log.Warn(err)
 		}
 		if len(videoList) == 0 {
 			continue
 		}
-
+		log.Infof("douBanVideo:%v   种子数: %#v", douBanVideo.Names, len(videoList))
 		// 归类同一个电视剧名的视频
 		for _, video := range videoList {
 			// 添加 豆瓣ID
 			video.DoubanID = douBanVideo.DoubanID
 			//  将此次所有feedVideo的下载状态更新为3
 			video.Download = 3
-
-			err = model.NewMovieDB().UpdateFeedVideo(video)
-			if err != nil {
-				log.Error(err)
-			}
-
 			// 如果 feedVideo 不能转化为 downloadHistory 则跳过
 			downloadHistory := video.Convert2DownloadHistory()
 			if downloadHistory == nil {
 				log.Debugf("TorrentName: %#v 不能转化为 downloadHistory ", video.TorrentName)
 				continue
 			}
-
 			FilterMap[douBanVideo.Names] = append(FilterMap[douBanVideo.Names], video)
 		}
+	}
+	// 批量更新
+	err = model.NewMovieDB().UpdateFeedVideos(videoList...)
+	if err != nil {
+		log.Error(err)
 	}
 
 	// 根据 清晰度 季数和集数过滤
@@ -107,88 +98,10 @@ func (d *Download) downloadTvTask() (err error) {
 
 	// 更新feedVideo的下载状态，记录这一次下载的视频
 	for _, video := range needDownloadFeedVideo {
+		log.Infow(tvOrMovie.String(), "更新", video.TorrentName)
 		UpdateFeedVideoAndDownloadHistory(video)
 	}
 	return
-}
-
-// downloadMovieTask
-//
-//	@Description: 下载电影
-//	@receiver d
-//	@return error
-//
-//nolint:nakedret
-func (d *Download) downloadMovieTask() (err error) {
-	// 获取 豆瓣 数据
-	log.Info("Downloader movie working...")
-	videos, err := model.NewMovieDB().FetchDouBanVideoByType(types.VideoTypeMovie)
-	if err != nil {
-		return fmt.Errorf("FetchDouBanVideoByType,err: %w", err)
-	}
-
-	//  FilterMap 暂存 电视剧名相同的视频
-	var FilterMap = make(map[string][]*types.FeedVideo)
-	log.Info("查找需要下载的movie.")
-
-	// 归类同一个电视剧名的 feedVideo
-	for douBanVideo, names := range videos {
-		// 获取 feedVideo movie
-		log.Infof("douBanVideo: %s", douBanVideo.Names)
-		videoList, err := model.NewMovieDB().GetFeedVideoMovieByNames(names...)
-		if err != nil {
-			//fmt.Errorf("GetFeedVideoMovieByNames,names:%s,err: %w", strings.Join(names, ","), err)
-			log.Warnf("douBanVideo: %s,err:%s", douBanVideo.Names, err)
-		}
-		if len(videoList) == 0 {
-			log.Debugf("douBanVideo: %s 已全部下载完毕，或该影片没有更新.", douBanVideo.Names)
-			continue
-		}
-		log.Infof("douBanVideo:%v   种子数: %#v", douBanVideo.Names, len(videoList))
-		for _, video := range videoList {
-			// 添加 豆瓣ID
-			video.DoubanID = douBanVideo.DoubanID
-
-			//  将此次所有feedVideo的下载状态更新为3
-			video.Download = 3
-			err = model.NewMovieDB().UpdateFeedVideo(video)
-			if err != nil {
-				log.Error(err)
-			}
-			// 如果 feedVideo 不能转化为 downloadHistory 则跳过
-			downloadHistory := video.Convert2DownloadHistory()
-			if downloadHistory == nil {
-				log.Debugf("TorrentName: %#v 不能转化为 downloadHistory ", video.TorrentName)
-				continue
-			}
-			FilterMap[douBanVideo.Names] = append(FilterMap[douBanVideo.Names], video)
-		}
-	}
-
-	// 根据 清晰度 季数和集数过滤
-	needDownloadFeedVideo := make([]*types.FeedVideo, 0)
-	for _, v := range FilterMap {
-		list := FilterByResolution(types.VideoTypeMovie, v...)
-		needDownloadFeedVideo = append(needDownloadFeedVideo, list...)
-	}
-	//  如果没有需要下载的视频 则返回
-	if len(needDownloadFeedVideo) == 0 {
-		log.Warn("此次没有要下载的movie.")
-		return
-	}
-
-	// 推送 磁力连接至 aria2
-	err = d.aria2Download(needDownloadFeedVideo...)
-	if err != nil {
-		log.Warn(err)
-	}
-
-	for _, video := range needDownloadFeedVideo {
-		log.Debugf("更新 %s ", video.TorrentName)
-		UpdateFeedVideoAndDownloadHistory(video)
-	}
-
-	return err
 }
 
 var (
@@ -269,7 +182,7 @@ func (d *Download) DownloadByName(name, resolution string) (msg string) {
 	wg.Wait()
 
 	// 获取 磁力连接
-	videos, err := model.NewMovieDB().GetFeedVideoMovieByName([]string{name}...)
+	videos, err := model.NewMovieDB().GetFeedVideoMovieByNames([]string{name}...)
 	if err != nil {
 		log.Error(err)
 	}

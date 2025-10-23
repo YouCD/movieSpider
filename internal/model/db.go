@@ -11,11 +11,12 @@ import (
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/youcd/toolkit/log"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -105,15 +106,15 @@ func (m *MovieDB) SaveFeedVideoFromChan() {
 
 			if err := NewMovieDB().CreatFeedVideo(feedVideo); err != nil {
 				if errors.Is(err, ErrDataExist) {
-					log.Debugf("%s.%s err: %s", strings.ToUpper(feedVideo.Web), feedVideo.Type, err)
+					log.Debugf("%s.%s err: %s", feedVideo.Web, feedVideo.Type, err)
 					continue
 				}
 				log.Error(err)
 				continue
 			}
-			msg := fmt.Sprintf("%s.%s: %s 保存完毕.", strings.ToUpper(feedVideo.Web), feedVideo.Type, feedVideo.Name)
+			msg := fmt.Sprintf("%s.%s: %s 保存完毕.", feedVideo.Web, feedVideo.Type, feedVideo.Name)
 			if feedVideo.Type == "" {
-				msg = fmt.Sprintf("%s: %s 保存完毕.", strings.ToUpper(feedVideo.Web), feedVideo.Name)
+				msg = fmt.Sprintf("%s: %s 保存完毕.", feedVideo.Web, feedVideo.Name)
 			}
 			log.Info(msg)
 		}

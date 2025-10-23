@@ -36,6 +36,7 @@ func (w *Web1337x) Crawler() ([]*types.FeedVideoBase, error) {
 }
 
 func (w *Web1337x) crawler() ([]*types.FeedVideoBase, error) {
+	log.Debugw(w.web, "type", w.typ, "url", w.Url)
 	videosTemp := make([]*types.FeedVideoBase, 0)
 	data, err := w.HTTPRequest(w.Url)
 	if err != nil {

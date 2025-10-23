@@ -48,7 +48,7 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.Debugf("%s Data: %#v", strings.ToUpper(g.web), fd.String())
+	log.Debugw(g.web, "Data", fd.String())
 	//nolint:prealloc
 	var videosA []*types.FeedVideoBase
 	for _, v := range fd.Items {

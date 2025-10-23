@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/spf13/cast"
 	"github.com/youcd/toolkit/log"
 	"github.com/zyxar/argo/rpc"
 )
@@ -208,21 +209,22 @@ func (a *Aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompl
 //	@param completedFiles
 //	@return []*types.ReportCompletedFiles
 func (a *Aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ...*types.ReportCompletedFiles) []*types.ReportCompletedFiles {
+	infoMap := make(map[string]int)
 	for _, v := range sessionInfo {
-		file, size := getMaxSizeFile(v.Files)
+		for _, i := range v.Files {
+			infoMap[v.Gid] += cast.ToInt(i.Length)
+		}
+	}
+
+	for _, v := range sessionInfo {
+		file := getFile(v)
 		if file == "" {
 			continue
 		}
-		if strings.Contains(file, "[METADATA]") {
-			continue
-		}
-		// 下载了多少
-		CompletedLength, err := strconv.Atoi(v.CompletedLength)
-		if err != nil {
-			log.Error(err)
-		}
+
 		// 文件完成度百分比
-		completed := float32(CompletedLength) / float32(size) * 100
+		size := infoMap[v.Gid]
+		completed := cast.ToFloat32(v.CompletedLength) / float32(size) * 100
 		completedFiles = append(completedFiles, &types.ReportCompletedFiles{
 			GID:       v.Gid,
 			Size:      tools.ByteCountBinary(int64(size)),
@@ -231,6 +233,20 @@ func (a *Aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ..
 		})
 	}
 	return completedFiles
+}
+func getFile(info rpc.StatusInfo) string {
+	var filename string
+	for _, f := range info.Files {
+		if strings.HasPrefix(f.Path, "[METADATA]") {
+			continue
+		}
+		s := strings.Split(f.Path, "/")
+
+		if len(s) >= 3 {
+			filename = s[2]
+		}
+	}
+	return filename
 }
 
 // AddDownloadTask
@@ -277,8 +293,11 @@ func getMaxSizeFile(files []rpc.FileInfo) (string, int) {
 	var maxSizeFile int
 	var f rpc.FileInfo
 	for _, file := range files {
-		if len(file.Length) > maxSizeFile {
-			maxSizeFile = len(file.Length)
+		if strings.HasPrefix(file.Path, "[METADATA]") {
+			continue
+		}
+		if cast.ToInt(file.Length) > maxSizeFile {
+			maxSizeFile = cast.ToInt(file.Length)
 			f = file
 		}
 	}

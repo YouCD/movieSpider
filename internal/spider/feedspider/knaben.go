@@ -93,8 +93,7 @@ func (k *Knaben) Crawler() (videos []*types.FeedVideoBase, err error) {
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.Debugf("%s Data: %#v", strings.ToUpper(k.web), fd.String())
-
+	log.Debugw(k.web, "Data", fd.String())
 	resp, err := k.HTTPRequest(k.Url)
 	if err != nil {
 		return nil, fmt.Errorf("btbt new request,url: %s, err: %w", k.Url, err)

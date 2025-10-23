@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"movieSpider/internal/config"
+	"net"
 	"net/http"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/youcd/toolkit/log"
@@ -14,6 +16,23 @@ import (
 
 var (
 	ErrProxyIsEmpty = errors.New("proxy is empty")
+	// 创建一个带连接池的HTTP客户端
+	httpClient = &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			MaxIdleConns:          100,              // 最大空闲连接数
+			MaxIdleConnsPerHost:   10,               // 每个主机最大空闲连接数
+			MaxConnsPerHost:       50,               // 每个主机最大连接数
+			IdleConnTimeout:       90 * time.Second, // 空闲连接超时时间
+			TLSHandshakeTimeout:   10 * time.Second, // TLS握手超时
+			ExpectContinueTimeout: 1 * time.Second,  // Expect请求超时
+		},
+		Timeout: 60 * time.Second, // 整体请求超时
+	}
 )
 
 type PoolDataIP struct {
@@ -38,7 +57,7 @@ func FetchProxy(typ string) *PoolDataIP {
 	}
 	urlStr := fmt.Sprintf("%s/%s", config.Config.Global.IPProxyPool, typ)
 	//nolint:noctx
-	resp, err := http.DefaultClient.Get(urlStr)
+	resp, err := httpClient.Get(urlStr)
 	if err != nil {
 		log.Errorf("Feed.ProxyPool %s,err: %s", config.Config.Global.IPProxyPool, err.Error())
 		return nil
@@ -57,7 +76,7 @@ func DelProxy(ip string) {
 	log.Warn("DelProxy: ", ip)
 	urlStr := fmt.Sprintf("%s/del?ip=%s", config.Config.Global.IPProxyPool, ip)
 	//nolint:noctx
-	resp, err := http.DefaultClient.Get(urlStr)
+	resp, err := httpClient.Get(urlStr)
 	if err != nil {
 		log.Errorf("Feed.ProxyPool %s,err: %s", config.Config.Global.IPProxyPool, err)
 		return
@@ -96,7 +115,7 @@ func FetchProxyTypeCount() (c *ProxyTypeCount) {
 
 	urlStr := config.Config.Global.IPProxyPool + "/count"
 	//nolint:noctx
-	resp, err := http.DefaultClient.Get(urlStr)
+	resp, err := httpClient.Get(urlStr)
 	if err != nil {
 		log.Errorf("Feed.ProxyPool %s,err: %s", config.Config.Global.IPProxyPool, err.Error())
 		return nil

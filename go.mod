@@ -22,7 +22,7 @@ require (
 	github.com/youcd/toolkit v0.0.0-20250626035250-e9ddcca0953f
 	github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063
 	gorm.io/driver/mysql v1.6.0
-	gorm.io/gorm v1.30.0
+	gorm.io/gorm v1.31.0
 )
 
 //replace github.com/youcd/toolkit => /home/ycd/self_data/source_code/toolkit
@@ -36,7 +36,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-sql-driver/mysql v1.8.1 // indirect
+	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect

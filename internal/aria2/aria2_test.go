@@ -2,35 +2,14 @@ package aria2
 
 import (
 	"fmt"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/config"
 	"testing"
+
+	"github.com/youcd/toolkit/log"
 )
 
 func init() {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
-}
-func downloadCompleteNotify() {
-	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
-	if err != nil {
-		fmt.Println("err  ", err)
-		return
-	}
-
-	for {
-		subscribeCh := newAria2.Subscribe()
-		select {
-		case completedDownload, ok := <-subscribeCh:
-			if ok {
-				fmt.Println("ccc", newAria2)
-				// 处理已完成的下载任务
-				fmt.Println("Received completed video:", completedDownload)
-			} else {
-				continue
-			}
-
-		}
-	}
 }
 
 func Test_aria2_DownloadList(t *testing.T) {
@@ -92,17 +71,6 @@ func Test_aria2_CompletedFiles(t *testing.T) {
 		t.Error(err)
 	}
 	files := newAria2.CurrentActiveAndStopFiles()
-	//var s string
-	//var bs string
-	//for _, file := range files {
-	//	if utf8.RuneCountInString(file.FileName) > 40 {
-	//		nameRune := []rune(file.FileName)
-	//		bs += fmt.Sprintf("%-40s | %s\n", string(nameRune[0:40]), file.Completed)
-	//	} else {
-	//		bs += fmt.Sprintf("%-40s | %s\n", file.FileName, file.Completed)
-	//	}
-	//}
-
 	var msg string
 	for _, file := range files {
 		msg += fmt.Sprintf("\nGID:%s, 大小:%s, 已完成:%s, 文件名:%s", file.GID, file.Size, file.Completed, file.FileName)

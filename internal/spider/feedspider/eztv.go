@@ -30,8 +30,7 @@ func (f *Eztv) Crawler() (videos []*types.FeedVideoBase, err error) {
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.Debugf("%s Data: %#v", strings.ToUpper(f.web), fd.String())
-
+	log.Debugw(f.web, "Data", fd.String())
 	for _, v := range fd.Items {
 		fVideo := new(types.FeedVideoBase)
 		fVideo.Web = f.web

@@ -5,7 +5,10 @@ import (
 	"testing"
 )
 
-func Test_reportIpProxyStatistics(t *testing.T) {
+func init() {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
-	reportIPProxyStatistics()
+}
+
+func Test_reportAria2TaskStatistics(t *testing.T) {
+	reportAria2TaskStatistics()
 }
