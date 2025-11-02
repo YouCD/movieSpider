@@ -111,7 +111,8 @@ func (t *TGBot) StartBot() {
 				log.Error(err)
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "aria2下载器服务异常")
 				msg.ReplyToMessageID = update.Message.MessageID
-				if _, err := t.bot.Send(msg); err != nil {
+				_, err = t.bot.Send(msg)
+				if err != nil {
 					log.Error(err)
 				}
 				continue
@@ -129,7 +130,8 @@ func (t *TGBot) StartBot() {
 			}
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, bs)
 			msg.ReplyToMessageID = update.Message.MessageID
-			if _, err := t.bot.Send(msg); err != nil {
+			_, err = t.bot.Send(msg)
+			if err != nil {
 				log.Error(err)
 			}
 		case CMDReportFeedVideos:
@@ -144,18 +146,19 @@ func (t *TGBot) StartBot() {
 			downloadMsg := downloader.DownloadByName(pars[1], pars[2])
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, downloadMsg)
 			msg.ReplyToMessageID = update.Message.MessageID
-			if _, err := t.bot.Send(msg); err != nil {
+			_, err := t.bot.Send(msg)
+			if err != nil {
 				log.Error(err)
 			}
 
 		default:
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "不支持此指令")
 			msg.ReplyToMessageID = update.Message.MessageID
-			if _, err := t.bot.Send(msg); err != nil {
+			_, err := t.bot.Send(msg)
+			if err != nil {
 				log.Error(err)
 			}
 		}
-
 	}
 }
 
@@ -167,7 +170,8 @@ func (t *TGBot) StartBot() {
 func (t *TGBot) SendStrMsg(msg string) {
 	for _, id := range t.IDs {
 		tgMsg := tgbotapi.NewMessage(int64(id), msg)
-		if _, err := t.bot.Send(tgMsg); err != nil {
+		_, err := t.bot.Send(tgMsg)
+		if err != nil {
 			log.Error(err)
 		}
 	}
@@ -180,8 +184,6 @@ func (t *TGBot) SendStrMsg(msg string) {
 //	@param array
 //	@return ok
 //	@return i
-//
-//nolint:unused
 func inArray(val int, array []int) (ok bool, i int) {
 	for i = range array {
 		if ok = array[i] == val; ok {
@@ -198,14 +200,13 @@ func inArray(val int, array []int) (ok bool, i int) {
 //	@param ChatID
 //	@param update
 //	@return bool
-//
-//nolint:unused
 func (t *TGBot) checkUser(chatID int64, update tgbotapi.Update) bool {
 	ok, _ := inArray(int(chatID), config.Config.TG.TgIDs)
 	if !ok {
 		msg := tgbotapi.NewMessage(chatID, "您没有权限")
 		msg.ReplyToMessageID = update.Message.MessageID
-		if _, err := t.bot.Send(msg); err != nil {
+		_, err := t.bot.Send(msg)
+		if err != nil {
 			log.Error(err)
 			return false
 		}
@@ -274,7 +275,7 @@ func (t *TGBot) downloadCompleteNotify() {
 			time.Sleep(time.Second * 1)
 			t.mtx.Lock()
 			aria2Server.Subscribe(downLoadChan)
-			//nolint:gosimple
+
 			select {
 			case video, ok := <-downLoadChan:
 				if ok {

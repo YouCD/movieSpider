@@ -3,7 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
-	"movieSpider/internal/nameParser"
+	"movieSpider/internal/nameparser"
 	"movieSpider/internal/types"
 	"testing"
 
@@ -32,7 +32,7 @@ func TestNameParserModelHandler(t *testing.T) {
 		fmt.Println(tv)
 	}
 
-	typeStr, newName, year, resolution, err := nameParser.NameParserModelHandler(context.Background(), "The Morning Show S04E02 The Revolution Will Be Televised XviD-AFG")
+	typeStr, newName, year, resolution, err := nameparser.ModelHandler(context.Background(), "The Morning Show S04E02 The Revolution Will Be Televised XviD-AFG")
 	if err != nil {
 		t.Error(err)
 		return

@@ -19,7 +19,8 @@ import (
 //	@return videos
 //	@return err
 func (m *MovieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVideo, err error) {
-	if err := m.db.Model(&types.FeedVideo{}).Select("id,name").Where(" name like ?", fmt.Sprintf("%%%s%%", name)).Find(&videos).Error; err != nil {
+	result := m.db.Model(&types.FeedVideo{}).Select("id,name").Where(" name like ?", fmt.Sprintf("%%%s%%", name)).Find(&videos)
+	if result.Error != nil {
 		return nil, fmt.Errorf("FindLikeTVFromFeedVideo,err %w", err)
 	}
 	return
@@ -56,7 +57,7 @@ func (m *MovieDB) GetFeedVideoTVByNames(names ...string) ([]*types.FeedVideo, er
 
 	log.Debugf("开始第二次查找tv数据: %s.", names)
 	argsFunc = func(name string) string {
-		return fmt.Sprintf("%s%%", name)
+		return name + "%"
 	}
 	secondQuery := `name like ? and magnet!="" and download !=1 and type="movie"`
 	videos, err = m.findTV(names, secondQuery, argsFunc)
@@ -69,7 +70,7 @@ func (m *MovieDB) GetFeedVideoTVByNames(names ...string) ([]*types.FeedVideo, er
 
 	log.Debugf("开始第三次查找tv数据: %s.", names)
 	argsFunc = func(name string) string {
-		return fmt.Sprintf("%s%%", name)
+		return name + "%"
 	}
 	thirdQuery := `name like ? and magnet!="" and download !=1`
 	videos, err = m.findTV(names, thirdQuery, argsFunc)
@@ -91,14 +92,14 @@ var (
 func (m *MovieDB) findTV(names []string, query string, argsFunc func(name string) string) ([]*types.FeedVideo, error) {
 	var firstVideos []*types.FeedVideo
 	log.Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", names)
-	//nolint:perfsprint
 	for _, n := range names {
 		if tools.ContainsChinese(n) {
 			continue
 		}
 		log.Debugf("findTV 获取数据: %s.", n)
-		if err := m.db.Model(&types.FeedVideo{}).Where(query, argsFunc(n)).Find(&firstVideos).Error; err != nil {
-			return nil, fmt.Errorf("查找失败, err:%w", err)
+		result := m.db.Model(&types.FeedVideo{}).Where(query, argsFunc(n)).Find(&firstVideos)
+		if result.Error != nil {
+			return nil, fmt.Errorf("查找失败, err:%w", result.Error)
 		}
 	}
 	return firstVideos, nil
@@ -174,8 +175,9 @@ func (m *MovieDB) findMovie(names []string, query string) ([]*types.FeedVideo, e
 	var movies []*types.FeedVideo
 	for _, n := range names {
 		//  只查找 没有下载过 && 类型为movie数据   and download=0
-		if err := m.db.Model(&types.FeedVideo{}).Where(query, n).Find(&movies).Error; err != nil {
-			return nil, fmt.Errorf("查找失败, err:%w", err)
+		result := m.db.Model(&types.FeedVideo{}).Where(query, n).Find(&movies)
+		if result.Error != nil {
+			return nil, fmt.Errorf("查找失败, err:%w", result.Error)
 		}
 	}
 	if len(movies) > 0 {
@@ -192,7 +194,7 @@ func (m *MovieDB) findMovie(names []string, query string) ([]*types.FeedVideo, e
 //	@return err
 func (m *MovieDB) CreatFeedVideo(video *types.FeedVideo) (err error) {
 	if video.Magnet == "" {
-		//nolint:goerr113
+		//nolint:err113
 		return fmt.Errorf("CreatFeedVideo Magnet is nill : %#v", video)
 	}
 	video.Timestamp = time.Now().Unix()
@@ -244,14 +246,15 @@ func (m *MovieDB) UpdateFeedVideos(videos ...*types.FeedVideo) (err error) {
 		}
 	}()
 
-	if err := tx.Error; err != nil {
-		return err
+	if tx.Error != nil {
+		return tx.Error
 	}
 
 	for _, video := range videos {
-		if err := tx.Model(&types.FeedVideo{}).Where("id=?", video.ID).Updates(video).Error; err != nil {
+		result := tx.Model(&types.FeedVideo{}).Where("id=?", video.ID).Updates(video)
+		if result.Error != nil {
 			tx.Rollback()
-			return err
+			return result.Error
 		}
 	}
 	return tx.Commit().Error

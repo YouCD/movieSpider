@@ -27,9 +27,6 @@ func (f optionFunc) apply(ms *MovieSpider) {
 //	@param feeds
 //	@return Option
 func WithFeeds(feeds ...feedspider.Feeder) Option {
-	//// BTBT
-	//feedBTBT := feedspider.NewBtbt()
-
 	// EZTV
 	feedEZTV := feedspider.NewEztv()
 

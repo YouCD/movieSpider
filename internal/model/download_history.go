@@ -23,7 +23,6 @@ var (
 //	@return err
 func (m *MovieDB) AddDownloadHistory(history *types.DownloadHistory) (err error) {
 	if history == nil {
-		//nolint:goerr113
 		return ErrHistoryIsNil
 	}
 	history.Timestamp = time.Now().Unix()
@@ -48,7 +47,6 @@ func (m *MovieDB) AddDownloadHistory(history *types.DownloadHistory) (err error)
 //	@return err
 func (m *MovieDB) UpdateOrAddDownloadHistory(history *types.DownloadHistory) (err error) {
 	if history == nil {
-		//nolint:goerr113
 		return ErrHistoryIsNil
 	}
 	id, exist := m.checkDownloadHistory(history)
@@ -90,7 +88,6 @@ func (m *MovieDB) checkDownloadHistory(history *types.DownloadHistory) (id int, 
 //	@return error
 func (m *MovieDB) FindFeedVideoInDownloadHistory(v *types.FeedVideo) (*types.FeedVideo, error) {
 	if v == nil {
-		//nolint:goerr113
 		return nil, ErrVideoIsNil
 	}
 
@@ -101,7 +98,7 @@ func (m *MovieDB) FindFeedVideoInDownloadHistory(v *types.FeedVideo) (*types.Fee
 	}
 
 	if downloadHistory == nil {
-		//nolint:goerr113
+		//nolint:err113
 		return nil, fmt.Errorf("不能将种子: %#v 转换为 downloadHistory", v.TorrentName)
 	}
 
@@ -128,7 +125,7 @@ func (m *MovieDB) FindFeedVideoInDownloadHistory(v *types.FeedVideo) (*types.Fee
 	// log.Errorf("downloadHistory.Name: %s, d.Name: %s, downloadHistory.Resolution: %d, d.Resolution: %d", downloadHistory.Name, d.Name, downloadHistory.Resolution, d.Resolution)
 	// 如果 查找的 video 的分辨率小于 download_history 的分辨率，就不用下载，返回 nil
 	if downloadHistory.Resolution <= d.Resolution {
-		//nolint:goerr113
+		//nolint:err113
 		return nil, fmt.Errorf("种子名: %s, 分辨率: %d ,已经下载过相同分辨率，或分辨率小于已经下载的种子", downloadHistory.Name, downloadHistory.Resolution)
 	}
 

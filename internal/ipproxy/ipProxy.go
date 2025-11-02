@@ -105,6 +105,7 @@ type ProxyTypeCount struct {
 	Other int64 `json:"other"`
 }
 
+/*
 func FetchProxyTypeCount() (c *ProxyTypeCount) {
 	//nolint:exhaustruct
 	c = &ProxyTypeCount{}
@@ -135,3 +136,5 @@ func FetchProxyTypeCount() (c *ProxyTypeCount) {
 
 	return
 }
+
+*/

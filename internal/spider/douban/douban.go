@@ -57,7 +57,7 @@ func NewSpiderDouBan(cfg *config.DouBan) (douBanList []spider.Spider) {
 //	@receiver d
 //	@return videos
 //
-//nolint:gosimple
+
 func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 	doc, err := d.newRequest(d.url)
 	if err != nil {
@@ -144,7 +144,7 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 			return nil
 		}
 
-		compileRegex := regexp.MustCompile("tt\\d+")
+		compileRegex := regexp.MustCompile(`tt\d+`)
 		matchArr := compileRegex.FindStringSubmatch(html)
 		if len(matchArr) > 0 {
 			video.ImdbID = matchArr[0]
@@ -156,7 +156,8 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 	wg.Wait()
 
 	for _, video := range videos2 {
-		if err = model.NewMovieDB().CreatDouBanVideo(video); err != nil && errors.Is(err, model.ErrDataExist) {
+		err = model.NewMovieDB().CreatDouBanVideo(video)
+		if err != nil && errors.Is(err, model.ErrDataExist) {
 			log.Debugf("DouBan %s 已更新", video.Names)
 		} else {
 			log.Infof("DouBan %s 已添加", video.Names)
@@ -165,6 +166,18 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 
 	return videos2
 }
+func (d *DouBan) Run() {
+	if d.scheduling == "" {
+		log.Error("DouBan Scheduling is null")
+		os.Exit(1)
+	}
+	log.Infof("DouBan Scheduling is: [%s]", d.scheduling)
+	c := cron.New()
+	_, _ = c.AddFunc(d.scheduling, func() { d.Crawler() })
+	c.Start()
+}
+
+// todo 还需要搞一个定时任务，定时更新 DatePublished
 
 // newRequest
 //
@@ -212,15 +225,3 @@ func (d *DouBan) zhToUnicode(raw []byte) ([]byte, error) {
 	}
 	return []byte(str), nil
 }
-func (d *DouBan) Run() {
-	if d.scheduling == "" {
-		log.Error("DouBan Scheduling is null")
-		os.Exit(1)
-	}
-	log.Infof("DouBan Scheduling is: [%s]", d.scheduling)
-	c := cron.New()
-	_, _ = c.AddFunc(d.scheduling, func() { d.Crawler() })
-	c.Start()
-}
-
-// todo 还需要搞一个定时任务，定时更新 DatePublished

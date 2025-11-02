@@ -201,39 +201,6 @@ func (a *Aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompl
 	return
 }
 
-// completedHandler
-//
-//	@Description: 处理已完成的文件
-//	@receiver a
-//	@param sessionInfo
-//	@param completedFiles
-//	@return []*types.ReportCompletedFiles
-func (a *Aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ...*types.ReportCompletedFiles) []*types.ReportCompletedFiles {
-	infoMap := make(map[string]int)
-	for _, v := range sessionInfo {
-		for _, i := range v.Files {
-			infoMap[v.Gid] += cast.ToInt(i.Length)
-		}
-	}
-
-	for _, v := range sessionInfo {
-		file := getFile(v)
-		if file == "" {
-			continue
-		}
-
-		// 文件完成度百分比
-		size := infoMap[v.Gid]
-		completed := cast.ToFloat32(v.CompletedLength) / float32(size) * 100
-		completedFiles = append(completedFiles, &types.ReportCompletedFiles{
-			GID:       v.Gid,
-			Size:      tools.ByteCountBinary(int64(size)),
-			Completed: fmt.Sprintf("%.2f%%", completed),
-			FileName:  file,
-		})
-	}
-	return completedFiles
-}
 func getFile(info rpc.StatusInfo) string {
 	var filename string
 	for _, f := range info.Files {
@@ -287,6 +254,40 @@ func (a *Aria2) Subscribe(downLoadChan chan *types.DownloadNotifyVideo) {
 		}
 		a.mtx.Unlock()
 	}()
+}
+
+// completedHandler
+//
+//	@Description: 处理已完成的文件
+//	@receiver a
+//	@param sessionInfo
+//	@param completedFiles
+//	@return []*types.ReportCompletedFiles
+func (a *Aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ...*types.ReportCompletedFiles) []*types.ReportCompletedFiles {
+	infoMap := make(map[string]int)
+	for _, v := range sessionInfo {
+		for _, i := range v.Files {
+			infoMap[v.Gid] += cast.ToInt(i.Length)
+		}
+	}
+
+	for _, v := range sessionInfo {
+		file := getFile(v)
+		if file == "" {
+			continue
+		}
+
+		// 文件完成度百分比
+		size := infoMap[v.Gid]
+		completed := cast.ToFloat32(v.CompletedLength) / float32(size) * 100
+		completedFiles = append(completedFiles, &types.ReportCompletedFiles{
+			GID:       v.Gid,
+			Size:      tools.ByteCountBinary(int64(size)),
+			Completed: fmt.Sprintf("%.2f%%", completed),
+			FileName:  file,
+		})
+	}
+	return completedFiles
 }
 
 func getMaxSizeFile(files []rpc.FileInfo) (string, int) {

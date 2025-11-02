@@ -84,28 +84,6 @@ func (t *TmDB) GetTVDetailByID(id int, zhCN bool) (*types.TmDBTVDetailData, erro
 	}
 	return &tv, err
 }
-
-//nolint:noctx
-func (t *TmDB) request(urlStr string, result interface{}) error {
-	resp, err := t.client.Get(urlStr)
-	if err != nil {
-		return fmt.Errorf("请求失败,err:%w", err)
-	}
-	defer resp.Body.Close()
-	all, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("读取body失败,err:%w", err)
-	}
-
-	err = json.Unmarshal(all, result)
-	if err != nil {
-		log.Debug(err)
-		return fmt.Errorf("解析json失败,err:%w", err)
-	}
-
-	return nil
-}
-
 func (t *TmDB) Crawler() {
 	// 1. 获取 豆瓣想看列表的所有电视剧
 	list, err := model.NewMovieDB().FetchDouBanVideoByType(types.VideoTypeTV)
@@ -187,6 +165,27 @@ func (t *TmDB) Run() {
 	c := cron.New()
 	_, _ = c.AddFunc(t.scheduling, func() { t.Crawler() })
 	c.Start()
+}
+
+//nolint:noctx
+func (t *TmDB) request(urlStr string, result interface{}) error {
+	resp, err := t.client.Get(urlStr)
+	if err != nil {
+		return fmt.Errorf("请求失败,err:%w", err)
+	}
+	defer resp.Body.Close()
+	all, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("读取body失败,err:%w", err)
+	}
+
+	err = json.Unmarshal(all, result)
+	if err != nil {
+		log.Debug(err)
+		return fmt.Errorf("解析json失败,err:%w", err)
+	}
+
+	return nil
 }
 
 func allName(str string, seasons int) string {

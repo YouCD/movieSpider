@@ -82,7 +82,6 @@ func (b *Extto) Crawler() (videos []*types.FeedVideoBase, err error) {
 			RowData:     sql.NullString{},
 			Web:         b.web,
 		})
-
 	})
 
 	return videos, nil

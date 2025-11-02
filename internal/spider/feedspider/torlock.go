@@ -12,8 +12,9 @@ import (
 )
 
 type Torlock struct {
-	typ types.VideoType
 	BaseFeeder
+
+	typ types.VideoType
 }
 
 func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string, useIPProxy bool) Feeder {

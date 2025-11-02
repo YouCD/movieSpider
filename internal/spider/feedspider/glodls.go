@@ -17,8 +17,8 @@ import (
 )
 
 type Glodls struct {
-	urlBase string
 	BaseFeeder
+	urlBase string
 }
 
 func NewGlodls() *Glodls {
@@ -30,8 +30,8 @@ func NewGlodls() *Glodls {
 
 	urlBase := parse.Scheme + "://" + parse.Host
 	return &Glodls{
-		urlBase,
-		BaseFeeder{
+		urlBase: urlBase,
+		BaseFeeder: BaseFeeder{
 			web: "glodls",
 			BaseFeed: types.BaseFeed{
 				Url:        config.Config.Feed.GLODLS.Url,
@@ -125,6 +125,7 @@ func (g *Glodls) fetchMagnet(url string) (magnet string, err error) {
 	selector := "#downloadbox > table > tbody > tr > td:nth-child(1) > a:nth-child(2)"
 	magnet, exists := doc.Find(selector).Attr("href")
 	if !exists {
+		//nolint:err113
 		return "", fmt.Errorf("GLODLS: 查找href出错，url:%s", url)
 	}
 	return magnet, nil

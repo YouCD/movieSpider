@@ -7,13 +7,13 @@ import (
 	log1 "log"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
-	"movieSpider/internal/nameParser"
+	"movieSpider/internal/nameparser"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"os"
 	"sync"
 	"time"
-
+	// 引入 MySQL 驱动以初始化数据库连接
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/youcd/toolkit/log"
 
@@ -98,13 +98,25 @@ func (m *MovieDB) SaveFeedVideoFromChan() {
 	go func() {
 		for {
 			item := <-m.feedVideoCh
+			// 检查 item 是否为 nil
+			if item == nil {
+				log.Debug("Received nil item from feedVideoCh, skipping")
+				continue
+			}
 			feedVideo, err := FilterVideo(item)
 			if err != nil {
 				log.Debugf("web:%s,err:%s", item.Web, err)
 				continue
 			}
 
-			if err := NewMovieDB().CreatFeedVideo(feedVideo); err != nil {
+			// 检查 feedVideo 是否为 nil
+			if feedVideo == nil {
+				log.Debug("Filtered feedVideo is nil, skipping")
+				continue
+			}
+
+			err = NewMovieDB().CreatFeedVideo(feedVideo)
+			if err != nil {
 				if errors.Is(err, ErrDataExist) {
 					log.Debugf("%s.%s err: %s", feedVideo.Web, feedVideo.Type, err)
 					continue
@@ -131,6 +143,7 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	}
 	//  排除 低码率的视频
 	if ok := tools.ExcludeVideo(feedVideoBase.TorrentName, config.Config.ExcludeWords); ok {
+		//nolint:err113
 		return nil, fmt.Errorf("excludeWords, web:%s,TorrentName:%v", feedVideoBase.Web, feedVideoBase.TorrentName)
 	}
 
@@ -138,6 +151,7 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 		FeedVideoBase: *feedVideoBase,
 	}
 	if feedVideo.TorrentName == "" {
+		//nolint:err113
 		return nil, fmt.Errorf("feedVideo.TorrentName is empty: %#v", feedVideo)
 	}
 	// 解析前先查库
@@ -150,14 +164,20 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	}
 
 	// 使用模型解析种子名
-	typeStr, newName, year, resolution, err := nameParser.NameParserModelHandler(context.Background(), feedVideo.TorrentName)
+	typeStr, newName, year, resolution, err := nameparser.ModelHandler(context.Background(), feedVideo.TorrentName)
 	if err != nil {
 		log.Warnf("TorrentName: %#v,err: %s", feedVideo.TorrentName, err)
-		return nil, err
+		return nil, fmt.Errorf("FilterVideo err: %w", err)
 	}
 	if resolution == "" {
+		//nolint:err113
 		return nil, fmt.Errorf("feedVideo.TorrentName: %#v,resolution is empty", feedVideo.TorrentName)
 	}
+	if len([]rune(newName)) > len([]rune(feedVideo.TorrentName)) {
+		log.Error("nameParser err: %s", feedVideo.TorrentName)
+		return nil, ErrNameParser
+	}
+
 	feedVideo.Name = newName
 	feedVideo.Year = year
 	feedVideo.Type = typeStr

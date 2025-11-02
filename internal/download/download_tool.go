@@ -72,12 +72,14 @@ func FilterByResolutionInDownloadHistory(videos ...*types.FeedVideo) (list []*ty
 //	@param video
 func UpdateFeedVideoAndDownloadHistory(video *types.FeedVideo) {
 	//  更新 feedVideo 的下载状态为1
-	if err := model.NewMovieDB().UpdateFeedVideoDownloadByID(video.ID, 1); err != nil {
+	err := model.NewMovieDB().UpdateFeedVideoDownloadByID(video.ID, 1)
+	if err != nil {
 		log.Error(err)
 	}
 
 	//  记录这一次下载的视频
-	if err := model.NewMovieDB().UpdateOrAddDownloadHistory(video.Convert2DownloadHistory()); err != nil {
+	err = model.NewMovieDB().UpdateOrAddDownloadHistory(video.Convert2DownloadHistory())
+	if err != nil {
 		log.Error(video.TorrentName, video.Name, err)
 	}
 }

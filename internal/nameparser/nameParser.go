@@ -1,4 +1,4 @@
-package nameParser
+package nameparser
 
 import (
 	"context"
@@ -7,13 +7,12 @@ import (
 	"strings"
 
 	"github.com/sashabaranov/go-openai"
-
 	"github.com/youcd/toolkit/log"
 )
 
 const prompt = `规范化BT种子名称，移除广告和无关信息，按以下格式输出：类型,年份,规范名称,分辨率`
 
-func NameParserModelHandler(ctx context.Context, name string) (string, string, string, string, error) {
+func ModelHandler(ctx context.Context, name string) (string, string, string, string, error) {
 	// +"/v1/chat/completions
 	conf := openai.DefaultAnthropicConfig("", config.Config.Global.NameParserModel+"/v1")
 	conf.APIType = openai.APITypeOpenAI
@@ -31,6 +30,7 @@ func NameParserModelHandler(ctx context.Context, name string) (string, string, s
 	)
 	if err != nil {
 		log.Error("解码响应时发生错误:", err)
+		//nolint:err113
 		return "", "", "", "", fmt.Errorf("解析失败: %s", name)
 	}
 
@@ -43,8 +43,9 @@ func NameParserModelHandler(ctx context.Context, name string) (string, string, s
 		newName := split[2]
 		resolution := split[3]
 		return typeStr, newName, year, resolution, nil
-	} else {
-		log.Warnw("content", "parser content", Content, "name", name)
 	}
+	log.Warnw("content", "parser content", Content, "name", name)
+
+	//nolint:err113
 	return "", "", "", "", fmt.Errorf("解析失败: %s", name)
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/youcd/toolkit/log"
 )
 
-//nolint:revive
 type Rss struct {
 	XMLName xml.Name `xml:"rss"`
 	Text    string   `xml:",chardata"`

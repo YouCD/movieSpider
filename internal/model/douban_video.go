@@ -137,12 +137,14 @@ func (m *MovieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*typ
 	nameList = make(map[*types.DouBanVideo][]string)
 
 	var videos []*types.DouBanVideo
-	if err = m.db.Model(&types.DouBanVideo{}).Where("type = ?", typ.String()).Find(&videos).Error; err != nil {
-		return nil, err
+	result := m.db.Model(&types.DouBanVideo{}).Where("type = ?", typ.String()).Find(&videos)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	for _, video := range videos {
 		var names []string
-		if err = json.Unmarshal([]byte(video.Names), &names); err != nil {
+		err = json.Unmarshal([]byte(video.Names), &names)
+		if err != nil {
 			log.Error(err)
 			continue
 		}

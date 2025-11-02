@@ -12,14 +12,6 @@ import (
 	"github.com/youcd/toolkit/log"
 )
 
-//nolint:tagliatelle
-type theRarbgItem struct {
-	Url    string `json:"url"`
-	Rating string `json:"rating"`
-	Name   string `json:"name"`
-	Poster string `json:"poster"`
-}
-
 type TheRarbg struct {
 	BaseFeeder
 	typ     types.VideoType
@@ -88,7 +80,6 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 				Type:        r.typ.String(),
 				Web:         r.web,
 			})
-
 		}(urlItem)
 	}
 	wg.Wait()
@@ -106,11 +97,11 @@ func (r *TheRarbg) moviePageURL(pageURL string) (string, string, error) {
 	if err != nil {
 		return "", "", fmt.Errorf("moviePageURL: %w", err)
 	}
-	magnet := ""
+
 	selectorA := "body > div.topnav > div:nth-child(5) > div.postContL.col-12.col-md-9.col-lg-11 > div.table-responsive > table > tbody > tr:nth-child(2) > td > div > div.download-primary > a.btn-download.magnet-btn"
 	selectorB := "body > div.topnav > div:nth-child(4) > div.postContL.col-12.col-md-9.col-lg-11 > div.table-responsive > table > tbody > tr:nth-child(2) > td > div > div.download-primary > a.btn-download.magnet-btn"
 	selectorC := "h4.text-center.m-4"
-	magnet = r.getMagnet(doc, selectorA)
+	magnet := r.getMagnet(doc, selectorA)
 	if magnet == "" {
 		magnet = r.getMagnet(doc, selectorB)
 	}

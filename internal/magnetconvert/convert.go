@@ -25,13 +25,12 @@ var (
 func FileToMagnet(file string) (string, error) {
 	mi, err := metainfo.LoadFromFile(file)
 	if err != nil {
-		//nolint:goerr113
+		//nolint:err113
 		return "", fmt.Errorf("cannot read the metainfo from file: %s. %s", file, err.Error())
 	}
 	m2, err := mi.MagnetV2()
 	fmt.Println(mi.Nodes)
 	if err != nil {
-		//nolint:goerr113
 		return "", fmt.Errorf("转换失败，err: %w", err)
 	}
 	fmt.Println(m2.V2InfoHash)

@@ -3,12 +3,13 @@ package bot
 import (
 	"bytes"
 	"encoding/json"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"strings"
 	"text/template"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/youcd/toolkit/log"
 )
 
 func (t *TGBot) SendReportFeedVideosMsg(msgChatID, msgID int64) {
@@ -26,7 +27,8 @@ func (t *TGBot) SendReportFeedVideosMsg(msgChatID, msgID int64) {
 	msg := tgbotapi.NewMessage(msgChatID, b.String())
 	msg.ReplyToMessageID = int(msgID)
 	msg.ParseMode = tgbotapi.ModeHTML
-	if _, err := t.bot.Send(msg); err != nil {
+	_, err = t.bot.Send(msg)
+	if err != nil {
 		log.Error(err)
 	}
 }
@@ -150,7 +152,8 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, not
 		photo := tgbotapi.NewPhoto(int64(id), tgbotapi.FileURL(image))
 		photo.Caption = b.String()
 		photo.ParseMode = tgbotapi.ModeHTML
-		if _, err := t.bot.Send(photo); err != nil {
+		_, err = t.bot.Send(photo)
+		if err != nil {
 			log.Error(err)
 		}
 	}

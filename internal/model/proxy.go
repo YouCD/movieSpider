@@ -13,16 +13,17 @@ import (
 //	@Description: 代理保存视频到数据库
 //	@param videos
 //
-//nolint:gosimple
+
 func ProxySaveVideo2DB(videos ...*types.FeedVideo) {
-	if videos == nil || len(videos) == 0 {
+	if len(videos) == 0 {
 		log.Warn("没有数据")
 		return
 	}
 
 	for _, v := range videos {
 		go func(video *types.FeedVideo) {
-			if err := NewMovieDB().CreatFeedVideo(video); err != nil {
+			err := NewMovieDB().CreatFeedVideo(video)
+			if err != nil {
 				if errors.Is(err, ErrDataExist) {
 					log.Debugf("%s.%s err: %s", strings.ToUpper(video.Web), video.Type, err)
 					return

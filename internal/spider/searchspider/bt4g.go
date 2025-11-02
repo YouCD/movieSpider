@@ -41,13 +41,13 @@ func (b *BT4g) Search() (videos []*types.FeedVideo, err error) {
 	f := gofeed.NewParser()
 	fd, err := f.ParseURL(b.url)
 	if fd == nil {
-		//nolint:goerr113
+		//nolint:err113
 		return nil, errors.New("BT4G: 没有feed数据")
 	}
 	log.Debugf("BT4G Config: %#v", b)
 	log.Debugf("BT4G Data: %#v", fd.String())
 	if len(fd.Items) == 0 {
-		//nolint:goerr113
+		//nolint:err113
 		return nil, errors.New("BT4G: 没有feed数据")
 	}
 	for _, v := range fd.Items {

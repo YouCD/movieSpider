@@ -44,6 +44,19 @@ func NewMovieSpider(options ...Option) *MovieSpider {
 	}
 	return ms
 }
+func (m *MovieSpider) Start() {
+	if config.Config.TG != nil {
+		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
+		go ms.bot.StartBot()
+	}
+	if m.DHTThread > 0 {
+		go dhtc_client.Boot(m.DHTThread)
+	}
+
+	m.startFeed()
+	m.startSpider()
+	m.startSpider()
+}
 
 // RunWithFeed
 //
@@ -98,18 +111,4 @@ func (m *MovieSpider) startSpider() {
 			spider.Run()
 		}(s)
 	}
-}
-
-func (m *MovieSpider) Start() {
-	if config.Config.TG != nil {
-		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
-		go ms.bot.StartBot()
-	}
-	if m.DHTThread > 0 {
-		go dhtc_client.Boot(m.DHTThread)
-	}
-
-	m.startFeed()
-	m.startSpider()
-	m.startSpider()
 }

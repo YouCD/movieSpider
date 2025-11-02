@@ -1,69 +1,88 @@
-# 设置运行超时时间为10分钟
+version: "2"
 run:
-  #运行并发根据项目大小设定
   concurrency: 4
-  timeout: 10m
-  #  忽略部分包或者文件
-  #  skip-dirs:
-  #    - vendor
-  #    - testdata
   tests: false
-
-issues:
-  exclude-files:
-    - internal/dhtclient/*
-
 linters:
-  #  # 禁用所有默认启用的linters
-  #  disable-all: true
-  #  # 仅启用以下linters
-  enable-all: true
+  default: all
   disable:
-    - varnamelen
-    - exportloopref
-    #- nolintlint
-    - gochecknoinits
-    - nonamedreturns
-    - ireturn
-    - nlreturn
-    - inamedparam
-    - godot
-    - godox
-    - gofumpt
     - cyclop
     - depguard
-    - execinquery
-    - gosmopolitan
-    - wsl
-    - mnd
-    - tagalign
-    - gomnd
-    - lll
-    - funlen
-    - nestif
-    - goimports
-    - gci
-    - gochecknoglobals
     - exhaustive
-    - goconst
     - exhaustruct
     - forbidigo
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - goconst
+    - godot
+    - godox
+    - gosmopolitan
+    - inamedparam
+    - ireturn
+    - lll
+    - mnd
+    - nestif
+    - nlreturn
+    - nonamedreturns
+    - tagalign
+    - varnamelen
+    - wsl
+    - wsl_v5
+    - embeddedstructfieldcheck
+  settings:
+    revive:
+      rules:
+        - name: var-naming
+          disabled: true
+    gosec:
+      excludes:
+        - G101
+        - G112
+        - G306
+      severity: low
+      confidence: low
+    staticcheck:
+      checks:
+        - -SA2002
+        - -ST1003
+        - S1002
+        - S1004
+        - S1007
+        - S1009
+        - S1010
+        - S1012
+        - S1019
+        - S1020
+        - S1021
+        - S1024
+        - S1030
+        - SA2*
+        - SA3*
+        - SA4009
+        - SA5*
+        - SA6000
+        - SA6001
+        - SA6005
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - internal/dhtclient/*
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - internal/dhtclient/*
+      - third_party$
+      - builtin$
+      - examples$
 
-
-
-# 针对特定linters的设置
-linters-settings:
-  # 配置staticcheck要执行的检查项 https://staticcheck.io/docs/checks/
-  staticcheck:
-    checks: [ "S1002","S1004","S1007","S1009","S1010","S1012","S1019","S1020","S1021","S1024","S1030","SA2*","SA3*","SA4009","SA5*","SA6000","SA6001","SA6005", "-SA2002" ]
-  # 配置stylecheck要执行的检查项，排除ST1003
-  stylecheck:
-    checks: [ "-ST1003" ]
-  # 设置gosec的严重性和置信度，并排除G101和G112
-  gosec:
-    severity: "low"
-    confidence: "low"
-    excludes:
-      - G101
-      - G112
-      - G306

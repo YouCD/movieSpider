@@ -6,7 +6,7 @@ import (
 	"regexp"
 )
 
-//nolint:tagliatelle,revive
+//nolint:tagliatelle
 type BaseFeed struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron" `
 	Url        string `son:"URL" yaml:"URL" validate:"http_url" `

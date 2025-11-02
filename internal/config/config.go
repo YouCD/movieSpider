@@ -123,11 +123,13 @@ func InitConfig(configFile string) {
 		log.Infof("Config file changed: %s\n", e.Name)
 		c := new(config)
 		// 解析配置文件，反序列化
-		if err := v.Unmarshal(c); err != nil {
+		err = v.Unmarshal(c)
+		if err != nil {
 			log.Errorf("Unmarshal yaml faild: %s", err)
 			os.Exit(-1)
 		}
-		if err = ValidateFc(Config); err == nil {
+		err = ValidateFc(Config)
+		if err == nil {
 			Config = c
 			logConfig := &log.Config{
 				Stdout: true,
@@ -140,7 +142,6 @@ func InitConfig(configFile string) {
 			log.SetLogLevel(Config.Global.LogLevel)
 			log.Debug("日志级别： ", Config.Global.LogLevel)
 		}
-
 	})
 
 	logConfig := &log.Config{
@@ -155,7 +156,8 @@ func InitConfig(configFile string) {
 	log.Init(logConfig)
 	log.SetLogLevel(Config.Global.LogLevel)
 	log.Debug("日志级别： ", Config.Global.LogLevel)
-	if err = ValidateFc(Config); err != nil {
+	err = ValidateFc(Config)
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -163,12 +165,16 @@ func InitConfig(configFile string) {
 
 func ValidateFc(s interface{}) error {
 	validate := validator.New()
-	//nolint:errorlint,forcetypeassert,errorlint
-	if err := validate.Struct(s); err != nil {
+	err := validate.Struct(s)
+	if err != nil {
+		//nolint:errorlint
 		if _, ok := err.(*validator.InvalidValidationError); ok {
+			//nolint:wrapcheck
 			return err
 		}
+		//nolint:errorlint,forcetypeassert
 		for _, err := range err.(validator.ValidationErrors) {
+			//nolint:err113
 			return fmt.Errorf("配置项: %s 条件: %s %v 当前值: %#v\n", err.StructField(), err.Tag(), err.Param(), err.Value())
 		}
 	}
