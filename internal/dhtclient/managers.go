@@ -1,6 +1,7 @@
 package dhtclient
 
 import (
+	"context"
 	"net"
 	"time"
 
@@ -41,7 +42,7 @@ func (m *Manager) onIndexingResult(res IndexingResult) {
 	select {
 	case m.output <- res:
 	default:
-		log.Debug("DHT manager output ch is full, idx result dropped!")
+		log.WithCtx(context.Background()).Debug("DHT manager output ch is full, idx result dropped!")
 	}
 }
 

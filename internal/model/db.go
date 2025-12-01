@@ -40,14 +40,14 @@ func NewMovieDB() *MovieDB {
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8&parseTime=True&loc=Local", config.Config.MySQL.User, config.Config.MySQL.Password, config.Config.MySQL.Host, config.Config.MySQL.Port)
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			os.Exit(1)
 		}
 		sql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s  CHARACTER SET utf8mb4 ", config.Config.MySQL.Database)
 		// 创建数据库
 		err = db.Exec(sql).Error
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			os.Exit(1)
 		}
 
@@ -74,13 +74,13 @@ func NewMovieDB() *MovieDB {
 		})
 
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			os.Exit(1)
 		}
 
 		err = db.Set("gorm:table_options", "CHARSET=utf8mb4").AutoMigrate(&types.FeedVideo{}, &types.DownloadHistory{}, &types.DouBanVideo{})
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			os.Exit(1)
 		}
 	})
@@ -94,41 +94,41 @@ func NewMovieDB() *MovieDB {
 //
 //	@Description: 从通道中获取 feedVideo 并保存
 //	@receiver m
-func (m *MovieDB) SaveFeedVideoFromChan() {
+func (m *MovieDB) SaveFeedVideoFromChan(ctx context.Context) {
 	go func() {
 		for {
 			item := <-m.feedVideoCh
 			// 检查 item 是否为 nil
 			if item == nil {
-				log.Debug("Received nil item from feedVideoCh, skipping")
+				log.WithCtx(ctx).Debug("Received nil item from feedVideoCh, skipping")
 				continue
 			}
 			feedVideo, err := FilterVideo(item)
 			if err != nil {
-				log.Debugf("web:%s,err:%s", item.Web, err)
+				log.WithCtx(ctx).Debugf("web:%s,err:%s", item.Web, err)
 				continue
 			}
 
 			// 检查 feedVideo 是否为 nil
 			if feedVideo == nil {
-				log.Debug("Filtered feedVideo is nil, skipping")
+				log.WithCtx(ctx).Debug("Filtered feedVideo is nil, skipping")
 				continue
 			}
 
 			err = NewMovieDB().CreatFeedVideo(feedVideo)
 			if err != nil {
 				if errors.Is(err, ErrDataExist) {
-					log.Debugf("%s.%s err: %s", feedVideo.Web, feedVideo.Type, err)
+					log.WithCtx(ctx).Debugf("%s.%s err: %s", feedVideo.Web, feedVideo.Type, err)
 					continue
 				}
-				log.Error(err)
+				log.WithCtx(ctx).Error(err)
 				continue
 			}
 			msg := fmt.Sprintf("%s.%s: %s 保存完毕.", feedVideo.Web, feedVideo.Type, feedVideo.Name)
 			if feedVideo.Type == "" {
 				msg = fmt.Sprintf("%s: %s 保存完毕.", feedVideo.Web, feedVideo.Name)
 			}
-			log.Info(msg)
+			log.WithCtx(ctx).Info(msg)
 		}
 	}()
 }
@@ -157,7 +157,7 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	// 解析前先查库
 	video, err := NewMovieDB().GetFeedVideoByName(feedVideo.TorrentName)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 	if video != nil {
 		return nil, fmt.Errorf("torrent_name:%s, err:%w", feedVideo.TorrentName, ErrFeedVideoExist)
@@ -166,7 +166,7 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	// 使用模型解析种子名
 	typeStr, newName, year, resolution, err := nameparser.ModelHandler(context.Background(), feedVideo.TorrentName)
 	if err != nil {
-		log.Warnf("TorrentName: %#v,err: %s", feedVideo.TorrentName, err)
+		log.WithCtx(context.Background()).Warnf("TorrentName: %#v,err: %s", feedVideo.TorrentName, err)
 		return nil, fmt.Errorf("FilterVideo err: %w", err)
 	}
 	if resolution == "" {
@@ -174,13 +174,13 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 		return nil, fmt.Errorf("feedVideo.TorrentName: %#v,resolution is empty", feedVideo.TorrentName)
 	}
 	if len([]rune(newName)) > len([]rune(feedVideo.TorrentName)) {
-		log.Error("nameParser err: %s", feedVideo.TorrentName)
+		log.WithCtx(context.Background()).Error("nameParser err: %s", feedVideo.TorrentName)
 		return nil, ErrNameParser
 	}
 
 	feedVideo.Name = newName
 	feedVideo.Year = year
 	feedVideo.Type = typeStr
-	log.Infow("nameParser", "input", feedVideo.TorrentName, "type", typeStr, "name", newName, "year", year, "resolution", resolution)
+	log.WithCtx(context.Background()).Infow("nameParser", "input", feedVideo.TorrentName, "type", typeStr, "name", newName, "year", year, "resolution", resolution)
 	return feedVideo, nil
 }

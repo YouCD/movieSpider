@@ -1,6 +1,7 @@
 package dhtclient
 
 import (
+	"context"
 	"crypto/rand"
 	"net"
 	"sync"
@@ -65,7 +66,7 @@ func NewIndexingService(laddr string, interval time.Duration, maxNeighbors uint,
 
 func (is *IndexingService) Start(nodes []string) {
 	if is.started {
-		log.Panic("Attempting to Start() a mainline/IndexingService that has been already started! (Programmer error.)")
+		log.WithCtx(context.Background()).Panic("Attempting to Start() a mainline/IndexingService that has been already started! (Programmer error.)")
 	}
 	is.started = true
 
@@ -98,12 +99,12 @@ func (is *IndexingService) bootstrap(nodes []string) {
 		target := make([]byte, 20)
 		_, err := rand.Read(target)
 		if err != nil {
-			log.Panic("Could NOT generate random bytes during bootstrapping!")
+			log.WithCtx(context.Background()).Panic("Could NOT generate random bytes during bootstrapping!")
 		}
 
 		addr, err := net.ResolveUDPAddr("udp", node)
 		if err != nil {
-			log.Errorf("Could NOT resolve (UDP) address of the bootstrapping node!,err:%v", err)
+			log.WithCtx(context.Background()).Error("Could NOT resolve (UDP) address of the bootstrapping node!", "error", err)
 			continue
 		}
 
@@ -129,7 +130,7 @@ func (is *IndexingService) findNeighbors() {
 	for _, addr := range addressesToSend {
 		_, err := rand.Read(target)
 		if err != nil {
-			log.Panic("Could NOT generate random bytes during bootstrapping!")
+			log.WithCtx(context.Background()).Panic("Could NOT generate random bytes during bootstrapping!")
 		}
 
 		is.protocol.SendMessage(
@@ -156,7 +157,7 @@ func (is *IndexingService) onFindNodeResponse(response *Message, addr *net.UDPAd
 		target := make([]byte, 20)
 		_, err := rand.Read(target)
 		if err != nil {
-			log.Panic("Could NOT generate random bytes!")
+			log.WithCtx(context.Background()).Panic("Could NOT generate random bytes!")
 		}
 		is.protocol.SendMessage(
 			NewSampleInfoHashQuery(is.nodeID, []byte("aa"), target),

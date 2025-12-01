@@ -9,7 +9,7 @@ import (
 
 func TestIlcorsaronero_Crawler(t *testing.T) {
 	for _, item := range config.Config.Feed.Ilcorsaronero {
-		log.Info(item.Url)
+		log.WithCtx(context.Background()).Info(item.Url)
 		u := NewIlcorsaronero(item.Scheduling, item.ResourceType, item.Url, item.UseIPProxy)
 		got, err := u.Crawler()
 		if err != nil {
@@ -17,7 +17,7 @@ func TestIlcorsaronero_Crawler(t *testing.T) {
 			return
 		}
 		for _, base := range got {
-			log.Infof("%#v", base)
+			log.WithCtx(context.Background()).Infof("%#v", base)
 		}
 	}
 }

@@ -29,7 +29,7 @@ func ModelHandler(ctx context.Context, name string) (string, string, string, str
 		},
 	)
 	if err != nil {
-		log.Error("解码响应时发生错误:", err)
+		log.WithCtx(ctx).Error("解码响应时发生错误:", err)
 		//nolint:err113
 		return "", "", "", "", fmt.Errorf("解析失败: %s", name)
 	}
@@ -44,7 +44,7 @@ func ModelHandler(ctx context.Context, name string) (string, string, string, str
 		resolution := split[3]
 		return typeStr, newName, year, resolution, nil
 	}
-	log.Warnw("content", "parser content", Content, "name", name)
+	log.WithCtx(ctx).Warnw("content", "parser content", Content, "name", name)
 
 	//nolint:err113
 	return "", "", "", "", fmt.Errorf("解析失败: %s", name)

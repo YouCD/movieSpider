@@ -20,14 +20,14 @@ func Test_torlock_Crawler(t *testing.T) {
 			//	feedTorlockTV := NewTorlock(r.Scheduling, r.ResourceType, r.URL, r.UseIPProxy)
 			//	videos, err = feedTorlockTV.Crawler()
 			//	if err != nil {
-			//		log.Errorf("err: %s", err)
+			//		log.WithCtx(context.Background()).Errorf("err: %s", err)
 			//		return
 			//	}
 			//}
 			if r.ResourceType == types.VideoTypeMovie {
 				videos, err = NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy).Crawler()
 				if err != nil {
-					log.Errorf("err: %s", err)
+					log.WithCtx(context.Background()).Errorf("err: %s", err)
 					return
 				}
 			}
@@ -38,9 +38,9 @@ func Test_torlock_Crawler(t *testing.T) {
 	for _, video := range videos {
 		filterVideo, err := model.FilterVideo(video)
 		if err != nil {
-			log.Errorf("err: %s    %#v", err, video)
+			log.WithCtx(context.Background()).Errorf("err: %s    %#v", err, video)
 			continue
 		}
-		log.Infof("%#v", filterVideo)
+		log.WithCtx(context.Background()).Infof("%#v", filterVideo)
 	}
 }

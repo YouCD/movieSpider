@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"errors"
 	"movieSpider/internal/types"
 	"strings"
@@ -16,7 +17,7 @@ import (
 
 func ProxySaveVideo2DB(videos ...*types.FeedVideo) {
 	if len(videos) == 0 {
-		log.Warn("没有数据")
+		log.WithCtx(context.Background()).Warn("没有数据")
 		return
 	}
 
@@ -25,13 +26,13 @@ func ProxySaveVideo2DB(videos ...*types.FeedVideo) {
 			err := NewMovieDB().CreatFeedVideo(video)
 			if err != nil {
 				if errors.Is(err, ErrDataExist) {
-					log.Debugf("%s.%s err: %s", strings.ToUpper(video.Web), video.Type, err)
+					log.WithCtx(context.Background()).Debugf("%s.%s err: %s", strings.ToUpper(video.Web), video.Type, err)
 					return
 				}
-				log.Error(err)
+				log.WithCtx(context.Background()).Error(err)
 				return
 			}
-			log.Infof("%s.%s: %s 保存完毕.", strings.ToUpper(video.Web), video.Type, video.Name)
+			log.WithCtx(context.Background()).Infof("%s.%s: %s 保存完毕.", strings.ToUpper(video.Web), video.Type, video.Name)
 		}(v)
 	}
 }

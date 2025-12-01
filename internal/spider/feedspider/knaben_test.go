@@ -23,7 +23,7 @@ func TestEztv_Crawler(t *testing.T) {
 			//log.Errorf("err: %s    %#v", err, video)
 			continue
 		}
-		log.Error("%#v", filterVideo)
+		log.WithCtx(context.Background()).Error("%#v", filterVideo)
 	}
 
 }

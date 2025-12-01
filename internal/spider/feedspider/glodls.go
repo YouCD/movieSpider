@@ -24,7 +24,7 @@ type Glodls struct {
 func NewGlodls() *Glodls {
 	parse, err := url.Parse(config.Config.Feed.GLODLS.Url)
 	if err != nil {
-		log.Errorf("url.Parse err: %v", err)
+		log.WithCtx(context.Background()).Errorf("url.Parse err: %v", err)
 		return nil
 	}
 
@@ -48,7 +48,7 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.Debugw(g.web, "Data", fd.String())
+	log.WithCtx(context.Background()).Debugf("%s Data: %s", g.web, fd.String())
 	//nolint:prealloc
 	var videosA []*types.FeedVideoBase
 	for _, v := range fd.Items {
@@ -59,7 +59,7 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
 		fVideo.TorrentName = v.Title
 
 		if len(parse.Query()["id"]) == 0 {
-			log.Error("没有ID")
+			log.WithCtx(context.Background()).Error("没有ID")
 		}
 		id := parse.Query()["id"][0]
 		all := strings.ReplaceAll(v.Title, " ", "-")
@@ -89,7 +89,7 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
 			defer wg.Done()
 			magnet, err := g.fetchMagnet(video.TorrentURL)
 			if err != nil {
-				log.Error(err)
+				log.WithCtx(context.Background()).Error(err)
 			}
 			if magnet == "" {
 				return

@@ -21,10 +21,10 @@ func TestNewEztv(t *testing.T) {
 	for _, video := range videos {
 		filterVideo, err := model.FilterVideo(video)
 		if err != nil {
-			log.Errorf("err:%s,%#v", err, video)
+			log.WithCtx(context.Background()).Errorf("err:%s,%#v", err, video)
 			continue
 		}
-		log.Infof("%#v", filterVideo)
+		log.WithCtx(context.Background()).Infof("%#v", filterVideo)
 	}
 
 }

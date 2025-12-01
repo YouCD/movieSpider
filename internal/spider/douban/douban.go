@@ -61,7 +61,7 @@ func NewSpiderDouBan(cfg *config.DouBan) (douBanList []spider.Spider) {
 func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 	doc, err := d.newRequest(d.url)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		//nolint:nakedret
 		return
 	}
@@ -97,7 +97,7 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		doc, err := d.newRequest(fmt.Sprintf("%s%s", movieURLPrefix, video.DoubanID))
 		if err != nil {
 			wg.Done()
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			//nolint:nakedret
 			return
 		}
@@ -109,7 +109,7 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 		err = json.Unmarshal([]byte(content), &data)
 		if err != nil {
 			wg.Done()
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			//nolint:nakedret
 			return
 		}
@@ -158,9 +158,9 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 	for _, video := range videos2 {
 		err = model.NewMovieDB().CreatDouBanVideo(video)
 		if err != nil && errors.Is(err, model.ErrDataExist) {
-			log.Debugf("DouBan %s 已更新", video.Names)
+			log.WithCtx(context.Background()).Debugf("DouBan %s 已更新", video.Names)
 		} else {
-			log.Infof("DouBan %s 已添加", video.Names)
+			log.WithCtx(context.Background()).Infof("DouBan %s 已添加", video.Names)
 		}
 	}
 
@@ -168,10 +168,10 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 }
 func (d *DouBan) Run() {
 	if d.scheduling == "" {
-		log.Error("DouBan Scheduling is null")
+		log.WithCtx(context.Background()).Error("DouBan Scheduling is null")
 		os.Exit(1)
 	}
-	log.Infof("DouBan Scheduling is: [%s]", d.scheduling)
+	log.WithCtx(context.Background()).Infof("DouBan Scheduling is: [%s]", d.scheduling)
 	c := cron.New()
 	_, _ = c.AddFunc(d.scheduling, func() { d.Crawler() })
 	c.Start()

@@ -2,6 +2,7 @@ package dhtclient
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"encoding/binary"
 	"fmt"
@@ -232,7 +233,7 @@ func (c *Client) connect(deadline time.Time) error {
 	err = c.conn.SetLinger(0)
 	if err != nil {
 		if err := c.conn.Close(); err != nil {
-			log.Panic("couldn't close leech connection!", err)
+			log.WithCtx(context.Background()).Panic("couldn't close leech connection!", "error", err)
 		}
 		return errors.Wrap(err, "SetLinger")
 	}
@@ -240,7 +241,7 @@ func (c *Client) connect(deadline time.Time) error {
 	err = c.conn.SetNoDelay(true)
 	if err != nil {
 		if err := c.conn.Close(); err != nil {
-			log.Panic("couldn't close leech connection!", err)
+			log.WithCtx(context.Background()).Panic("couldn't close leech connection!", "error", err)
 		}
 		return errors.Wrap(err, "NODELAY")
 	}
@@ -248,7 +249,7 @@ func (c *Client) connect(deadline time.Time) error {
 	err = c.conn.SetDeadline(deadline)
 	if err != nil {
 		if err := c.conn.Close(); err != nil {
-			log.Panic("couldn't close leech connection!", err)
+			log.WithCtx(context.Background()).Panic("couldn't close leech connection!", "error", err)
 		}
 		return errors.Wrap(err, "SetDeadline")
 	}
@@ -262,7 +263,7 @@ func (c *Client) closeConn() {
 	}
 
 	if err := c.conn.Close(); err != nil {
-		log.Panic("couldn't close leech connection!", err)
+		log.WithCtx(context.Background()).Panic("couldn't close leech connection!", "error", err)
 		return
 	}
 

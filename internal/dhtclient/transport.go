@@ -1,6 +1,7 @@
 package dhtclient
 
 import (
+	"context"
 	"net"
 
 	"github.com/anacrolix/torrent/bencode"
@@ -41,10 +42,10 @@ func NewTransport(laddr string, onMessage func(*Message, *net.UDPAddr), onConges
 	var err error
 	t.laddr, err = net.ResolveUDPAddr("udp", laddr)
 	if err != nil {
-		log.Panic("Could not resolve the UDP address for the trawler!", err)
+		log.WithCtx(context.Background()).Panic("Could not resolve the UDP address for the trawler!", "error", err)
 	}
 	if t.laddr.IP.To4() == nil {
-		log.Panic("IP address is not IPv4!")
+		log.WithCtx(context.Background()).Panic("IP address is not IPv4!")
 	}
 
 	return t
@@ -60,7 +61,7 @@ func (t *Transport) Start() {
 	// end up in a debugging horror.
 	//                                                                   Here ends my justification.
 	if t.started {
-		log.Panic("Attempting to Start() a mainline/Transport that has been already started! (Programmer error.)")
+		log.WithCtx(context.Background()).Panic("Attempting to Start() a mainline/Transport that has been already started! (Programmer error.)")
 	}
 	t.started = true
 
@@ -74,7 +75,7 @@ func (t *Transport) Start() {
 	})
 
 	if err != nil {
-		log.Error("Could NOT bind the socket!", err)
+		log.WithCtx(context.Background()).Error("Could NOT bind the socket!", "error", err)
 	}
 
 	go t.readMessages()
@@ -110,11 +111,11 @@ func (t *Transport) readMessages() {
 func (t *Transport) WriteMessages(msg *Message, addr *net.UDPAddr) {
 	data, err := bencode.Marshal(msg)
 	if err != nil {
-		log.Panic("Could NOT marshal an outgoing message! (Programmer error.)", err)
+		log.WithCtx(context.Background()).Panic("Could NOT marshal an outgoing message! (Programmer error.)", "error", err)
 	}
 
 	_, err = t.fd.WriteToUDP(data, addr)
 	if err != nil {
-		log.Warn("Could NOT write an UDP packet!", err)
+		log.WithCtx(context.Background()).Warn("Could NOT write an UDP packet!", "error", err)
 	}
 }

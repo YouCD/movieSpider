@@ -2,6 +2,7 @@ package ipproxy
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -52,33 +53,33 @@ type PoolDataIP struct {
 //	@return string
 func FetchProxy(typ string) *PoolDataIP {
 	if config.Config.Global.IPProxyPool == "" {
-		log.Warn("FetchProxy: Global.IpProxyPool没有配置.")
+		log.WithCtx(context.Background()).Warn("FetchProxy: Global.IpProxyPool没有配置.")
 		return nil
 	}
 	urlStr := fmt.Sprintf("%s/%s", config.Config.Global.IPProxyPool, typ)
 	//nolint:noctx
 	resp, err := httpClient.Get(urlStr)
 	if err != nil {
-		log.Errorf("Feed.ProxyPool %s,err: %s", config.Config.Global.IPProxyPool, err.Error())
+		log.WithCtx(context.Background()).Errorf("Feed.ProxyPool %s,err: %s", config.Config.Global.IPProxyPool, err.Error())
 		return nil
 	}
 	defer resp.Body.Close()
 
 	data, err := parseIPProxyPoolData(resp.Body)
 	if err != nil {
-		log.Warnf("FetchProxy: %s.", err.Error())
+		log.WithCtx(context.Background()).Warnf("FetchProxy: %s.", err.Error())
 		return nil
 	}
 
 	return data
 }
 func DelProxy(ip string) {
-	log.Warn("DelProxy: ", ip)
+	log.WithCtx(context.Background()).Warn("DelProxy: ", ip)
 	urlStr := fmt.Sprintf("%s/del?ip=%s", config.Config.Global.IPProxyPool, ip)
 	//nolint:noctx
 	resp, err := httpClient.Get(urlStr)
 	if err != nil {
-		log.Errorf("Feed.ProxyPool %s,err: %s", config.Config.Global.IPProxyPool, err)
+		log.WithCtx(context.Background()).Errorf("Feed.ProxyPool %s,err: %s", config.Config.Global.IPProxyPool, err)
 		return
 	}
 	defer resp.Body.Close()

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -26,22 +27,22 @@ func (m *MovieDB) CreatDouBanVideo(video *types.DouBanVideo) (err error) {
 	if err != nil {
 		// 忽略 错误信息： sql: no rows in result set
 		if !errors.Is(sql.ErrNoRows, err) {
-			log.Error("video.DoubanID : %s,err: %s", video.DoubanID, err)
+			log.WithCtx(context.Background()).Error("video.DoubanID : %s,err: %s", video.DoubanID, err)
 		}
 	}
 
 	if v != nil {
-		log.Debugf("CreatDouBanVideo已存在 %#v", v)
+		log.WithCtx(context.Background()).Debugf("CreatDouBanVideo已存在 %#v", v)
 		// 将该记录变更为 可播放
 		err = m.UpdateDouBanVideo(video)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 		}
 		return ErrDataExist
 	}
 
 	if video.Names == "null" {
-		log.Errorf("CreatDouBanVideo 数据错误. video: %#v", video)
+		log.WithCtx(context.Background()).Errorf("CreatDouBanVideo 数据错误. video: %#v", video)
 		//nolint:nakedret
 		return
 	}
@@ -51,7 +52,7 @@ func (m *MovieDB) CreatDouBanVideo(video *types.DouBanVideo) (err error) {
 	if err != nil {
 		return fmt.Errorf("CreatDouBanVideo 数据已添加. video: %#v, err: %w", video, err)
 	}
-	log.Debugf("CreatDouBanVideo 数据已添加. video: %#v", video)
+	log.WithCtx(context.Background()).Debugf("CreatDouBanVideo 数据已添加. video: %#v", video)
 	//nolint:nakedret
 	return
 }
@@ -87,7 +88,7 @@ func (m *MovieDB) RandomOneDouBanVideo() (video *types.DouBanVideo, err error) {
 	//nolint:gosec
 	index := rand.Intn(len(videos))
 	video = videos[index]
-	log.Debugf("RandomOneDouBanVideo video: %#v", video)
+	log.WithCtx(context.Background()).Debugf("RandomOneDouBanVideo video: %#v", video)
 	return
 }
 
@@ -103,7 +104,7 @@ func (m *MovieDB) FetchOneDouBanVideoByDouBanID(douBanID string) (video *types.D
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("FetchOneDouBanVideoByDouBanID video: %#v", video)
+	log.WithCtx(context.Background()).Debugf("FetchOneDouBanVideoByDouBanID video: %#v", video)
 	return
 }
 
@@ -145,7 +146,7 @@ func (m *MovieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*typ
 		var names []string
 		err = json.Unmarshal([]byte(video.Names), &names)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			continue
 		}
 		nameList[video] = names

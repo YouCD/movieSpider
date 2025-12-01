@@ -2,6 +2,7 @@ package bot
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
@@ -15,7 +16,7 @@ import (
 func (t *TGBot) SendReportFeedVideosMsg(msgChatID, msgID int64) {
 	count, err := model.NewMovieDB().CountFeedVideo()
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 	reportFeedVideosTmpl := template.New("reportFeedVideosTmpl")
 	_, _ = reportFeedVideosTmpl.Parse(`<b>Feed数据统计</b>
@@ -29,7 +30,7 @@ func (t *TGBot) SendReportFeedVideosMsg(msgChatID, msgID int64) {
 	msg.ParseMode = tgbotapi.ModeHTML
 	_, err = t.bot.Send(msg)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 }
 
@@ -67,7 +68,7 @@ type msgType struct {
 func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, notify notifyType) {
 	video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.FeedVideo.DoubanID)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return
 	}
 
@@ -75,13 +76,13 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, not
 	var rowData types.RowData
 	err = json.Unmarshal([]byte(video.RowData), &rowData)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 	// 处理电影名
 	var names []string
 	err = json.Unmarshal([]byte(video.Names), &names)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 	// 定义模板 结构体
 	var msg = msgType{
@@ -143,7 +144,7 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, not
 	b := new(bytes.Buffer)
 	err = datePublishedMsgTmpl.Execute(b, msg)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 
 	image := rowData.Image
@@ -154,7 +155,7 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, not
 		photo.ParseMode = tgbotapi.ModeHTML
 		_, err = t.bot.Send(photo)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 		}
 	}
 }

@@ -20,7 +20,7 @@ func TestNewGlodls(t *testing.T) {
 			if errors.Is(err, model.ErrFeedVideoExclude) {
 				continue
 			}
-			log.Errorf("err: %s    %#v", err, video)
+			log.WithCtx(context.Background()).Errorf("err: %s    %#v", err, video)
 			continue
 		}
 		//log.Infof("%#v", filterVideo)

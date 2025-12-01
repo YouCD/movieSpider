@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/bus"
@@ -51,12 +52,12 @@ func NewTgBot(botToken string, tgIDs []int) *TGBot {
 	once.Do(func() {
 		client := http.DefaultClient
 		if config.Config.TG.ProxyURL != "" {
-			log.Info(config.Config.TG.ProxyURL)
+			log.WithCtx(context.Background()).Info(config.Config.TG.ProxyURL)
 			client = httpclient.NewProxyHTTPClient(config.Config.TG.ProxyURL)
 		}
 		bot, err := tgbotapi.NewBotAPIWithClient(config.Config.TG.BotToken, "https://api.telegram.org/bot%s/%s", client)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			os.Exit(-1)
 		}
 
@@ -88,7 +89,7 @@ func (t *TGBot) StartBot() {
 	t.datePublishedNotify()
 	// 发送通知 下载完毕 通知
 	t.downloadCompleteNotify()
-	log.Infof("Authorized on account %s", t.bot.Self.UserName)
+	log.WithCtx(context.Background()).Infof("Authorized on account %s", t.bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	updates := t.bot.GetUpdatesChan(u)
@@ -101,19 +102,19 @@ func (t *TGBot) StartBot() {
 			continue
 		}
 		if !t.checkUser(update.Message.Chat.ID, update) {
-			log.Warnf("用户 %s(%d) 没有权限执行命令 %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Command())
+			log.WithCtx(context.Background()).Warnf("用户 %s(%d) 没有权限执行命令 %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Command())
 			continue
 		}
 		switch update.Message.Command() {
 		case CMDReportDownload: // movie_download 指令
 			aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 			if err != nil {
-				log.Error(err)
+				log.WithCtx(context.Background()).Error(err)
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "aria2下载器服务异常")
 				msg.ReplyToMessageID = update.Message.MessageID
 				_, err = t.bot.Send(msg)
 				if err != nil {
-					log.Error(err)
+					log.WithCtx(context.Background()).Error(err)
 				}
 				continue
 			}
@@ -132,7 +133,7 @@ func (t *TGBot) StartBot() {
 			msg.ReplyToMessageID = update.Message.MessageID
 			_, err = t.bot.Send(msg)
 			if err != nil {
-				log.Error(err)
+				log.WithCtx(context.Background()).Error(err)
 			}
 		case CMDReportFeedVideos:
 			t.SendReportFeedVideosMsg(update.Message.Chat.ID, int64(update.Message.MessageID))
@@ -148,7 +149,7 @@ func (t *TGBot) StartBot() {
 			msg.ReplyToMessageID = update.Message.MessageID
 			_, err := t.bot.Send(msg)
 			if err != nil {
-				log.Error(err)
+				log.WithCtx(context.Background()).Error(err)
 			}
 
 		default:
@@ -156,7 +157,7 @@ func (t *TGBot) StartBot() {
 			msg.ReplyToMessageID = update.Message.MessageID
 			_, err := t.bot.Send(msg)
 			if err != nil {
-				log.Error(err)
+				log.WithCtx(context.Background()).Error(err)
 			}
 		}
 	}
@@ -172,7 +173,7 @@ func (t *TGBot) SendStrMsg(msg string) {
 		tgMsg := tgbotapi.NewMessage(int64(id), msg)
 		_, err := t.bot.Send(tgMsg)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 		}
 	}
 }
@@ -207,7 +208,7 @@ func (t *TGBot) checkUser(chatID int64, update tgbotapi.Update) bool {
 		msg.ReplyToMessageID = update.Message.MessageID
 		_, err := t.bot.Send(msg)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			return false
 		}
 		return false
@@ -245,7 +246,7 @@ func (t *TGBot) datePublishedNotify() {
 			if ok {
 				video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
 				if err != nil {
-					log.Error(err)
+					log.WithCtx(context.Background()).Error(err)
 				}
 
 				t.SendDatePublishedOrDownloadMsg(&types.DownloadNotifyVideo{
@@ -268,7 +269,7 @@ func (t *TGBot) downloadCompleteNotify() {
 		defer close(downLoadChan)
 		aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			return
 		}
 		for {

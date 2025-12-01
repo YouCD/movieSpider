@@ -2,6 +2,7 @@ package feedspider
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"fmt"
 	"movieSpider/internal/types"
@@ -36,7 +37,7 @@ func (w *Web1337x) Crawler() ([]*types.FeedVideoBase, error) {
 }
 
 func (w *Web1337x) crawler() ([]*types.FeedVideoBase, error) {
-	log.Debugw(w.web, "type", w.typ, "url", w.Url)
+	log.WithCtx(context.Background()).Debugf("%s type: %v url: %s", w.web, w.typ, w.Url)
 	videosTemp := make([]*types.FeedVideoBase, 0)
 	data, err := w.HTTPRequest(w.Url)
 	if err != nil {
@@ -67,12 +68,12 @@ func (w *Web1337x) crawler() ([]*types.FeedVideoBase, error) {
 		// magnet 链接
 		data, err = w.HTTPRequest(torrentURL)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			return
 		}
 		doc, err := goquery.NewDocumentFromReader(bytes.NewReader(data))
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			return
 		}
 

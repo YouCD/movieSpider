@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"movieSpider/internal/magnetconvert"
@@ -35,7 +36,7 @@ func (t *Torlock) Crawler() ([]*types.FeedVideoBase, error) {
 		if err != nil {
 			return nil, ErrFeedParseURL
 		}
-		log.Debugw(t.web, "type", t.typ, "Data", fd.String())
+		log.WithCtx(context.Background()).Debugf("%s type: %v Data: %s", t.web, t.typ, fd.String())
 		var videos1 []*types.FeedVideoBase
 		for _, v := range fd.Items {
 			// 片名
@@ -62,7 +63,7 @@ func (t *Torlock) Crawler() ([]*types.FeedVideoBase, error) {
 		if err != nil {
 			return nil, ErrFeedParseURL
 		}
-		log.Debugw(t.web, "type", t.typ, "Data", fd.String())
+		log.WithCtx(context.Background()).Debugf("%s type: %v Data: %s", t.web, t.typ, fd.String())
 		var videos1 []*types.FeedVideoBase
 		for _, v := range fd.Items {
 			var fVideo types.FeedVideoBase
@@ -90,7 +91,7 @@ func (t *Torlock) fetchMagnet(videos []*types.FeedVideoBase) (feedVideos []*type
 		wg.Add(1)
 		magnet, err := magnetconvert.FetchMagnetWithHTTPClient(video.Magnet, t.HTTPClientDynamic())
 		if err != nil {
-			log.Errorf("TORLOCK: get %s magnet download url is %s", video.TorrentName, video.Magnet)
+			log.WithCtx(context.Background()).Errorf("TORLOCK: get %s magnet download url is %s", video.TorrentName, video.Magnet)
 			wg.Done()
 			continue
 		}
@@ -112,13 +113,13 @@ func (t *Torlock) fetchMagnetDownLoad(videos []*types.FeedVideoBase) []*types.Fe
 			defer wg.Done()
 			resp, err := t.HTTPClientDynamic().Get(video.TorrentURL)
 			if err != nil {
-				log.Errorf("TORLOCK.%s %s http request url is %s, error:%s", video.Type, video.TorrentName, video.TorrentURL, err)
+				log.WithCtx(context.Background()).Errorf("TORLOCK.%s %s http request url is %s, error:%s", video.Type, video.TorrentName, video.TorrentURL, err)
 				return
 			}
 			defer resp.Body.Close()
 			doc, err := goquery.NewDocumentFromReader(resp.Body)
 			if err != nil {
-				log.Errorf("TORLOCK.%s %s http goquery error:%s", video.Type, video.TorrentName, err)
+				log.WithCtx(context.Background()).Errorf("TORLOCK.%s %s http goquery error:%s", video.Type, video.TorrentName, err)
 				return
 			}
 			val, exists := doc.Find("body > article > div:nth-child(6) > div > div:nth-child(2) > a").Attr("href")

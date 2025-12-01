@@ -1,6 +1,7 @@
 package job
 
 import (
+	"context"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
@@ -31,10 +32,10 @@ func NewReport(scheduling string) *Report {
 //	@receiver r
 func (r *Report) Run() {
 	if r.scheduling == "" {
-		log.Error("Report: Scheduling is null")
+		log.WithCtx(context.Background()).Error("Report: Scheduling is null")
 		os.Exit(1)
 	}
-	log.Infof("Report: Scheduling is: [%s]", r.scheduling)
+	log.WithCtx(context.Background()).Infof("Report: Scheduling is: [%s]", r.scheduling)
 	c := cron.New()
 	_, _ = c.AddFunc(r.scheduling, func() {
 		// FeedVideo 资源统计
@@ -51,7 +52,7 @@ func reportAria2TaskStatistics() {
 	// 下载情况统计
 	aria2Client, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
-		log.Error("Report: err", err)
+		log.WithCtx(context.Background()).Error("Report: err", err)
 		return
 	}
 	files := aria2Client.CurrentActiveAndStopFiles()
@@ -65,14 +66,14 @@ func reportAria2TaskStatistics() {
 		downloadTable.Append([]string{file.GID, file.Size, file.Completed, file.FileName})
 	}
 
-	log.Info("\n\n当前下载信息: ")
+	log.WithCtx(context.Background()).Info("\n\n当前下载信息: ")
 	downloadTable.Render()
 }
 
 func reportFeedVideoStatistics() {
 	count, err := model.NewMovieDB().CountFeedVideo()
 	if err != nil {
-		log.Error("Report: err", err)
+		log.WithCtx(context.Background()).Error("Report: err", err)
 		return
 	}
 
@@ -84,11 +85,11 @@ func reportFeedVideoStatistics() {
 		table.Append([]string{reportCount.Web, strconv.Itoa(reportCount.Count)})
 	}
 	if Total == 0 {
-		log.Info("无下载资源")
+		log.WithCtx(context.Background()).Info("无下载资源")
 		return
 	}
 	table.SetFooter([]string{"总数", strconv.Itoa(Total)})
-	log.Info("\n\n下载统计: ")
+	log.WithCtx(context.Background()).Info("\n\n下载统计: ")
 	table.Render()
 }
 
@@ -96,16 +97,16 @@ func reportFeedVideoStatistics() {
 func reportAria2DownloadQueue() {
 	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
-		log.Error("Report: err", err)
+		log.WithCtx(context.Background()).Error("Report: err", err)
 		return
 	}
 	task := newAria2.GetDownloadTask()
 	if len(task) == 0 {
-		log.Info("Report: aria2 下载队列为空")
+		log.WithCtx(context.Background()).Info("Report: aria2 下载队列为空")
 		return
 	}
 	if len(task) == 0 {
-		log.Info("Report: aria2 队列为空")
+		log.WithCtx(context.Background()).Info("Report: aria2 队列为空")
 		return
 	}
 	table := tablewriter.NewWriter(os.Stdout)
@@ -113,6 +114,6 @@ func reportAria2DownloadQueue() {
 	for k, v := range task {
 		table.Append([]string{k, v.Name, v.Type})
 	}
-	log.Info("\n\n下载队列: ")
+	log.WithCtx(context.Background()).Info("\n\n下载队列: ")
 	table.Render()
 }

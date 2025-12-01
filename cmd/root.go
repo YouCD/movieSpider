@@ -22,7 +22,7 @@ var rootCmd = &cobra.Command{
 	Use:   Name,
 	Short: Name + "电影助手，自动获取电影种子信息，自动刮取豆瓣电影想看列表，自动下载",
 
-	Run: func(_ *cobra.Command, _ []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		movieSpider := core.NewMovieSpider(
 			core.WithConfigFile(configFile),
 			core.WithFeeds(),
@@ -34,7 +34,7 @@ var rootCmd = &cobra.Command{
 
 		movieSpider.Start()
 
-		model.NewMovieDB().SaveFeedVideoFromChan()
+		model.NewMovieDB().SaveFeedVideoFromChan(cmd.Context())
 		select {}
 	},
 }
@@ -42,7 +42,7 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(rootCmd.Context()).Error(err)
 		os.Exit(1)
 	}
 }

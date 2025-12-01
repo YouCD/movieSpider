@@ -1,6 +1,7 @@
 package searchspider
 
 import (
+	"context"
 	"fmt"
 	"movieSpider/internal/types"
 	"net/url"
@@ -17,7 +18,7 @@ func (f *FactoryBt4g) CreateFeeder(args ...interface{}) *BT4g {
 	resolution := args[1].(types.Resolution)
 	parse, err := url.Parse(urlBt4g)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		os.Exit(1)
 	}
 	bURL := fmt.Sprintf("%s://%s/search/%s/bysize/1?page=rss", parse.Scheme, parse.Host, name)

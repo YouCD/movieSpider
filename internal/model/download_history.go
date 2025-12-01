@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"movieSpider/internal/types"
@@ -118,7 +119,7 @@ func (m *MovieDB) FindFeedVideoInDownloadHistory(v *types.FeedVideo) (*types.Fee
 		// log.Errorf("%#v", downloadHistory)
 		err = m.AddDownloadHistory(downloadHistory)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 		}
 		return v, nil
 	}

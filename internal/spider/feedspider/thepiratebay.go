@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
 	"strings"
@@ -29,7 +30,7 @@ func (t *ThePirateBay) Crawler() ([]*types.FeedVideoBase, error) {
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.Debugw(t.web, "Data", fd.String())
+	log.WithCtx(context.Background()).Debugf("%s Data: %s", t.web, fd.String())
 	videos := make([]*types.FeedVideoBase, 0)
 	for _, v := range fd.Items {
 		if len(v.Categories) < 1 {

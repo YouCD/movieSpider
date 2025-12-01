@@ -1,6 +1,7 @@
 package httpclient
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"movieSpider/internal/config"
@@ -44,7 +45,7 @@ func NewIPProxyPoolHTTPClient(exampleURL string) (*http.Client, string) {
 	proxy := strings.ToLower(fmt.Sprintf("%s://%s:%d", proxyObj.ProxyType, proxyObj.ProxyHost, proxyObj.ProxyPort))
 	proxyURL, err := url.Parse(proxy)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return nil, ""
 	}
 	// 设置网络传输
@@ -59,7 +60,7 @@ func NewIPProxyPoolHTTPClient(exampleURL string) (*http.Client, string) {
 		ResponseHeaderTimeout: time.Second * time.Duration(config.Config.Global.Timeout),
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 	}
-	log.Debugf("use proxy: %s", proxy)
+	log.WithCtx(context.Background()).Debugf("use proxy: %s", proxy)
 	return &http.Client{Transport: netTransport, Timeout: time.Second * time.Duration(config.Config.Global.Timeout)}, proxy
 }
 
@@ -82,7 +83,7 @@ RETRY:
 	proxy := strings.ToLower(fmt.Sprintf("%s://%s:%d", proxyObj.ProxyType, proxyObj.ProxyHost, proxyObj.ProxyPort))
 	proxyURL, err := url.Parse(proxy)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return nil, ""
 	}
 	// 设置网络传输
@@ -97,13 +98,13 @@ RETRY:
 		ResponseHeaderTimeout: time.Second * time.Duration(60),
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 	}
-	log.Debugf("use proxy: %s", proxy)
+	log.WithCtx(context.Background()).Debugf("use proxy: %s", proxy)
 
 	httpClient := &http.Client{Transport: netTransport, Timeout: time.Second * 60}
 	//nolint:noctx
 	res, err := httpClient.Get(testURL)
 	if err != nil {
-		log.Debugf("proxy: %s, error: %s", proxy, err)
+		log.WithCtx(context.Background()).Debugf("proxy: %s, error: %s", proxy, err)
 		ipproxy.DelProxy(proxyObj.ProxyHost)
 		goto RETRY
 	}

@@ -19,9 +19,9 @@ func TestWeb1337x_Crawler(t *testing.T) {
 	for _, video := range gotVideos {
 		filterVideo, err := model.FilterVideo(video)
 		if err != nil {
-			log.Errorf("err: %s    %#v", err, video)
+			log.WithCtx(context.Background()).Errorf("err: %s    %#v", err, video)
 			continue
 		}
-		log.Infof("%#v", filterVideo)
+		log.WithCtx(context.Background()).Infof("%#v", filterVideo)
 	}
 }

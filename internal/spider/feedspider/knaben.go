@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"movieSpider/internal/config"
@@ -92,7 +93,7 @@ func (k *Knaben) Crawler() (videos []*types.FeedVideoBase, err error) {
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.Debugw(k.web, "Data", fd.String())
+	log.WithCtx(context.Background()).Debugf("%s Data: %s", k.web, fd.String())
 	resp, err := k.HTTPRequest(k.Url)
 	if err != nil {
 		return nil, fmt.Errorf("btbt new request,url: %s, err: %w", k.Url, err)

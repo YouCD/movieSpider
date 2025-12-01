@@ -2,6 +2,7 @@ package feedspider
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"movieSpider/internal/types"
 	"net/url"
@@ -32,7 +33,7 @@ func NewUindex(scheduling string, resourceType types.VideoType, siteURL string, 
 	}
 }
 func (u *Uindex) Crawler() ([]*types.FeedVideoBase, error) {
-	log.Debugw(u.web, "type", u.typ, "url", u.Url)
+	log.WithCtx(context.Background()).Debugf("%s type: %v url: %s", u.web, u.typ, u.Url)
 	resp, err := u.HTTPRequest(u.Url)
 	if err != nil {
 		return nil, fmt.Errorf("%s new request,url: %s, err: %w", u.web, u.Url, err)

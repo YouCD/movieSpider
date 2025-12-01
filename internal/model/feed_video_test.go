@@ -22,11 +22,11 @@ func TestMovieDB_GetFeedVideoMovieByNames(t *testing.T) {
 func TestNameParserModelHandler(t *testing.T) {
 	dbA := NewMovieDB().GetDB()
 	var tvs []*types.FeedVideo
-	log.Info(tvs)
+	log.WithCtx(t.Context()).Info(tvs)
 	query := dbA.Table("feed_video").Model(&types.FeedVideo{}).Where("type = ?", "tv").Limit(1)
-	log.Info("准备执行查询")
+	log.WithCtx(t.Context()).Info("准备执行查询")
 	err := query.Find(&tvs).Error
-	log.Infof("查询结果: %+v, 错误: %v", tvs, err)
+	log.WithCtx(t.Context()).Infof("查询结果: %+v, 错误: %v", tvs, err)
 
 	for _, tv := range tvs {
 		fmt.Println(tv)

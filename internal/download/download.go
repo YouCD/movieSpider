@@ -1,6 +1,7 @@
 package download
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"movieSpider/internal/aria2"
@@ -34,7 +35,7 @@ func (d *Download) DownloadByName(name, resolution string) (msg string) {
 		feedBt4g := searchspider.NewFeedBt4g(name, d.ResolutionStr2Int(resolution))
 		_, err := feedBt4g.Search()
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 		}
 	}()
 	wg.Wait()
@@ -42,7 +43,7 @@ func (d *Download) DownloadByName(name, resolution string) (msg string) {
 	// 获取 磁力连接
 	videos, err := model.NewMovieDB().GetFeedVideoMovieByNames([]string{name}...)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 
 	if len(videos) == 0 {
@@ -52,23 +53,23 @@ func (d *Download) DownloadByName(name, resolution string) (msg string) {
 	// 推送 磁力连接至 aria2
 	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 
 	for _, v := range videos {
 		if v.Name == "" {
-			log.Warnf("TorrentName: %v ,name is nil", v.TorrentName)
+			log.WithCtx(context.Background()).Warnf("TorrentName: %v ,name is nil", v.TorrentName)
 			continue
 		}
 		gid, err := newAria2.DownloadByWithVideo(v, v.Magnet)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			continue
 		}
-		log.Infof("Downloader: %s 开始下载. GID: %s", v.Name, gid)
+		log.WithCtx(context.Background()).Infof("Downloader: %s 开始下载. GID: %s", v.Name, gid)
 		err = model.NewMovieDB().UpdateFeedVideoDownloadByID(v.ID, 1)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 		}
 	}
 
@@ -76,16 +77,16 @@ func (d *Download) DownloadByName(name, resolution string) (msg string) {
 }
 func (d *Download) Run() {
 	if d.scheduling == "" {
-		log.Error("Downloader: Scheduling is null")
+		log.WithCtx(context.Background()).Error("Downloader: Scheduling is null")
 		os.Exit(1)
 	}
-	log.Infof("Downloader: Scheduling is: [%s]", d.scheduling)
+	log.WithCtx(context.Background()).Infof("Downloader: Scheduling is: [%s]", d.scheduling)
 	c := cron.New()
 	_, err := c.AddFunc(d.scheduling, func() {
 		d.downloadTask()
 	})
 	if err != nil {
-		log.Error("Downloader: AddFunc is null")
+		log.WithCtx(context.Background()).Error("Downloader: AddFunc is null")
 		os.Exit(1)
 	}
 	c.Start()
@@ -94,16 +95,16 @@ func (d *Download) Run() {
 func (d *Download) downloadTask() {
 	err := d.download(types.VideoTypeTV, model.NewMovieDB().GetFeedVideoTVByNames)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 	err = d.download(types.VideoTypeMovie, model.NewMovieDB().GetFeedVideoMovieByNames)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 }
 
 func (d *Download) download(tvOrMovie types.VideoType, f func(names ...string) ([]*types.FeedVideo, error)) (err error) {
-	log.Infow(tvOrMovie.String(), "Downloader working...")
+	log.WithCtx(context.Background()).Infow(tvOrMovie.String(), "Downloader working...")
 	videos, err := model.NewMovieDB().FetchDouBanVideoByType(tvOrMovie)
 	if err != nil {
 		return fmt.Errorf("FetchDouBanVideoByType,err: %w", err)
@@ -115,15 +116,15 @@ func (d *Download) download(tvOrMovie types.VideoType, f func(names ...string) (
 	var videoList []*types.FeedVideo
 	// 归类同一个电视剧名的 feedVideo
 	for douBanVideo, name := range videos {
-		log.Infow(tvOrMovie.String(), "douBanVideo", douBanVideo.Names)
+		log.WithCtx(context.Background()).Infow(tvOrMovie.String(), "douBanVideo", douBanVideo.Names)
 		videoList, err = f(name...)
 		if err != nil {
-			log.Warn(err)
+			log.WithCtx(context.Background()).Warn(err)
 		}
 		if len(videoList) == 0 {
 			continue
 		}
-		log.Infof("douBanVideo:%v   种子数: %#v", douBanVideo.Names, len(videoList))
+		log.WithCtx(context.Background()).Infof("douBanVideo:%v   种子数: %#v", douBanVideo.Names, len(videoList))
 		// 归类同一个电视剧名的视频
 		for _, video := range videoList {
 			// 添加 豆瓣ID
@@ -133,7 +134,7 @@ func (d *Download) download(tvOrMovie types.VideoType, f func(names ...string) (
 			// 如果 feedVideo 不能转化为 downloadHistory 则跳过
 			downloadHistory := video.Convert2DownloadHistory()
 			if downloadHistory == nil {
-				log.Debugf("TorrentName: %#v 不能转化为 downloadHistory ", video.TorrentName)
+				log.WithCtx(context.Background()).Debugf("TorrentName: %#v 不能转化为 downloadHistory ", video.TorrentName)
 				continue
 			}
 			FilterMap[douBanVideo.Names] = append(FilterMap[douBanVideo.Names], video)
@@ -142,7 +143,7 @@ func (d *Download) download(tvOrMovie types.VideoType, f func(names ...string) (
 	// 批量更新
 	err = model.NewMovieDB().UpdateFeedVideos(videoList...)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 
 	// 根据 清晰度 季数和集数过滤
@@ -154,19 +155,19 @@ func (d *Download) download(tvOrMovie types.VideoType, f func(names ...string) (
 
 	//  如果没有需要下载的视频 则返回
 	if len(needDownloadFeedVideo) == 0 {
-		log.Warn("此次没有要下载的tv.")
+		log.WithCtx(context.Background()).Warn("此次没有要下载的tv.")
 		return nil
 	}
 
 	// 推送 磁力连接至 aria2
 	err = d.aria2Download(needDownloadFeedVideo...)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 
 	// 更新feedVideo的下载状态，记录这一次下载的视频
 	for _, video := range needDownloadFeedVideo {
-		log.Infow(tvOrMovie.String(), "更新", video.TorrentName)
+		log.WithCtx(context.Background()).Infow(tvOrMovie.String(), "更新", video.TorrentName)
 		UpdateFeedVideoAndDownloadHistory(video)
 	}
 	return nil
@@ -192,12 +193,12 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 	}
 	for _, v := range videos {
 		if v.Name == "" {
-			log.Warnf("TorrentName: %v ,name is nil", v.TorrentName)
+			log.WithCtx(context.Background()).Warnf("TorrentName: %v ,name is nil", v.TorrentName)
 			continue
 		}
 		gid, err := newAria2.DownloadByWithVideo(v, v.Magnet)
 		if err != nil {
-			log.Error(err)
+			log.WithCtx(context.Background()).Error(err)
 			continue
 		}
 
@@ -212,7 +213,7 @@ func (d *Download) aria2Download(videos ...*types.FeedVideo) error {
 			}()
 		}
 
-		log.Infof(" 开始下载: %s. videoType: %s.  GID: %s.", v.TorrentName, v.Type, gid)
+		log.WithCtx(context.Background()).Infof(" 开始下载: %s. videoType: %s.  GID: %s.", v.TorrentName, v.Type, gid)
 	}
 	return nil
 }

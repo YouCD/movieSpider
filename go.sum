@@ -125,6 +125,8 @@ github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/gopherjs/gopherjs v0.0.0-20190309154008-847fc94819f9/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
@@ -304,6 +306,8 @@ github.com/willf/bloom v2.0.3+incompatible h1:QDacWdqcAUI1MPOwIQZRy9kOR7yxfyEmxX
 github.com/willf/bloom v2.0.3+incompatible/go.mod h1:MmAltL9pDMNTrvUkxdg0k0q5I0suxmuwp3KbyrZLOZ8=
 github.com/youcd/toolkit v0.0.0-20250626035250-e9ddcca0953f h1:QEXgoeWUefgKRlrB61ev5FJkf7vrFpwj7M3dfmf9wbs=
 github.com/youcd/toolkit v0.0.0-20250626035250-e9ddcca0953f/go.mod h1:Kp1D2RT6WhNNoV3fEZtfw/oUdrGX7XbMUdXyc3QvjBo=
+github.com/youcd/toolkit v0.0.0-20251128071038-97f2c93fad91 h1:b0SLp5zcaDXdaR2nqqnK2rV9KNnW136ZmpcRMTZ/6Q0=
+github.com/youcd/toolkit v0.0.0-20251128071038-97f2c93fad91/go.mod h1:KFsNPFnYAtkiDcZYIEU2er16JY11Zpd5nFFROgm1fPA=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063 h1:xCSVbiTicJX7M0l/Uf/91517mou3E57UnzTsp/bol2E=
 github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063/go.mod h1:rXaHR0MNLc/U/lqic2jozgrZDdlpyoxFHgw88oa/kSk=

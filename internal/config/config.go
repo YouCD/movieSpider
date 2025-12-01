@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"movieSpider/internal/types"
 	"os"
@@ -120,12 +121,12 @@ func InitConfig(configFile string) {
 
 	v.WatchConfig()
 	v.OnConfigChange(func(e fsnotify.Event) {
-		log.Infof("Config file changed: %s\n", e.Name)
+		log.WithCtx(context.Background()).Infof("Config file changed: %s\n", e.Name)
 		c := new(config)
 		// 解析配置文件，反序列化
 		err = v.Unmarshal(c)
 		if err != nil {
-			log.Errorf("Unmarshal yaml faild: %s", err)
+			log.WithCtx(context.Background()).Errorf("Unmarshal yaml faild: %s", err)
 			os.Exit(-1)
 		}
 		err = ValidateFc(Config)
@@ -140,7 +141,7 @@ func InitConfig(configFile string) {
 				}
 			}
 			log.SetLogLevel(Config.Global.LogLevel)
-			log.Debug("日志级别： ", Config.Global.LogLevel)
+			log.WithCtx(context.Background()).Debug("日志级别： ", Config.Global.LogLevel)
 		}
 	})
 
@@ -155,7 +156,7 @@ func InitConfig(configFile string) {
 	// 打印 日志级别
 	log.Init(logConfig)
 	log.SetLogLevel(Config.Global.LogLevel)
-	log.Debug("日志级别： ", Config.Global.LogLevel)
+	log.WithCtx(context.Background()).Debug("日志级别： ", Config.Global.LogLevel)
 	err = ValidateFc(Config)
 	if err != nil {
 		fmt.Println(err)

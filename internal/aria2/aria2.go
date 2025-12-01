@@ -47,14 +47,14 @@ func NewAria2(label string) (*Aria2, error) {
 			}
 
 			if v.Label == label {
-				client, err := rpc.New(context.TODO(), URL, v.Token, 0, nil)
+				client, err := rpc.New(context.Background(), URL, v.Token, 0, nil)
 				if err != nil {
-					log.Error(err)
+					log.WithCtx(context.Background()).Error(err)
 					e = err
 					return
 				}
 				marshal, _ := json.Marshal(config.Config.Aria2cList)
-				log.Debug(string(marshal))
+				log.WithCtx(context.Background()).Debug(string(marshal))
 				aria2Client = &Aria2{aria2Client: client, downloadTask: make(map[string]*types.FeedVideo)}
 			}
 		}
@@ -104,7 +104,7 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 			time.Sleep(1 * time.Second)
 			info, err := a.aria2Client.TellStatus(MateGid, "files", "gid", "status", "errorMessage", "errorCode", "followedBy")
 			if err != nil {
-				log.Error(err)
+				log.WithCtx(context.Background()).Error(err)
 				return "", fmt.Errorf("TellStatus err:%w", err)
 			}
 			// active  waiting   paused   error   complete   removed
@@ -120,7 +120,7 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 					return info.Gid, nil
 				}
 				msg := fmt.Sprintf("code: %s, msg: %s", info.ErrorCode, info.ErrorMessage)
-				log.Error(msg)
+				log.WithCtx(context.Background()).Error(msg)
 				//nolint:err113
 				return "", errors.New(msg)
 			}
@@ -184,7 +184,7 @@ func (a *Aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompl
 	// 获取已停止下载的文件
 	sessionInfo, err := a.aria2Client.TellStopped(0, 100)
 	if err != nil && !errors.Is(err, io.EOF) {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return nil
 	}
 
@@ -193,7 +193,7 @@ func (a *Aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompl
 	// 获取正在下载的文件
 	ActiveSession, err := a.aria2Client.TellActive()
 	if err != nil && !errors.Is(err, io.EOF) {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return nil
 	}
 	completedFiles2 := a.completedHandler(ActiveSession, completedFiles...)
@@ -237,7 +237,7 @@ func (a *Aria2) Subscribe(downLoadChan chan *types.DownloadNotifyVideo) {
 		for gid, feedVideo := range a.downloadTask {
 			info, err := a.aria2Client.TellStatus(gid, "files", "status")
 			if err != nil {
-				log.Error(err)
+				log.WithCtx(context.Background()).Error(err)
 				continue
 			}
 			// active  waiting   paused   error   complete   removed

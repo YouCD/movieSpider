@@ -1,6 +1,7 @@
 package download
 
 import (
+	"context"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"strings"
@@ -57,7 +58,7 @@ func FilterByResolutionInDownloadHistory(videos ...*types.FeedVideo) (list []*ty
 		// 通过清晰度过滤
 		v, err := model.NewMovieDB().FindFeedVideoInDownloadHistory(video)
 		if err != nil {
-			log.Debug(err)
+			log.WithCtx(context.Background()).Debug(err)
 			continue
 		}
 		list = append(list, v)
@@ -74,13 +75,13 @@ func UpdateFeedVideoAndDownloadHistory(video *types.FeedVideo) {
 	//  更新 feedVideo 的下载状态为1
 	err := model.NewMovieDB().UpdateFeedVideoDownloadByID(video.ID, 1)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 
 	//  记录这一次下载的视频
 	err = model.NewMovieDB().UpdateOrAddDownloadHistory(video.Convert2DownloadHistory())
 	if err != nil {
-		log.Error(video.TorrentName, video.Name, err)
+		log.WithCtx(context.Background()).Error(video.TorrentName, video.Name, err)
 	}
 }
 

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"movieSpider/internal/bot"
 	"movieSpider/internal/bus"
@@ -66,27 +67,27 @@ func (m *MovieSpider) startFeed() {
 	for _, feeder := range m.feeds {
 		go func(feeder feedspider.Feeder) {
 			if feeder.Scheduling() == "" {
-				log.Errorf("%s Scheduling is null", feeder.WebName())
+				log.WithCtx(context.Background()).Errorf("%s Scheduling is null", feeder.WebName())
 				os.Exit(1)
 			}
-			log.Infof("%s Scheduling is: [%s]", feeder.WebName(), feeder.Scheduling())
+			log.WithCtx(context.Background()).Infof("%s Scheduling is: [%s]", feeder.WebName(), feeder.Scheduling())
 			c := cron.New()
 			_, _ = c.AddFunc(feeder.Scheduling(), func() {
 				videos, err := feeder.Crawler()
 				if err != nil {
 					if errors.Is(err, feedspider.ErrNoFeedData) {
-						log.Warnf("%s: 没有feed数据, url: %s", strings.ToUpper(feeder.WebName()), feeder.URL())
+						log.WithCtx(context.Background()).Warnf("%s: 没有feed数据, url: %s", strings.ToUpper(feeder.WebName()), feeder.URL())
 						return
 					}
-					log.Errorf("web: %s, err: %s", feeder.WebName(), err)
+					log.WithCtx(context.Background()).Errorf("web: %s, err: %s", feeder.WebName(), err)
 					return
 				}
 				if len(videos) == 0 {
-					log.Warnf("web: %s, url: %s, videos is empty", feeder.WebName(), feeder.URL())
+					log.WithCtx(context.Background()).Warnf("web: %s, url: %s, videos is empty", feeder.WebName(), feeder.URL())
 					return
 				}
 				if videos[0].Magnet == "" {
-					log.Warnf("web: %s, url: %s, Magnet is empty", feeder.WebName(), feeder.URL())
+					log.WithCtx(context.Background()).Warnf("web: %s, url: %s, Magnet is empty", feeder.WebName(), feeder.URL())
 					return
 				}
 

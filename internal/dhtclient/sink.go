@@ -1,6 +1,7 @@
 package dhtclient
 
 import (
+	"context"
 	"net"
 	"time"
 
@@ -22,7 +23,7 @@ func NewSink(deadline time.Duration, maxNLeeches int) *Sink {
 
 func (ms *Sink) Sink(res Result) {
 	if ms.terminated {
-		log.Panic("Trying to Sink() an already closed Sink!")
+		log.WithCtx(context.Background()).Panic("Trying to Sink() an already closed Sink!")
 	}
 	ms.incomingInfoHashesMx.Lock()
 	defer ms.incomingInfoHashesMx.Unlock()
@@ -50,7 +51,7 @@ func (ms *Sink) Sink(res Result) {
 
 func (ms *Sink) Drain() <-chan Metadata {
 	if ms.terminated {
-		log.Panic("Trying to Drain() an already closed Sink!")
+		log.WithCtx(context.Background()).Panic("Trying to Drain() an already closed Sink!")
 	}
 	return ms.drain
 }
@@ -78,7 +79,7 @@ func (ms *Sink) flush(result Metadata) {
 }
 
 func (ms *Sink) onLeechError(infoHash [20]byte, err error) {
-	log.Debug(err)
+	log.WithCtx(context.Background()).Debug("error occurred", "error", err)
 
 	ms.incomingInfoHashesMx.Lock()
 	defer ms.incomingInfoHashesMx.Unlock()

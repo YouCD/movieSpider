@@ -1,6 +1,7 @@
 package searchspider
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -28,7 +29,7 @@ type BT4g struct {
 func NewFeedBt4g(name string, resolution types.Resolution) *BT4g {
 	parse, err := url.Parse(urlBt4g)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		os.Exit(1)
 	}
 
@@ -44,8 +45,8 @@ func (b *BT4g) Search() (videos []*types.FeedVideo, err error) {
 		//nolint:err113
 		return nil, errors.New("BT4G: 没有feed数据")
 	}
-	log.Debugf("BT4G Config: %#v", b)
-	log.Debugf("BT4G Data: %#v", fd.String())
+	log.WithCtx(context.Background()).Debugf("BT4G Config: %#v", b)
+	log.WithCtx(context.Background()).Debugf("BT4G Data: %#v", fd.String())
 	if len(fd.Items) == 0 {
 		//nolint:err113
 		return nil, errors.New("BT4G: 没有feed数据")

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
 	"movieSpider/internal/job"
@@ -126,7 +127,7 @@ func WithDownload() Option {
 func WithReleaseTimeJob() Option {
 	if config.Config.TG == nil {
 		return optionFunc(func(_ *MovieSpider) {
-			log.Warn("未开启TG通知，无法运行 电影上线 通知job")
+			log.WithCtx(context.Background()).Warn("未开启TG通知，无法运行 电影上线 通知job")
 		})
 	}
 	return optionFunc(func(ms *MovieSpider) {

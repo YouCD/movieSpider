@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"movieSpider/internal/config"
@@ -30,7 +31,7 @@ func (f *Eztv) Crawler() (videos []*types.FeedVideoBase, err error) {
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.Debugw(f.web, "Data", fd.String())
+	log.WithCtx(context.Background()).Debugf("%s Data: %s", f.web, fd.String())
 	for _, v := range fd.Items {
 		fVideo := new(types.FeedVideoBase)
 		fVideo.Web = f.web

@@ -9,6 +9,7 @@ require (
 	github.com/duke-git/lancet/v2 v2.3.6
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-playground/validator/v10 v10.22.0
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible
@@ -16,10 +17,11 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sashabaranov/go-openai v1.40.3
+	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/willf/bloom v2.0.3+incompatible
-	github.com/youcd/toolkit v0.0.0-20250626035250-e9ddcca0953f
+	github.com/youcd/toolkit v0.0.0-20251128071038-97f2c93fad91
 	github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.31.0
@@ -36,7 +38,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-sql-driver/mysql v1.9.3 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
@@ -63,7 +65,6 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
-	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/willf/bitset v1.1.10 // indirect

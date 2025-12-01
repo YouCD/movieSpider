@@ -2,6 +2,7 @@ package feedspider
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"movieSpider/internal/types"
 	"net/url"
@@ -34,7 +35,7 @@ func NewIlcorsaronero(scheduling string, resourceType types.VideoType, siteURL s
 	}
 }
 func (u *Ilcorsaronero) Crawler() ([]*types.FeedVideoBase, error) {
-	log.Debugw(u.web, "type", u.typ, "url", u.Url)
+	log.WithCtx(context.Background()).Debugf("%s type: %v url: %s", u.web, u.typ, u.Url)
 	// body > main > div.container.md\:rounded-xl.md\:shadow.md\:border.bg-neutral-800.border-neutral-900.text-neutral-400 > div.overflow-x-auto > table > tbody > tr:nth-child(1)
 	resp, err := u.HTTPRequest(u.Url)
 	if err != nil {

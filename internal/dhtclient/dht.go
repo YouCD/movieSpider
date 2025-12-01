@@ -1,6 +1,7 @@
 package dhtclient
 
 import (
+	"context"
 	"database/sql"
 	"encoding/hex"
 	"fmt"
@@ -14,7 +15,7 @@ import (
 )
 
 func Boot(thread int) {
-	log.Info("Start DHT Network")
+	log.WithCtx(context.Background()).Info("Start DHT Network")
 	for i := 0; i < thread; i++ {
 		go crawl()
 	}
@@ -57,7 +58,7 @@ func crawl() {
 			hasHan := false
 			for _, v := range md.Name {
 				if unicode.Is(unicode.Han, v) {
-					log.Warn("中文跳过: ", md.Name)
+					log.WithCtx(context.Background()).Warn("中文跳过: ", md.Name)
 					hasHan = true
 					break
 				}

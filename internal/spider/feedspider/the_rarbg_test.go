@@ -17,16 +17,16 @@ func TestNewTheRarbg(t *testing.T) {
 				t.Error(err)
 			}
 			for _, video := range videos {
-				log.Infof("%#v", video)
+				log.WithCtx(context.Background()).Infof("%#v", video)
 				//filterVideo, err := model.FilterVideo(video)
 				//if err != nil {
 				//	if errors.Is(err, model.ErrFeedVideoExclude) {
-				//		log.Warnf("err: %s    %#v", err, video)
+				//		log.WithCtx(context.Background()).Warnf("err: %s    %#v", err, video)
 				//		continue
 				//	}
 				//	continue
 				//}
-				//log.Infof("%#v", filterVideo)
+				//log.WithCtx(context.Background()).Infof("%#v", filterVideo)
 			}
 		}
 	}

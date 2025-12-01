@@ -1,6 +1,7 @@
 package dhtclient
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha1"
 	"net"
@@ -42,7 +43,7 @@ func NewProtocol(laddr string, eventHandlers ProtocolEventHandlers) (p *Protocol
 	p.currentTokenSecret, p.previousTokenSecret = make([]byte, 20), make([]byte, 20)
 	_, err := rand.Read(p.currentTokenSecret)
 	if err != nil {
-		log.Error("Could NOT generate random bytes for token secret!", err)
+		log.WithCtx(context.Background()).Error("Could NOT generate random bytes for token secret!", "error", err)
 	}
 	copy(p.previousTokenSecret, p.currentTokenSecret)
 
@@ -51,7 +52,7 @@ func NewProtocol(laddr string, eventHandlers ProtocolEventHandlers) (p *Protocol
 
 func (p *Protocol) Start() {
 	if p.started {
-		log.Panic("Attempting to Start() a mainline/Protocol that has been already started! (Programmer error.)")
+		log.WithCtx(context.Background()).Panic("Attempting to Start() a mainline/Protocol that has been already started! (Programmer error.)")
 	}
 	p.started = true
 
@@ -61,7 +62,7 @@ func (p *Protocol) Start() {
 
 func (p *Protocol) Terminate() {
 	if !p.started {
-		log.Panic("Attempted to Terminate() a mainline/Protocol that has not been Start()ed! (Programmer error.)")
+		log.WithCtx(context.Background()).Panic("Attempted to Terminate() a mainline/Protocol that has not been Start()ed! (Programmer error.)")
 	}
 
 	p.transport.Terminate()
@@ -177,7 +178,7 @@ func (p *Protocol) onMessage(msg *Message, addr *net.UDPAddr) {
 		//   - 202  Server Error
 		//   - 204  Method Unknown / Unknown query type
 		if msg.E.Code != 202 && msg.E.Code != 204 {
-			log.Debugf("Protocol error received: `%s` (%d)", msg.E.Message, msg.E.Code)
+			log.WithCtx(context.Background()).Debugf("Protocol error received: `%s` (%d)", msg.E.Message, msg.E.Code)
 		}
 	default:
 		/* zap.L().Debug("A KRPC message of an unknown type received!",
@@ -290,7 +291,7 @@ func (p *Protocol) updateTokenSecret() {
 		_, err := rand.Read(p.currentTokenSecret)
 		if err != nil {
 			p.tokenLock.Unlock()
-			log.Error("Could NOT generate random bytes for token secret!", err)
+			log.WithCtx(context.Background()).Error("Could NOT generate random bytes for token secret!", err)
 		}
 		p.tokenLock.Unlock()
 	}

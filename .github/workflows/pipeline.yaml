@@ -24,9 +24,8 @@ jobs:
           name: movieSpider
           path: bin/*
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'  # 仅在打标签时运行
         with: # 将下述可执行文件 release 上去
           files: |
             bin/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
