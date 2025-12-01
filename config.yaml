@@ -83,9 +83,11 @@ Global:
   # 免费的网络代理池 https://github.com/YouCD/IpProxyPool
   IPProxyPool: "http://127.0.0.1:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
-  NameParserModel: http://127.0.0.1:8000 # 使用模型进行解析种子名称
   Timeout: 60 # 超时时间 单位秒
-
+LLM:
+  ApiKey: "XXX"
+  Model: "Qwen/Qwen3-30B-A3B-Instruct-2507"
+  BaseUrl: "https://api-inference.modelscope.cn/v1"
 # Downloader 下载
 Downloader:
   Scheduling: "*/60 * * * *"

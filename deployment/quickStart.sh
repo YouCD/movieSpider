@@ -98,17 +98,16 @@ Feed:
       UseIPProxy: true
   ThePirateBay:
     Scheduling: "*/3 * * * *"
-    Url: "https://thepiratebay.org/search.php?q=top100:200"
-    UseIPProxy: true
+    Url: "https://thepiratebay.party/rss/top100/200"
   Knaben:
     Scheduling: "*/3 * * * *"
     Url: "https://rss.knaben.org////hidexxx"
   TheRarbg:
     - Scheduling: "*/3 * * * *"
-      Url: "https://therarbg.to/api/v1/recommendation-list/tv/"
+      Url: "https://therarbg.to/get-posts/category:TV:time:10D/"
       ResourceType: tv
     - Scheduling: "*/3 * * * *"
-      Url: "https://therarbg.to/api/v1/recommendation-list/Movies/"
+      Url: "https://therarbg.to/get-posts/category:Movies:time:10D/"
       ResourceType: movie
   Uindex:
     - Scheduling: "*/3 * * * *"
@@ -132,7 +131,10 @@ Global:
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
   NameParserModel: http://moviespider_name_parser_model:8000 # 使用模型进行解析种子名称
   Timeout: 60
-
+LLM:
+  ApiKey: "${LLM_API_KEY}"
+  Model: "${{LLM_MODEL}}"
+  BaseUrl: "${LLM_BASE_URL}"
 # Downloader 下载
 Downloader:
   Scheduling: "*/60 * * * *"

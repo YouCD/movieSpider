@@ -21,13 +21,12 @@ type downloader struct {
 
 //nolint:tagliatelle
 type global struct {
-	LogLevel        string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
-	LogFile         string `json:"LogFile" yaml:"LogFile" validate:"omitempty"`
-	Report          bool   `json:"Report" yaml:"Report" validate:"required"`
-	IPProxyPool     string `json:"IPProxyPool" yaml:"IPProxyPool" validate:"omitempty,http_url"`
-	DHTThread       int    `json:"DHTThread" yaml:"DHTThread"`
-	NameParserModel string `json:"NameParserModel" yaml:"NameParserModel"  validate:"http_url"`
-	Timeout         int    `json:"Timeout" yaml:"Timeout" validate:"required"`
+	LogLevel    string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
+	LogFile     string `json:"LogFile" yaml:"LogFile" validate:"omitempty"`
+	Report      bool   `json:"Report" yaml:"Report" validate:"required"`
+	IPProxyPool string `json:"IPProxyPool" yaml:"IPProxyPool" validate:"omitempty,http_url"`
+	DHTThread   int    `json:"DHTThread" yaml:"DHTThread"`
+	Timeout     int    `json:"Timeout" yaml:"Timeout" validate:"required"`
 }
 
 //nolint:tagliatelle
@@ -35,6 +34,11 @@ type aria2 struct {
 	URL   string `json:"URL" yaml:"URL" validate:"required,http_url"`
 	Token string `json:"Token" yaml:"Token" validate:"required"`
 	Label string `json:"Label" yaml:"Label" validate:"required"`
+}
+type llm struct {
+	ApiKey  string `json:"ApiKey,omitempty" yaml:"ApiKey" validate:"required"`
+	BaseURL string `json:"BaseURL,omitempty" yaml:"BaseURL" validate:"required,http_url"`
+	Model   string `json:"Model,omitempty" yaml:"Model" validate:"required"`
 }
 
 //nolint:tagliatelle
@@ -87,6 +91,7 @@ type config struct {
 	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`
 	Aria2cList []aria2     `json:"Aria2cList" yaml:"Aria2cList" validate:"required"`
 	TG         *tg         `json:"TG" yaml:"TG" validate:"omitempty"`
+	LLM        *llm        `json:"LLM" yaml:"LLM" validate:"required"`
 }
 
 //nolint:gochecknoglobals

@@ -85,7 +85,9 @@ export GID=$GID
 export MovieSpider_Dir=$PWD/movieSpider
 # 豆瓣想看列表
 export DoubanUrl=https://movie.douban.com/people/251312920/wish
-
+export LLM_API_KEY="sk-xxxxxxxx"
+export LLM_MODEL="Qwen/Qwen3-30B-A3B-Instruct-2507"
+export LLM_BASE_URL="https://api-inference.modelscope.cn/v1"
 mkdir -p ${MovieSpider_Dir}
 
 ```
@@ -126,7 +128,6 @@ Feed:
   EZTV:
     Scheduling: "*/5 * * * *"
     Url: "https://eztvx.to/ezrss.xml"
-    UseIPProxy: true
   GLODLS:
     Scheduling: "*/3 * * * *"
     Url: "https://glodls.to/rss.php?cat=1,41"
@@ -157,10 +158,10 @@ Feed:
     Url: "https://rss.knaben.org////hidexxx"
   TheRarbg:
     - Scheduling: "*/3 * * * *"
-      Url: "https://therarbg.to/api/v1/recommendation-list/tv/"
+      Url: "https://therarbg.to/get-posts/category:TV:time:10D/"
       ResourceType: tv
     - Scheduling: "*/3 * * * *"
-      Url: "https://therarbg.to/api/v1/recommendation-list/Movies/"
+      Url: "https://therarbg.to/get-posts/category:Movies:time:10D/"
       ResourceType: movie
   Uindex:
     - Scheduling: "*/3 * * * *"
@@ -184,6 +185,10 @@ Global:
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
   NameParserModel: http://127.0.0.1:8000 # 使用模型进行解析种子名称
   Timeout: 60
+LLM:
+  ApiKey: "${LLM_API_KEY}"
+  Model: "${{LLM_MODEL}}"
+  BaseUrl: "${LLM_BASE_URL}"
 # Downloader 下载
 Downloader:
   Scheduling: "*/60 * * * *"

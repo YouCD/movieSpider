@@ -15,6 +15,8 @@ import (
 	"time"
 	// 引入 MySQL 驱动以初始化数据库连接
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/patrickmn/go-cache"
+	"github.com/spf13/cast"
 	"github.com/youcd/toolkit/log"
 
 	"gorm.io/driver/mysql"
@@ -25,6 +27,7 @@ import (
 type MovieDB struct {
 	db          *gorm.DB
 	feedVideoCh chan *types.FeedVideoBase
+	cache       *cache.Cache
 }
 
 //nolint:gochecknoglobals
@@ -87,6 +90,7 @@ func NewMovieDB() *MovieDB {
 	return &MovieDB{
 		db,
 		bus.FeedVideoChan,
+		cache.New(24*time.Hour, 24*time.Hour),
 	}
 }
 
@@ -96,44 +100,146 @@ func NewMovieDB() *MovieDB {
 //	@receiver m
 func (m *MovieDB) SaveFeedVideoFromChan(ctx context.Context) {
 	go func() {
+		clearTicker := time.NewTicker(time.Hour) // 每小时检查一次
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
 		for {
-			item := <-m.feedVideoCh
-			// 检查 item 是否为 nil
-			if item == nil {
-				log.WithCtx(ctx).Debug("Received nil item from feedVideoCh, skipping")
-				continue
+			select {
+			case <-ticker.C:
+				log.WithCtx(ctx).Infof("cache size: %d", m.cache.ItemCount())
+			case <-clearTicker.C:
+				m.cache.DeleteExpired()
+				log.WithCtx(ctx).Infof("cache size after cleanup: %d", m.cache.ItemCount())
 			}
-			feedVideo, err := FilterVideo(item)
-			if err != nil {
-				log.WithCtx(ctx).Debugf("web:%s,err:%s", item.Web, err)
-				continue
-			}
-
-			// 检查 feedVideo 是否为 nil
-			if feedVideo == nil {
-				log.WithCtx(ctx).Debug("Filtered feedVideo is nil, skipping")
-				continue
-			}
-
-			err = NewMovieDB().CreatFeedVideo(feedVideo)
-			if err != nil {
-				if errors.Is(err, ErrDataExist) {
-					log.WithCtx(ctx).Debugf("%s.%s err: %s", feedVideo.Web, feedVideo.Type, err)
+		}
+	}()
+	go func() {
+		buffer := make([]*types.FeedVideoBase, 0, 30)
+		for {
+			select {
+			case item := <-m.feedVideoCh:
+				// 检查 item 是否为 nil
+				if item == nil {
+					log.WithCtx(ctx).Debug("Received nil item from feedVideoCh, skipping")
 					continue
 				}
-				log.WithCtx(ctx).Error(err)
-				continue
+
+				// 检查缓存中是否存在该 torrent name
+				_, found := m.cache.Get(item.TorrentName)
+				if found {
+					log.WithCtx(ctx).Infof("Item %s already processed, skipping", item.TorrentName)
+					continue
+				}
+
+				// 添加到缓冲区
+				buffer = append(buffer, item)
+				log.WithCtx(ctx).Infof("Received item %s from feedVideoCh", item.TorrentName)
+
+				// 当缓冲区达到30个项目时进行处理
+				if len(buffer) >= 30 {
+					m.processFeedVideos(ctx, buffer)
+					// 重置缓冲区
+					buffer = make([]*types.FeedVideoBase, 0, 30)
+				}
 			}
-			msg := fmt.Sprintf("%s.%s: %s 保存完毕.", feedVideo.Web, feedVideo.Type, feedVideo.Name)
-			if feedVideo.Type == "" {
-				msg = fmt.Sprintf("%s: %s 保存完毕.", feedVideo.Web, feedVideo.Name)
-			}
-			log.WithCtx(ctx).Info(msg)
 		}
 	}()
 }
+
+func (m *MovieDB) processFeedVideos(ctx context.Context, items []*types.FeedVideoBase) {
+	// 将TorrentNames收集起来用于批处理
+	torrentNames := make([]string, 0, len(items))
+	itemMap := make(map[string]*types.FeedVideoBase)
+
+	for _, item := range items {
+		torrentNames = append(torrentNames, item.TorrentName)
+		itemMap[item.TorrentName] = item
+		// 先将所有项目加入缓存，防止重复处理
+		m.cache.Set(item.TorrentName, true, 24*time.Hour)
+	}
+
+	// 批量处理这些项目
+	feedVideos, err := FilterVideos(torrentNames)
+	if err != nil {
+		log.WithCtx(ctx).Errorf("Batch filtering failed: %v", err)
+		return
+	}
+
+	// 对于成功过滤的项目，调用nameparser.ModelHandler进行处理
+	torrentNamesToParse := make([]string, 0, len(feedVideos))
+	feedVideoMap := make(map[string]*types.FeedVideo)
+
+	for _, feedVideo := range feedVideos {
+		torrentNamesToParse = append(torrentNamesToParse, feedVideo.TorrentName)
+		feedVideoMap[feedVideo.TorrentName] = feedVideo
+	}
+
+	// 使用模型解析种子名
+	results, err := nameparser.ModelHandler(ctx, torrentNamesToParse...)
+	if err != nil {
+		if errors.Is(err, nameparser.ErrNamesIsEmpty) {
+			return
+		}
+		log.WithCtx(ctx).Errorf("ModelHandler failed: %v", err)
+	}
+
+	// 处理解析结果并保存到数据库
+	for torrentName, result := range results {
+		feedVideo := feedVideoMap[torrentName]
+		if feedVideo == nil {
+			continue
+		}
+
+		// 更新feedVideo信息
+		feedVideo.Name = result.NewName
+		feedVideo.Year = cast.ToString(result.Year)
+		feedVideo.Type = result.TypeStr
+
+		// 保存到数据库
+		err = m.CreatFeedVideo(feedVideo)
+		if err != nil {
+			if errors.Is(err, ErrDataExist) {
+				log.WithCtx(ctx).Debugf("%s.%s err: %s", feedVideo.Web, feedVideo.Type, err)
+				continue
+			}
+			log.WithCtx(ctx).Error(err)
+			continue
+		}
+
+		msg := fmt.Sprintf("%s.%s: %s 保存完毕.", feedVideo.Web, feedVideo.Type, feedVideo.Name)
+		if feedVideo.Type == "" {
+			msg = fmt.Sprintf("%s: %s 保存完毕.", feedVideo.Web, feedVideo.Name)
+		}
+		log.WithCtx(ctx).Info(msg)
+	}
+}
+
 func (m *MovieDB) GetDB() *gorm.DB {
 	return m.db
+}
+
+func FilterVideos(items []string) ([]*types.FeedVideo, error) {
+	var feedVideos []*types.FeedVideo
+
+	for _, torrentName := range items {
+		feedVideoBase := &types.FeedVideoBase{
+			TorrentName: torrentName,
+		}
+
+		// 应用过滤逻辑
+		feedVideo, err := FilterVideo(feedVideoBase)
+		if err != nil {
+			// 记录但不中断其他项目的处理
+			log.WithCtx(context.Background()).Debugf("Filtering failed for %s: %v", torrentName, err)
+			continue
+		}
+
+		if feedVideo != nil {
+			feedVideos = append(feedVideos, feedVideo)
+		}
+	}
+
+	return feedVideos, nil
 }
 
 func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
@@ -163,24 +269,5 @@ func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 		return nil, fmt.Errorf("torrent_name:%s, err:%w", feedVideo.TorrentName, ErrFeedVideoExist)
 	}
 
-	// 使用模型解析种子名
-	typeStr, newName, year, resolution, err := nameparser.ModelHandler(context.Background(), feedVideo.TorrentName)
-	if err != nil {
-		log.WithCtx(context.Background()).Warnf("TorrentName: %#v,err: %s", feedVideo.TorrentName, err)
-		return nil, fmt.Errorf("FilterVideo err: %w", err)
-	}
-	if resolution == "" {
-		//nolint:err113
-		return nil, fmt.Errorf("feedVideo.TorrentName: %#v,resolution is empty", feedVideo.TorrentName)
-	}
-	if len([]rune(newName)) > len([]rune(feedVideo.TorrentName)) {
-		log.WithCtx(context.Background()).Error("nameParser err: %s", feedVideo.TorrentName)
-		return nil, ErrNameParser
-	}
-
-	feedVideo.Name = newName
-	feedVideo.Year = year
-	feedVideo.Type = typeStr
-	log.WithCtx(context.Background()).Infow("nameParser", "input", feedVideo.TorrentName, "type", typeStr, "name", newName, "year", year, "resolution", resolution)
 	return feedVideo, nil
 }

@@ -44,3 +44,10 @@ type DownloadNotifyVideo struct {
 	Size        string
 	Gid         string
 }
+type LLMResult struct {
+	ID         int    `json:"id"`
+	TypeStr    string `json:"typeStr"`
+	NewName    string `json:"newName"`
+	Year       int    `json:"year,omitempty"`
+	Resolution int    `json:"resolution,omitempty"`
+}
