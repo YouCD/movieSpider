@@ -143,7 +143,7 @@ func (m *MovieDB) SaveFeedVideoFromChan(ctx context.Context) {
 
 				// 添加到缓冲区
 				buffer = append(buffer, feedVideo)
-				log.WithCtx(ctx).Infof("Received item %s from feedVideoCh", item.TorrentName)
+				log.WithCtx(ctx).Infow("Received", "web", item.Web, "TorrentName", item.TorrentName)
 
 				// 当缓冲区达到30个项目时进行处理
 				if len(buffer) >= 30 {

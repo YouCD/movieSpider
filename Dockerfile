@@ -1,6 +1,10 @@
-FROM golang:1.23.8-bullseye AS builder
+FROM golang:1.23.8-alpine AS builder
 WORKDIR /movieSpider
-ENV GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=https://goproxy.cn,direct CGO_ENABLED=0 \
+    GOPATH=/root/gopath \
+    GOPROXY=https://goproxy.cn,direct \
+    GO111MODULE='on' \
+    GIT_TERMINAL_PROMPT=1
 COPY . .
 RUN CGO_ENABLED=0 go build -o movieSpider
 
@@ -11,8 +15,7 @@ RUN upx movieSpider
 
 FROM frolvlad/alpine-glibc
 WORKDIR /app
-ENV PATH=/app:$PATH
-ENV TZ=Asia/Shanghai
+ENV PATH=/app:$PATH TZ=Asia/Shanghai
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories &&\
     apk add -U tzdata --no-cache &&\
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&\

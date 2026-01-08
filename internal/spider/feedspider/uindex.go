@@ -32,9 +32,9 @@ func NewUindex(scheduling string, resourceType types.VideoType, siteURL string, 
 		typ:     resourceType,
 	}
 }
-func (u *Uindex) Crawler() ([]*types.FeedVideoBase, error) {
-	log.WithCtx(context.Background()).Debugf("%s type: %v url: %s", u.web, u.typ, u.Url)
-	resp, err := u.HTTPRequest(u.Url)
+func (u *Uindex) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
+	log.WithCtx(ctx).Debugf("%s type: %v url: %s", u.web, u.typ, u.Url)
+	resp, err := u.HTTPRequest(ctx, u.Url)
 	if err != nil {
 		return nil, fmt.Errorf("%s new request,url: %s, err: %w", u.web, u.Url, err)
 	}
@@ -53,9 +53,9 @@ func (u *Uindex) Crawler() ([]*types.FeedVideoBase, error) {
 		video.Web = u.web
 		videosArr = append(videosArr, &video)
 	})
-	return u.fetchMagnetDownLoad(videosArr), nil
+	return u.fetchMagnetDownLoad(ctx, videosArr), nil
 }
 
-func (u *Uindex) fetchMagnetDownLoad(videos []*types.FeedVideoBase) []*types.FeedVideoBase {
-	return fetchMagnetDownLoad(u.BaseFeeder, "#downloadbox > h2 > a", videos)
+func (u *Uindex) fetchMagnetDownLoad(ctx context.Context, videos []*types.FeedVideoBase) []*types.FeedVideoBase {
+	return fetchMagnetDownLoad(ctx, u.BaseFeeder, "#downloadbox > h2 > a", videos)
 }

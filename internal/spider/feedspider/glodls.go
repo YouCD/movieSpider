@@ -43,12 +43,12 @@ func NewGlodls() *Glodls {
 }
 
 //nolint:goconst
-func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
-	fd, err := g.FeedParser().ParseURL(g.Url)
+func (g *Glodls) Crawler(ctx context.Context) (videos []*types.FeedVideoBase, err error) {
+	fd, err := g.FeedParser(ctx).ParseURL(g.Url)
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.WithCtx(context.Background()).Debugf("%s Data: %s", g.web, fd.String())
+	log.WithCtx(ctx).Debugf("%s Data: %s", g.web, fd.String())
 	//nolint:prealloc
 	var videosA []*types.FeedVideoBase
 	for _, v := range fd.Items {
@@ -59,7 +59,7 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
 		fVideo.TorrentName = v.Title
 
 		if len(parse.Query()["id"]) == 0 {
-			log.WithCtx(context.Background()).Error("没有ID")
+			log.WithCtx(ctx).Error("没有ID")
 		}
 		id := parse.Query()["id"][0]
 		all := strings.ReplaceAll(v.Title, " ", "-")
@@ -87,9 +87,9 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
 		wg.Add(1)
 		go func(video *types.FeedVideoBase) {
 			defer wg.Done()
-			magnet, err := g.fetchMagnet(video.TorrentURL)
+			magnet, err := g.fetchMagnet(ctx, video.TorrentURL)
 			if err != nil {
-				log.WithCtx(context.Background()).Error(err)
+				log.WithCtx(ctx).Error(err)
 			}
 			if magnet == "" {
 				return
@@ -103,13 +103,13 @@ func (g *Glodls) Crawler() (videos []*types.FeedVideoBase, err error) {
 	return
 }
 
-func (g *Glodls) fetchMagnet(url string) (magnet string, err error) {
-	request, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
+func (g *Glodls) fetchMagnet(ctx context.Context, url string) (magnet string, err error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return "", fmt.Errorf("GLODLS: 请求错误，err:%w", err)
 	}
 
-	resp, err := g.HTTPClientDynamic().Do(request)
+	resp, err := g.HTTPClientDynamic(ctx).Do(request)
 	if err != nil {
 		return "", fmt.Errorf("GLODLS: 请求错误，err:%w", err)
 	}

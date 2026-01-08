@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"errors"
 	"movieSpider/internal/model"
 	"testing"
@@ -10,12 +11,12 @@ import (
 
 func TestNewGlodls(t *testing.T) {
 	feeder := NewGlodls()
-	videos, err := feeder.Crawler()
+	videos, err := feeder.Crawler(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
 	for _, video := range videos {
-		_, err := model.FilterVideo(video)
+		filterVideo, err := model.FilterVideo(video)
 		if err != nil {
 			if errors.Is(err, model.ErrFeedVideoExclude) {
 				continue
@@ -23,7 +24,6 @@ func TestNewGlodls(t *testing.T) {
 			log.WithCtx(context.Background()).Errorf("err: %s    %#v", err, video)
 			continue
 		}
-		//log.Infof("%#v", filterVideo)
+		log.WithCtx(context.Background()).Infof("%#v", filterVideo)
 	}
-
 }

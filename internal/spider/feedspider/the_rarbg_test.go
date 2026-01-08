@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
 	"testing"
@@ -12,7 +13,7 @@ func TestNewTheRarbg(t *testing.T) {
 	for _, r := range config.Config.Feed.TheRarbg {
 		if r.ResourceType == types.VideoTypeTV {
 			feeder := NewTheRarbg(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)
-			videos, err := feeder.Crawler()
+			videos, err := feeder.Crawler(context.Background())
 			if err != nil {
 				t.Error(err)
 			}

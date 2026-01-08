@@ -31,15 +31,10 @@ func NewWeb1337x(scheduling string, resourceType types.VideoType, siteURL string
 	}
 }
 
-func (w *Web1337x) Crawler() ([]*types.FeedVideoBase, error) {
-	//nolint:exhaustive
-	return w.crawler()
-}
-
-func (w *Web1337x) crawler() ([]*types.FeedVideoBase, error) {
-	log.WithCtx(context.Background()).Debugf("%s type: %v url: %s", w.web, w.typ, w.Url)
+func (w *Web1337x) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
+	log.WithCtx(ctx).Debugf("%s type: %v url: %s", w.web, w.typ, w.Url)
 	videosTemp := make([]*types.FeedVideoBase, 0)
-	data, err := w.HTTPRequest(w.Url)
+	data, err := w.HTTPRequest(ctx, w.Url)
 	if err != nil {
 		return nil, fmt.Errorf("fetchHTMLData, err:%w", err)
 	}
@@ -60,25 +55,34 @@ func (w *Web1337x) crawler() ([]*types.FeedVideoBase, error) {
 			return
 		}
 		torrentURL = fmt.Sprintf("%s%s", w.webHost, href)
-
+		log.WithCtx(ctx).Debugf("1337x.%s %s", w.typ, torrentURL)
 		matchArr := compileRegex.FindStringSubmatch(href)
 		if len(matchArr) <= 1 {
 			return
 		}
 		// magnet 链接
-		data, err = w.HTTPRequest(torrentURL)
+		var count int
+	RETRY:
+		data, err = w.HTTPRequest(ctx, torrentURL)
 		if err != nil {
-			log.WithCtx(context.Background()).Error(err)
+			if count < 3 {
+				count++
+				if count == 3 {
+					log.WithCtx(ctx).Warnf("RETRY: 1337x.%s retry count:%d, error:%s", w.typ, count, err)
+				}
+				goto RETRY
+			}
 			return
 		}
+		count = 0
 		doc, err := goquery.NewDocumentFromReader(bytes.NewReader(data))
 		if err != nil {
-			log.WithCtx(context.Background()).Error(err)
+			log.WithCtx(ctx).Error(err)
 			return
 		}
 
 		// #openPopup
-		magnet, exists = doc.Find("#openPopup").Attr("href")
+		magnet, exists = doc.Find(".torrentdown1").Attr("href")
 		if !exists {
 			return
 		}

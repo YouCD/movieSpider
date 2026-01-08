@@ -88,13 +88,13 @@ func NewFeedKnaben() *Knaben {
 }
 
 //nolint:nakedret
-func (k *Knaben) Crawler() (videos []*types.FeedVideoBase, err error) {
-	fd, err := k.FeedParser().ParseURL(k.Url)
+func (k *Knaben) Crawler(ctx context.Context) (videos []*types.FeedVideoBase, err error) {
+	fd, err := k.FeedParser(ctx).ParseURL(k.Url)
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.WithCtx(context.Background()).Debugf("%s Data: %s", k.web, fd.String())
-	resp, err := k.HTTPRequest(k.Url)
+	log.WithCtx(ctx).Debugf("%s Data: %s", k.web, fd.String())
+	resp, err := k.HTTPRequest(ctx, k.Url)
 	if err != nil {
 		return nil, fmt.Errorf("btbt new request,url: %s, err: %w", k.Url, err)
 	}

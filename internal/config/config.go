@@ -21,12 +21,12 @@ type downloader struct {
 
 //nolint:tagliatelle
 type global struct {
-	LogLevel    string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
-	LogFile     string `json:"LogFile" yaml:"LogFile" validate:"omitempty"`
-	Report      bool   `json:"Report" yaml:"Report" validate:"required"`
-	IPProxyPool string `json:"IPProxyPool" yaml:"IPProxyPool" validate:"omitempty,http_url"`
-	DHTThread   int    `json:"DHTThread" yaml:"DHTThread"`
-	Timeout     int    `json:"Timeout" yaml:"Timeout" validate:"required"`
+	LogLevel  string `json:"LogLevel" yaml:"LogLevel" validate:"required,oneof=debug info warn error panic fatal"`
+	LogFile   string `json:"LogFile" yaml:"LogFile" validate:"omitempty"`
+	Report    bool   `json:"Report" yaml:"Report" validate:"required"`
+	DHTThread int    `json:"DHTThread" yaml:"DHTThread"`
+	Timeout   int    `json:"Timeout" yaml:"Timeout" validate:"required"`
+	ProxyURL  string `json:"ProxyUrl" yaml:"ProxyUrl" validate:"omitempty,url"`
 }
 
 //nolint:tagliatelle
@@ -45,7 +45,6 @@ type llm struct {
 type tg struct {
 	BotToken string `json:"BotToken" yaml:"BotToken" validate:"required"`
 	TgIDs    []int  `json:"TgIDs" yaml:"TgIDs" validate:"required"`
-	ProxyURL string `json:"ProxyUrl" yaml:"ProxyUrl" validate:"omitempty,url"`
 }
 
 //nolint:tagliatelle

@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"errors"
 	"movieSpider/internal/model"
 	"testing"
@@ -10,7 +11,7 @@ import (
 
 func TestEztv_Crawler(t *testing.T) {
 	feeder := NewFeedKnaben()
-	videos, err := feeder.Crawler()
+	videos, err := feeder.Crawler(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
@@ -23,7 +24,6 @@ func TestEztv_Crawler(t *testing.T) {
 			//log.Errorf("err: %s    %#v", err, video)
 			continue
 		}
-		log.WithCtx(context.Background()).Error("%#v", filterVideo)
+		log.WithCtx(context.Background()).Infof("%#v", filterVideo)
 	}
-
 }

@@ -152,7 +152,7 @@ func ModelHandler(ctx context.Context, names ...string) (map[string]*types.LLMRe
 	)
 	if err != nil {
 		//nolint:err113
-		return nil, fmt.Errorf("解析失败: %s", names)
+		return nil, fmt.Errorf("解析失败: %s,err:%w", names, err)
 	}
 
 	Content := resp.Choices[0].Message.Content
@@ -160,7 +160,7 @@ func ModelHandler(ctx context.Context, names ...string) (map[string]*types.LLMRe
 	var result []*types.LLMResult
 	err = json.Unmarshal([]byte(Content), &result)
 	if err != nil {
-		return nil, fmt.Errorf("解析失败,content:%s , err: %w", Content, err)
+		return nil, fmt.Errorf("json.Unmarshal失败,content:%s , err: %w", Content, err)
 	}
 	log.WithCtx(ctx).Warnw("content", "parser content", Content, "name", strings.Join(names, ";"))
 

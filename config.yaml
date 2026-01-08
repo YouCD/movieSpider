@@ -43,7 +43,7 @@ Feed:
   Web1337x:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      Url: "https://1337x.to/popular-movies"
+      Url: "https://www.1337x.to/popular-movies"
       UseIPProxy: true
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
@@ -80,10 +80,9 @@ Feed:
 Global:
   LogLevel: info
   Report: true
-  # 免费的网络代理池 https://github.com/YouCD/IpProxyPool
-  IPProxyPool: "http://127.0.0.1:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
-  Timeout: 60 # 超时时间 单位秒
+  Timeout: 120 # 超时时间 单位秒
+  ProxyUrl: socks5://192.168.1.188:20170
 LLM:
   ApiKey: "XXX"
   Model: "Qwen/Qwen3-30B-A3B-Instruct-2507"
@@ -106,5 +105,3 @@ TG:
 #  BotToken: "TOKEN"
 #   能正常访问机器人的Telegram用户
 #  TgIDs: [ 123456 ]
-  # 独立的代理地址
-#  ProxyUrl: socks5://192.168.1.188:20170

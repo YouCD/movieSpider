@@ -34,10 +34,10 @@ func NewIlcorsaronero(scheduling string, resourceType types.VideoType, siteURL s
 		typ:     resourceType,
 	}
 }
-func (u *Ilcorsaronero) Crawler() ([]*types.FeedVideoBase, error) {
-	log.WithCtx(context.Background()).Debugf("%s type: %v url: %s", u.web, u.typ, u.Url)
+func (u *Ilcorsaronero) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
+	log.WithCtx(ctx).Debugf("%s type: %v url: %s", u.web, u.typ, u.Url)
 	// body > main > div.container.md\:rounded-xl.md\:shadow.md\:border.bg-neutral-800.border-neutral-900.text-neutral-400 > div.overflow-x-auto > table > tbody > tr:nth-child(1)
-	resp, err := u.HTTPRequest(u.Url)
+	resp, err := u.HTTPRequest(ctx, u.Url)
 	if err != nil {
 		return nil, fmt.Errorf("%s new request,url: %s, err: %w", u.web, u.Url, err)
 	}
@@ -60,10 +60,10 @@ func (u *Ilcorsaronero) Crawler() ([]*types.FeedVideoBase, error) {
 		videosArr = append(videosArr, &video)
 	})
 
-	return u.fetchMagnetDownLoad(videosArr), nil
+	return u.fetchMagnetDownLoad(ctx, videosArr), nil
 }
 
-func (u *Ilcorsaronero) fetchMagnetDownLoad(videos []*types.FeedVideoBase) []*types.FeedVideoBase {
+func (u *Ilcorsaronero) fetchMagnetDownLoad(ctx context.Context, videos []*types.FeedVideoBase) []*types.FeedVideoBase {
 	s := `body > main > div.w-full.max-w-screen-xl.mx-auto.p-8.md\:rounded-xl.md\:shadow.md\:border.bg-neutral-800.border-neutral-900.text-neutral-300 > div.flex.flex-wrap.items-center.gap-4 > a.w-full.sm\:w-auto.px-5.py-2\.5.rounded-xl.text-sm.text-center.text-black.bg-neutral-300.hover\:bg-neutral-200.focus\:ring-4.focus\:ring-neutral-100.focus\:outline-none`
-	return fetchMagnetDownLoad(u.BaseFeeder, s, videos)
+	return fetchMagnetDownLoad(ctx, u.BaseFeeder, s, videos)
 }

@@ -28,7 +28,6 @@ export Aria2_ConfigDir=$PWD/aria2/config
 export Aria2_DataDir=$PWD/aria2/data
 export Aria2_Port=6800
 export MovieSpider_Dir=$PWD/movieSpider
-export IpProxyPool_Dir=$PWD/IpProxyPool
 export UID=$UID
 export GID=$GID
 export DoubanUrl=https://movie.douban.com/people/251312920/wish
@@ -39,7 +38,6 @@ export DoubanUrl=https://movie.douban.com/people/251312920/wish
 sleep 5
 echo -e "\033[73m[*] 创建目录： ${MovieSpider_Dir}"
 mkdir -p ${MovieSpider_Dir}
-mkdir -p ${IpProxyPool_Dir}
 clear
 
 
@@ -90,7 +88,7 @@ Feed:
   Web1337x:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      Url: "https://1337x.to/popular-movies"
+      Url: "https://www.1337x.to/popular-movies"
       UseIPProxy: true
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
@@ -98,7 +96,7 @@ Feed:
       UseIPProxy: true
   ThePirateBay:
     Scheduling: "*/3 * * * *"
-    Url: "https://thepiratebay.party/rss/top100/200"
+    Url: "https://thepiratebay.party/rss//top100/200"
   Knaben:
     Scheduling: "*/3 * * * *"
     Url: "https://rss.knaben.org////hidexxx"
@@ -127,10 +125,10 @@ Global:
   LogLevel: info
   Report: true
   # 网络代理池
-  IPProxyPool: "http://moviespider_proxy:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
-  NameParserModel: http://moviespider_name_parser_model:8000 # 使用模型进行解析种子名称
   Timeout: 60
+  ProxyUrl: socks5://127.0.0.1:1080
+
 LLM:
   ApiKey: "${LLM_API_KEY}"
   Model: "${{LLM_MODEL}}"
@@ -149,8 +147,6 @@ Aria2cList:
 
 # 如果没有Telegram 就请忽略
 #TG:
-  # Telegram 网络代理
-#  ProxyUrl: socks5://127.0.0.1:1080
 #    Enable: false
   # Telegram 机器人 token
 #  BotToken: "TOKEN"
@@ -173,8 +169,6 @@ echo "开始 构建镜像"
 
 echo "开始 下载docker-compose.yaml 以及相关的配置文件"
 wget -q https://raw.githubusercontent.com/YouCD/movieSpider/refs/heads/main/deployment/docker-compose.yaml
-wget -q https://raw.githubusercontent.com/YouCD/IpProxyPool/refs/heads/main/conf/config.yaml -O ${IpProxyPool_Dir}/config.yaml
-sed -i "s/127.0.0.1/moviespider_mysql/" ${IpProxyPool_Dir}/config.yaml
 
 echo "启动 moviespider"
 docker-compose -p moviespider up -d

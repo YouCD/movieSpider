@@ -73,25 +73,27 @@ func (m *MovieSpider) startFeed() {
 			log.WithCtx(context.Background()).Infof("%s Scheduling is: [%s]", feeder.WebName(), feeder.Scheduling())
 			c := cron.New()
 			_, _ = c.AddFunc(feeder.Scheduling(), func() {
-				videos, err := feeder.Crawler()
+				ctx := context.Background()
+				ctx = log.SetRequestId(ctx)
+				videos, err := feeder.Crawler(ctx)
 				if err != nil {
 					if errors.Is(err, feedspider.ErrNoFeedData) {
-						log.WithCtx(context.Background()).Warnf("%s: 没有feed数据, url: %s", strings.ToUpper(feeder.WebName()), feeder.URL())
+						log.WithCtx(ctx).Warnf("%s: 没有feed数据, url: %s", strings.ToUpper(feeder.WebName()), feeder.URL())
 						return
 					}
-					log.WithCtx(context.Background()).Errorf("web: %s, err: %s", feeder.WebName(), err)
+					log.WithCtx(ctx).Errorf("web: %s, err: %s", feeder.WebName(), err)
 					return
 				}
 				if len(videos) == 0 {
-					log.WithCtx(context.Background()).Warnf("web: %s, url: %s, videos is empty", feeder.WebName(), feeder.URL())
-					return
-				}
-				if videos[0].Magnet == "" {
-					log.WithCtx(context.Background()).Warnf("web: %s, url: %s, Magnet is empty", feeder.WebName(), feeder.URL())
+					log.WithCtx(ctx).Warnf("web: %s, url: %s, videos is empty", feeder.WebName(), feeder.URL())
 					return
 				}
 
 				for _, video := range videos {
+					if video.Magnet == "" {
+						log.WithCtx(ctx).Warnf("web: %s, url: %s, Magnet is empty", feeder.WebName(), feeder.URL())
+						continue
+					}
 					bus.FeedVideoChan <- video
 				}
 			})

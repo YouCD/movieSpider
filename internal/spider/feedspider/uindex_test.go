@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"movieSpider/internal/config"
 	"testing"
 
@@ -10,14 +11,13 @@ import (
 func TestUindex_Crawler(t *testing.T) {
 	for _, uindex := range config.Config.Feed.Uindex {
 		u := NewUindex(uindex.Scheduling, uindex.ResourceType, uindex.Url, uindex.UseIPProxy)
-		got, err := u.Crawler()
+		got, err := u.Crawler(context.Background())
 		if err != nil {
 			t.Error(err)
 			return
 		}
 		for _, base := range got {
-			log.Infof("%#v", base)
+			log.WithCtx(context.Background()).Infof("%#v", base)
 		}
 	}
-
 }

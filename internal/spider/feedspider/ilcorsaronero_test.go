@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"movieSpider/internal/config"
 	"testing"
 
@@ -11,7 +12,7 @@ func TestIlcorsaronero_Crawler(t *testing.T) {
 	for _, item := range config.Config.Feed.Ilcorsaronero {
 		log.WithCtx(context.Background()).Info(item.Url)
 		u := NewIlcorsaronero(item.Scheduling, item.ResourceType, item.Url, item.UseIPProxy)
-		got, err := u.Crawler()
+		got, err := u.Crawler(context.Background())
 		if err != nil {
 			t.Error(err)
 			return

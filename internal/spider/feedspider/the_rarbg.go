@@ -38,9 +38,9 @@ func NewTheRarbg(scheduling string, resourceType types.VideoType, siteURL string
 	}
 }
 
-func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
-	log.WithCtx(context.Background()).Debugf("%s type: %v url: %s", r.web, r.typ, r.Url)
-	resp, err := r.HTTPRequest(r.Url)
+func (r *TheRarbg) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
+	log.WithCtx(ctx).Debugf("%s type: %v url: %s", r.web, r.typ, r.Url)
+	resp, err := r.HTTPRequest(ctx, r.Url)
 	if err != nil {
 		return nil, fmt.Errorf("%s new request,url: %s, err: %w", r.web, r.Url, err)
 	}
@@ -63,14 +63,14 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 
 	var videos []*types.FeedVideoBase
 	var wg sync.WaitGroup
-	log.WithCtx(context.Background()).Debugf("%s type: %v urls: %d", r.web, r.typ, len(urls))
+	log.WithCtx(ctx).Debugf("%s type: %v urls: %d", r.web, r.typ, len(urls))
 	for _, urlItem := range urls {
 		wg.Add(1)
 		go func(u string) {
 			defer wg.Done()
-			name, magnet, err := r.moviePageURL(u)
+			name, magnet, err := r.moviePageURL(ctx, u)
 			if err != nil {
-				log.WithCtx(context.Background()).Warnf("the_rarbg: %s", err)
+				log.WithCtx(ctx).Warnf("the_rarbg: %s", err)
 				return
 			}
 
@@ -84,12 +84,12 @@ func (r *TheRarbg) Crawler() ([]*types.FeedVideoBase, error) {
 		}(urlItem)
 	}
 	wg.Wait()
-	log.WithCtx(context.Background()).Debugf("%s type: %v videos: %d", r.web, r.typ, len(videos))
+	log.WithCtx(ctx).Debugf("%s type: %v videos: %d", r.web, r.typ, len(videos))
 	return videos, nil
 }
 
-func (r *TheRarbg) moviePageURL(pageURL string) (string, string, error) {
-	resp, err := r.HTTPRequest(pageURL)
+func (r *TheRarbg) moviePageURL(ctx context.Context, pageURL string) (string, string, error) {
+	resp, err := r.HTTPRequest(ctx, pageURL)
 	if err != nil {
 		return "", "", fmt.Errorf("连接请求: %w", err)
 	}

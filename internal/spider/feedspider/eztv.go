@@ -26,12 +26,12 @@ func NewEztv() *Eztv {
 	}}
 }
 
-func (f *Eztv) Crawler() (videos []*types.FeedVideoBase, err error) {
-	fd, err := f.FeedParser().ParseURL(f.Url)
+func (f *Eztv) Crawler(ctx context.Context) (videos []*types.FeedVideoBase, err error) {
+	fd, err := f.FeedParser(ctx).ParseURL(f.Url)
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.WithCtx(context.Background()).Debugf("%s Data: %s", f.web, fd.String())
+	log.WithCtx(ctx).Debugf("%s Data: %s", f.web, fd.String())
 	for _, v := range fd.Items {
 		fVideo := new(types.FeedVideoBase)
 		fVideo.Web = f.web

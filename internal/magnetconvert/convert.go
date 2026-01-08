@@ -57,11 +57,9 @@ func IO2Magnet(r io.Reader) (string, error) {
 	return m2.String(), nil
 }
 
-func FetchMagnetWithHTTPClient(url string, httpClient *http.Client) (magnet string, err error) {
-	request, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
-	if err != nil {
-		return "", fmt.Errorf("磁链获取错误,err: %w", err)
-	}
+func FetchMagnetWithHTTPClient(ctx context.Context, url string, httpClient *http.Client) (magnet string, err error) {
+	request, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+
 	resp, err := httpClient.Do(request)
 	if err != nil {
 		return "", fmt.Errorf("磁链获取错误,err: %w", err)

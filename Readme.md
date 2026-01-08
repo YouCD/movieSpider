@@ -144,7 +144,7 @@ Feed:
   Web1337x:
     - Scheduling: "*/3 * * * *"
       ResourceType: movie
-      Url: "https://1337x.to/popular-movies"
+      Url: "https://www.1337x.to/popular-movies"
       UseIPProxy: true
     - Scheduling: "*/2 * * * *"
       ResourceType: tv
@@ -152,7 +152,7 @@ Feed:
       UseIPProxy: true
   ThePirateBay:
     Scheduling: "*/3 * * * *"
-    Url: "https://thepiratebay.party/rss/top100/200"
+    Url: "https://thepiratebay.party/rss//top100/200"
   Knaben:
     Scheduling: "*/3 * * * *"
     Url: "https://rss.knaben.org////hidexxx"
@@ -180,11 +180,10 @@ Feed:
 Global:
   LogLevel: info
   Report: true
-  # 免费的网络代理池 https://github.com/YouCD/IpProxyPool
-  IPProxyPool: "http://127.0.0.1:3001"
   DHTThread: 0 # DHT网络爬虫线程数, 0关闭
-  NameParserModel: http://127.0.0.1:8000 # 使用模型进行解析种子名称
-  Timeout: 60
+  Timeout: 123
+  ProxyUrl: socks5://192.168.1.188:20170
+    
 LLM:
   ApiKey: "${LLM_API_KEY}"
   Model: "${{LLM_MODEL}}"
@@ -207,8 +206,7 @@ TG:
 #  BotToken: "TOKEN"
 #   能正常访问机器人的Telegram用户
 #  TgIDs: [ 123456 ]
-  # 独立的代理地址
-#  ProxyUrl: socks5://192.168.1.188:20170
+
 EOF
 
 ```

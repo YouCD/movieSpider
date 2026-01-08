@@ -50,14 +50,15 @@ type TGBot struct {
 //	@return *TGBot
 func NewTgBot(botToken string, tgIDs []int) *TGBot {
 	once.Do(func() {
+		ctx := context.Background()
 		client := http.DefaultClient
-		if config.Config.TG.ProxyURL != "" {
-			log.WithCtx(context.Background()).Info(config.Config.TG.ProxyURL)
-			client = httpclient.NewProxyHTTPClient(config.Config.TG.ProxyURL)
+		if config.Config.Global.ProxyURL != "" {
+			log.WithCtx(ctx).Info("ProxyURL ", config.Config.Global.ProxyURL)
+			client = httpclient.NewProxyHTTPClient(ctx)
 		}
 		bot, err := tgbotapi.NewBotAPIWithClient(config.Config.TG.BotToken, "https://api.telegram.org/bot%s/%s", client)
 		if err != nil {
-			log.WithCtx(context.Background()).Error(err)
+			log.WithCtx(ctx).Error(err)
 			os.Exit(-1)
 		}
 

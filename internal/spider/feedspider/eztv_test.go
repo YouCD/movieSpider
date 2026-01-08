@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"testing"
@@ -14,7 +15,7 @@ func init() {
 
 func TestNewEztv(t *testing.T) {
 	eztv := NewEztv()
-	videos, err := eztv.Crawler()
+	videos, err := eztv.Crawler(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
@@ -26,5 +27,4 @@ func TestNewEztv(t *testing.T) {
 		}
 		log.WithCtx(context.Background()).Infof("%#v", filterVideo)
 	}
-
 }

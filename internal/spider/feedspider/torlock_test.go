@@ -1,8 +1,8 @@
 package feedspider
 
 import (
+	"context"
 	"movieSpider/internal/config"
-	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"testing"
 
@@ -25,7 +25,7 @@ func Test_torlock_Crawler(t *testing.T) {
 			//	}
 			//}
 			if r.ResourceType == types.VideoTypeMovie {
-				videos, err = NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy).Crawler()
+				videos, err = NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy).Crawler(context.Background())
 				if err != nil {
 					log.WithCtx(context.Background()).Errorf("err: %s", err)
 					return
@@ -36,11 +36,11 @@ func Test_torlock_Crawler(t *testing.T) {
 	}
 
 	for _, video := range videos {
-		filterVideo, err := model.FilterVideo(video)
-		if err != nil {
-			log.WithCtx(context.Background()).Errorf("err: %s    %#v", err, video)
-			continue
-		}
-		log.WithCtx(context.Background()).Infof("%#v", filterVideo)
+		//filterVideo, err := model.FilterVideo(video)
+		//if err != nil {
+		//	log.WithCtx(context.Background()).Errorf("err: %s    %#v", err, video)
+		//	continue
+		//}
+		log.WithCtx(context.Background()).Infof("%#v", video)
 	}
 }

@@ -25,12 +25,12 @@ func NewThePirateBay() *ThePirateBay {
 		},
 	}
 }
-func (t *ThePirateBay) Crawler() ([]*types.FeedVideoBase, error) {
-	fd, err := t.FeedParser().ParseURL(t.Url)
+func (t *ThePirateBay) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
+	fd, err := t.FeedParser(ctx).ParseURL(t.Url)
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.WithCtx(context.Background()).Debugf("%s Data: %s", t.web, fd.String())
+	log.WithCtx(ctx).Debugf("%s Data: %s", t.web, fd.String())
 	videos := make([]*types.FeedVideoBase, 0)
 	for _, v := range fd.Items {
 		if len(v.Categories) < 1 {

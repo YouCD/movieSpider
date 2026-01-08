@@ -1,6 +1,7 @@
 package feedspider
 
 import (
+	"context"
 	"movieSpider/internal/model"
 	"testing"
 
@@ -9,7 +10,7 @@ import (
 
 func TestThePirateBay_Crawler(t1 *testing.T) {
 	thePirateBay := NewThePirateBay()
-	gotVideos, err := thePirateBay.Crawler()
+	gotVideos, err := thePirateBay.Crawler(context.Background())
 	if err != nil {
 		t1.Errorf("Crawler() error = %v", err)
 		return

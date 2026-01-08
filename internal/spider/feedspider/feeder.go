@@ -16,7 +16,7 @@ type Feeder interface {
 	Scheduling() string
 	WebName() string
 	URL() string
-	Crawler() ([]*types.FeedVideoBase, error)
+	Crawler(ctx context.Context) ([]*types.FeedVideoBase, error)
 }
 type Crawler func() ([]*types.FeedVideo, error)
 
@@ -29,34 +29,23 @@ func (b *BaseFeeder) HTTPClient() *http.Client {
 	return httpclient.HTTPClient
 }
 
-func (b *BaseFeeder) HTTPClientIPProxyPool() *http.Client {
-	var count int
-	for {
-		count++
-		proxyClient, _ := httpclient.NewIPProxyPoolHTTPClient(b.URL())
-		if proxyClient == nil {
-			if count > 3 {
-				return b.HTTPClient()
-			}
-			continue
-		}
-		return proxyClient
-	}
+func (b *BaseFeeder) HTTPClientIPProxyPool(ctx context.Context) *http.Client {
+	return httpclient.NewProxyHTTPClient(ctx)
 }
-func (b *BaseFeeder) HTTPClientDynamic() *http.Client {
+func (b *BaseFeeder) HTTPClientDynamic(ctx context.Context) *http.Client {
 	if b.UseIPProxy {
-		return b.HTTPClientIPProxyPool()
+		return b.HTTPClientIPProxyPool(ctx)
 	}
 	return b.HTTPClient()
 }
-func (b *BaseFeeder) FeedParser() *gofeed.Parser {
+func (b *BaseFeeder) FeedParser(ctx context.Context) *gofeed.Parser {
 	fp := gofeed.NewParser()
-	fp.Client = b.HTTPClientDynamic()
+	fp.Client = b.HTTPClientDynamic(ctx)
 	return fp
 }
-func (b *BaseFeeder) FeedParserUserAgent(userAgent string) *gofeed.Parser {
+func (b *BaseFeeder) FeedParserUserAgent(ctx context.Context, userAgent string) *gofeed.Parser {
 	fp := gofeed.NewParser()
-	fp.Client = b.HTTPClientDynamic()
+	fp.Client = b.HTTPClientDynamic(ctx)
 	fp.UserAgent = userAgent
 	return fp
 }
@@ -81,15 +70,15 @@ type FeederAbstractFactory interface {
 	CreateFeeder(args ...interface{}) Feeder
 }
 
-func (b *BaseFeeder) HTTPRequest(urlStr string) ([]byte, error) {
+func (b *BaseFeeder) HTTPRequest(ctx context.Context, urlStr string) ([]byte, error) {
 	var req *http.Request
 
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, urlStr, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, nil)
 	if err != nil {
 		return nil, fmt.Errorf("HTTPRequest new request,err: %w", err)
 	}
 
-	resp, err := b.HTTPClientDynamic().Do(req)
+	resp, err := b.HTTPClientDynamic(ctx).Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("HTTPRequest do,err: %w", err)
 	}

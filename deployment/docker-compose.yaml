@@ -1,18 +1,4 @@
 services:
-  moviespider_proxy:
-    image: swr.cn-north-4.myhuaweicloud.com/youcd/moviespider_proxy
-    container_name: moviespider_proxy
-    ports:
-      - "3000:3000"
-    restart: always
-    volumes:
-      - "./IpProxyPool/config.yaml:/app/conf/config.yaml"
-      - "./IpProxyPool/logs:/app/logs"
-    networks:
-      - movie_spider
-    depends_on:
-      moviespider_mysql:
-        condition: service_healthy
   moviespider_mysql:
     container_name: moviespider_mysql
     image: mysql:5.7.18
@@ -60,7 +46,7 @@ services:
   moviespider_core:
     container_name: moviespider_core
     restart: always
-    image: swr.cn-north-4.myhuaweicloud.com/youcd/moviespider_core
+    image: docker.cnb.cool/youcd.online/moviespider
     depends_on:
       moviespider_mysql:
         condition: service_healthy
