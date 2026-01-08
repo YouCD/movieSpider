@@ -3,16 +3,16 @@ services:
     container_name: moviespider_mysql
     image: mysql:5.7.18
     ports:
-      - ${Mysql_Port}:3306
+      - ${MYSQL_PORT}:3306
     environment:
-      - MYSQL_ROOT_PASSWORD=${Mysql_Password}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
     restart: always
     ulimits:
       nofile:
         soft: 65535
         hard: 65535
     healthcheck:
-      test: mysql -uroot -p${Mysql_Password} -e "show databases"
+      test: mysql -uroot -p${MYSQL_PASSWORD} -e "show databases"
       interval: 10s
       timeout: 3s
       retries: 3
@@ -23,9 +23,9 @@ services:
     container_name: moviespider_aria2
     image: p3terx/aria2-pro
     environment:
-      - PUID=$UID
-      - PGID=$GID
-      - RPC_SECRET=${Aria2_Password}
+      - PUID=0
+      - PGID=0
+      - RPC_SECRET=${ARIA2_PASSWORD}
       - UMASK_SET=022
       - IPV6_MODE=false
       - RPC_PORT=6800
@@ -34,11 +34,11 @@ services:
       - TZ=Asia/Shanghai
     restart: always
     volumes:
-      - "${Aria2_ConfigDir}:/config"
-      - "${Aria2_DataDir}:/downloads"
+      - "${ARIA2_CONFIG_DIR}:/config"
+      - "${ARIA2_DATA_DIR}:/downloads"
     # network_mode: bridge
     ports:
-      - ${Aria2_Port}:6800
+      - ${ARIA2_PORT}:6800
       - 6888:6888
       - 6888:6888/udp
     networks:
@@ -51,9 +51,15 @@ services:
       moviespider_mysql:
         condition: service_healthy
     volumes:
-      - "${MovieSpider_Dir}/config.yaml:/app/config.yaml"
+      - "${MOVIESPIDER_DIR}/config.yaml:/app/config.yaml"
     networks:
       - movie_spider
+  moviespider_clash:
+    container_name: moviespider_clash
+    image: metacubex/mihomo:Alpha
+    restart: always
+    volumes:
+      - "${CLASH_DIR}/clash.yaml:/root/.config/mihomo/config.yaml"
 networks:
   movie_spider:
     name: movie_spider
