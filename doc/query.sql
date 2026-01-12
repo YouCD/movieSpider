@@ -52,4 +52,4 @@ group by web
 order by t.`from_unixtime(fv.timestamp)` desc;
 
 # 统计指定时间点 每个站点的种子数
-select count(*), web from feed_video  where timestamp>=1767801600 group by web  ;
+select count(*) as cnt, web from feed_video  where timestamp>=1767801600 group by web  ;

@@ -58,8 +58,14 @@ services:
     container_name: moviespider_clash
     image: metacubex/mihomo:Alpha
     restart: always
+    ports:
+      - 7890:7890
+      #- 9090:9090
     volumes:
       - "${CLASH_DIR}/clash.yaml:/root/.config/mihomo/config.yaml"
+      #- "${CLASH_DIR}//webui:/root/.config/mihomo/webui"
+    networks:
+      - movie_spider
 networks:
   movie_spider:
-    name: movie_spider
+    name: movie_spideFr

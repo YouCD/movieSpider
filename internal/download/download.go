@@ -104,7 +104,7 @@ func (d *Download) downloadTask() {
 }
 
 func (d *Download) download(tvOrMovie types.VideoType, f func(names ...string) ([]*types.FeedVideo, error)) (err error) {
-	log.WithCtx(context.Background()).Infow(tvOrMovie.String(), "Downloader working...")
+	log.WithCtx(context.Background()).Infof("%s Downloader working...", tvOrMovie.String())
 	videos, err := model.NewMovieDB().FetchDouBanVideoByType(tvOrMovie)
 	if err != nil {
 		return fmt.Errorf("FetchDouBanVideoByType,err: %w", err)

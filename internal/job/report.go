@@ -5,9 +5,11 @@ import (
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
+	"movieSpider/internal/types"
 	"os"
 	"strconv"
 
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/olekukonko/tablewriter"
 	"github.com/robfig/cron/v3"
 	"github.com/youcd/toolkit/log"
@@ -90,6 +92,28 @@ func reportFeedVideoStatistics() {
 	}
 	table.SetFooter([]string{"总数", strconv.Itoa(Total)})
 	log.WithCtx(context.Background()).Info("\n\n下载统计: ")
+	table.Render()
+
+	count, err = model.NewMovieDB().CountFeedVideoByToday()
+	if err != nil {
+		log.WithCtx(context.Background()).Error("Report: err", err)
+		return
+	}
+
+	slice.SortBy(count, func(a, b *types.ReportCount) bool {
+		if a.Count < b.Count {
+			return true
+		}
+		return false
+	})
+
+	table = tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Web", "Count"})
+	for _, reportCount := range count {
+		Total += reportCount.Count
+		table.Append([]string{reportCount.Web, strconv.Itoa(reportCount.Count)})
+	}
+	log.WithCtx(context.Background()).Info("\n\n今日下载统计: ")
 	table.Render()
 }
 

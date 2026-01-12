@@ -260,3 +260,19 @@ func (m *MovieDB) UpdateFeedVideos(videos ...*types.FeedVideo) (err error) {
 	}
 	return tx.Commit().Error
 }
+func (m *MovieDB) CountFeedVideoByToday() (counts []*types.ReportCount, err error) {
+	// select count(*) as cnt, web from feed_video  where timestamp>=1767801600 group by web  ;
+	// 获取当前时间
+	now := time.Now()
+	// 获取今天的年月日
+	year, month, day := now.Date()
+	// 创建今天00:00:00的时间对象
+	todayStart := time.Date(year, month, day, 0, 0, 0, 0, now.Location())
+	// 获取Unix时间戳
+	timestamp := todayStart.Unix()
+	err = m.db.Model(&types.FeedVideo{}).Select("count(*) as count, web").Where("timestamp>=?", timestamp).Group("web").Find(&counts).Error
+	if err != nil {
+		return nil, fmt.Errorf("查找失败, err:%w", err)
+	}
+	return
+}

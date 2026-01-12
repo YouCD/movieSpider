@@ -87,15 +87,21 @@ func (g *Glodls) Crawler(ctx context.Context) (videos []*types.FeedVideoBase, er
 		wg.Add(1)
 		go func(video *types.FeedVideoBase) {
 			defer wg.Done()
+			var count int
+		RETRY:
 			magnet, err := g.fetchMagnet(ctx, video.TorrentURL)
 			if err != nil {
 				log.WithCtx(ctx).Error(err)
+				if count < 3 {
+					count++
+					log.WithCtx(ctx).Warnf("RETRY: torlock.%s %s http request url is %s retry count:%d, error:%s", video.Type, video.TorrentName, video.TorrentURL, count, err)
+					goto RETRY
+				}
 			}
-			if magnet == "" {
-				return
+			if magnet != "" {
+				video.Magnet = magnet
+				videos = append(videos, video)
 			}
-			video.Magnet = magnet
-			videos = append(videos, video)
 		}(v)
 	}
 	wg.Wait()
@@ -104,10 +110,7 @@ func (g *Glodls) Crawler(ctx context.Context) (videos []*types.FeedVideoBase, er
 }
 
 func (g *Glodls) fetchMagnet(ctx context.Context, url string) (magnet string, err error) {
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return "", fmt.Errorf("GLODLS: 请求错误，err:%w", err)
-	}
+	request, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 
 	resp, err := g.HTTPClientDynamic(ctx).Do(request)
 	if err != nil {
