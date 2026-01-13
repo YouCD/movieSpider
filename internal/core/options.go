@@ -39,7 +39,7 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// TORLOCK
 	feedTorlockTV, feedTorlockMovie := createFeederWithURLs(config.Config.Feed.TORLOCK, feedspider.NewTorlock)
 	// 1337x
-	feed1337xTV, feed1337xMovie := createFeederWithURLs(config.Config.Feed.Web1337x, feedspider.NewWeb1337x)
+	//feed1337xTV, feed1337xMovie := createFeederWithURLs(config.Config.Feed.Web1337x, feedspider.NewWeb1337x)
 
 	// therarbg
 	feedTheRarbg2TV, feedTheRarbg2Movie := createFeederWithURLs(config.Config.Feed.TheRarbg, feedspider.NewTheRarbg)
@@ -51,14 +51,16 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 
 	// NewIlcorsaronero
 	IlcorsaroneroTv, IlcorsaroneroMovie := createFeederWithURLs(config.Config.Feed.Ilcorsaronero, feedspider.NewIlcorsaronero)
+
+	feedYts := feedspider.NewYts()
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
 			feedEZTV,
 			feedGLODLS,
 			feedTorlockMovie,
 			feedTorlockTV,
-			feed1337xMovie,
-			feed1337xTV,
+			//feed1337xMovie,
+			//feed1337xTV,
 			feedThePirateBay,
 			feedKnaben,
 			feedTheRarbg2TV,
@@ -67,6 +69,7 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			uindexMovie,
 			IlcorsaroneroTv,
 			IlcorsaroneroMovie,
+			feedYts,
 		)
 		ms.feeds = append(ms.feeds, feeds...)
 	})

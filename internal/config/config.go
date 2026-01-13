@@ -76,15 +76,16 @@ type config struct {
 	DouBan       *DouBan  `json:"DouBan" yaml:"DouBan" validate:"required"`
 	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
 	Feed         struct {
-		EZTV          *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
-		GLODLS        *types.BaseFeed `json:"GLODLS" yaml:"GLODLS" validate:"required"`
-		TORLOCK       []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
-		Web1337x      []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
+		EZTV    *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
+		GLODLS  *types.BaseFeed `json:"GLODLS" yaml:"GLODLS" validate:"required"`
+		TORLOCK []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
+		//Web1337x      []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
 		ThePirateBay  *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
 		Knaben        *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
 		TheRarbg      []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
 		Uindex        []*BaseRT       `json:"Uindex" yaml:"Uindex" validate:"required"`
 		Ilcorsaronero []*BaseRT       `json:"Ilcorsaronero" yaml:"Ilcorsaronero" validate:"required"`
+		Yts           *types.BaseFeed `json:"Yts" yaml:"Yts" validate:"required"`
 	} `json:"Feed" yaml:"Feed" validate:"required"`
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
 	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`

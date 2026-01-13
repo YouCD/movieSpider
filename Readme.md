@@ -8,19 +8,20 @@
 * ~~[[bt4g](https://bt4g.org)~~
 * ~~[btbt](https://www.1lou.me/forum-1.htm)~~
 * [eztv](https://eztv.re)
-* [glodls](https://glodls.to)
+* [glodls](https://gtorrents.com)
 * [knaben](https://rss.knaben.eu)
 * ~~[rarbg](http://rarbg.to/)~~
 * ~~[TGx](https://tgx.rs)~~
 * [torlock](https://www.torlock.com)
 * ~~[magnetdl](https://www.magnetdl.com)~~
 * [ThePirateBay](https://thepiratebay.org/search.php?q=top100:200)
-* [1337x](https://1337x.to/)
+* ~~[1337x](https://1337x.to/)~~
 * ~~[rarbg2](https://en.rarbg2.xyz)~~
 * [TheRARBG](https://therarbg.com/)
 * ~~[EXT](https://extto.com/)~~ 效果不理想
 * [uindex](https://uindex.org/)
 * [Ilcorsaronero](https://ilcorsaronero.link/)
+* [Yts](https://yts.bz)
 
 ## 使用TG
 
