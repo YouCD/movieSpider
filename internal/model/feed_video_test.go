@@ -39,3 +39,12 @@ func TestNameParserModelHandler(t *testing.T) {
 	}
 	t.Log(result)
 }
+
+func TestMovieDB_GetFeedVideoByName(t *testing.T) {
+	result, err := NewMovieDB().GetFeedVideoByName("Hellraiser.2022.4K.HDR.DV.2160p.BDRemux Ita Eng x265-NAHOM")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(result)
+}

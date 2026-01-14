@@ -48,6 +48,7 @@ func (t *ThePirateBay) Crawler(ctx context.Context) ([]*types.FeedVideoBase, err
 		video.Magnet = v.Link
 		video.TorrentURL = v.GUID
 		video.Web = t.web
+		log.WithCtx(ctx).Debugf("%s Add: %#v", video.Web, video)
 		videos = append(videos, video)
 	}
 	return videos, nil

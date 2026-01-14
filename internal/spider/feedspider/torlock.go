@@ -59,7 +59,7 @@ func (t *Torlock) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
 		}
 
 		videos2 := t.fetchMagnetDownLoad(ctx, videos1)
-		log.WithCtx(ctx).Infof("Movie Magnet Url Count: %d", len(videos2))
+		log.WithCtx(ctx).Infof("Movie MagnetDownLoad Url Count: %d", len(videos2))
 
 		Videos = t.fetchMagnet(ctx, videos2)
 		log.WithCtx(ctx).Infof("Movie Magnet Url Count: %d", len(Videos))
@@ -87,7 +87,7 @@ func (t *Torlock) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
 		}
 
 		videos2 := t.fetchMagnetDownLoad(ctx, videos1)
-		log.WithCtx(ctx).Infof("TV Magnet Url Count: %d", len(videos2))
+		log.WithCtx(ctx).Infof("TV MagnetDownLoad Url Count: %d", len(videos2))
 		Videos = t.fetchMagnet(ctx, videos2)
 		log.WithCtx(ctx).Infof("TV Magnet Url Count: %d", len(Videos))
 		return Videos, nil
@@ -118,6 +118,7 @@ func (t *Torlock) fetchMagnet(ctx context.Context, videos []*types.FeedVideoBase
 				}
 			} else {
 				video.Magnet = magnet
+				log.WithCtx(ctx).Debugf("Add: torlock.%s   %#v", video.Type, video)
 				feedVideos = append(feedVideos, video)
 			}
 		}(video)
@@ -150,7 +151,6 @@ func (t *Torlock) fetchMagnetDownLoad(ctx context.Context, videos []*types.FeedV
 				if exists {
 					v.Magnet = val
 					videos2 = append(videos2, v)
-					log.WithCtx(ctx).Debugf("Add: torlock.%s   %#v", v.Type, v)
 				}
 			}
 

@@ -82,16 +82,6 @@ func Test_movieDB_FetchDouBanVideoByType(t *testing.T) {
 	}
 }
 
-func Test_movieDB_FetchMovieMagnetByName(t *testing.T) {
-	videos, err := NewMovieDB().GetFeedVideoMovieByName("满江红")
-	if err != nil {
-		t.Error(err)
-	}
-	for _, video := range videos {
-		fmt.Println(video)
-	}
-}
-
 func Test_movieDB_FetchOneDouBanVideoByDouBanID(t *testing.T) {
 	video, err := NewMovieDB().FetchOneDouBanVideoByDouBanID("30222734")
 	if err != nil {

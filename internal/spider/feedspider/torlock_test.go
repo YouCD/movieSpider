@@ -10,8 +10,6 @@ import (
 )
 
 func Test_torlock_Crawler(t *testing.T) {
-	//facTORLOCK.CreateFeeder("*/1 * * * *", types.VideoTypeTV).Run()
-	//select {}
 	var err error
 	var videos []*types.FeedVideoBase
 	for _, r := range config.Config.Feed.TORLOCK {

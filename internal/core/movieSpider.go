@@ -88,7 +88,7 @@ func (m *MovieSpider) startFeed() {
 					log.WithCtx(ctx).Warnf("web: %s, url: %s, videos is empty", feeder.WebName(), feeder.URL())
 					return
 				}
-
+				log.WithCtx(ctx).Infof("web: %s, cont: %d", feeder.WebName(), len(videos))
 				for _, video := range videos {
 					if video.Magnet == "" {
 						log.WithCtx(ctx).Warnf("web: %s, url: %s, Magnet is empty", feeder.WebName(), feeder.URL())

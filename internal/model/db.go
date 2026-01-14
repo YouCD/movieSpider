@@ -25,9 +25,8 @@ import (
 )
 
 type MovieDB struct {
-	db          *gorm.DB
-	feedVideoCh chan *types.FeedVideoBase
-	cache       *cache.Cache
+	db    *gorm.DB
+	cache *cache.Cache
 }
 
 //nolint:gochecknoglobals
@@ -89,7 +88,6 @@ func NewMovieDB() *MovieDB {
 	})
 	return &MovieDB{
 		db,
-		bus.FeedVideoChan,
 		cache.New(24*time.Hour, 24*time.Hour),
 	}
 }
@@ -117,7 +115,7 @@ func (m *MovieDB) SaveFeedVideoFromChan(ctx context.Context) {
 		buffer := make([]*types.FeedVideo, 0, 30)
 		for {
 			select {
-			case item := <-m.feedVideoCh:
+			case item := <-bus.FeedVideoChan:
 				// 检查 item 是否为 nil
 				if item == nil {
 					log.WithCtx(ctx).Debug("Received nil item from feedVideoCh, skipping")
@@ -127,7 +125,7 @@ func (m *MovieDB) SaveFeedVideoFromChan(ctx context.Context) {
 				feedVideo, err := FilterVideo(item)
 				if err != nil {
 					// 记录但不中断其他项目的处理
-					log.WithCtx(context.Background()).Debugf("Filtering failed for %s: %v", item.TorrentName, err)
+					log.WithCtx(context.Background()).Debugw("FilterVideo", "web", item.Web, "TorrentName", item.TorrentName, "err", err)
 					continue
 				}
 				if feedVideo == nil {
@@ -137,7 +135,7 @@ func (m *MovieDB) SaveFeedVideoFromChan(ctx context.Context) {
 				// 检查缓存中是否存在该 torrent name
 				_, found := m.cache.Get(item.TorrentName)
 				if found {
-					log.WithCtx(ctx).Infof("Item %s already processed, skipping", item.TorrentName)
+					log.WithCtx(ctx).Infow("Skipping", "web", item.Web, "TorrentName", item.TorrentName)
 					continue
 				}
 
