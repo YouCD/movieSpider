@@ -32,7 +32,7 @@ var rootCmd = &cobra.Command{
 			core.WithDHT(),
 		)
 
-		movieSpider.Start()
+		movieSpider.Start(cmd.Context())
 
 		model.NewMovieDB().SaveFeedVideoFromChan(cmd.Context())
 		select {}

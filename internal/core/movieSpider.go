@@ -45,7 +45,7 @@ func NewMovieSpider(options ...Option) *MovieSpider {
 	}
 	return ms
 }
-func (m *MovieSpider) Start() {
+func (m *MovieSpider) Start(ctx context.Context) {
 	if config.Config.TG != nil {
 		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
 		go ms.bot.StartBot()
@@ -54,26 +54,24 @@ func (m *MovieSpider) Start() {
 		go dhtc_client.Boot(m.DHTThread)
 	}
 
-	m.startFeed()
-	m.startSpider()
-	m.startSpider()
+	m.startFeed(ctx)
+	m.startSpider(ctx)
 }
 
 // RunWithFeed
 //
 //	@Description: 运行feed
 //	@receiver m
-func (m *MovieSpider) startFeed() {
+func (m *MovieSpider) startFeed(ctx context.Context) {
 	for _, feeder := range m.feeds {
 		go func(feeder feedspider.Feeder) {
 			if feeder.Scheduling() == "" {
-				log.WithCtx(context.Background()).Errorf("%s Scheduling is null", feeder.WebName())
+				log.WithCtx(ctx).Errorf("%s Scheduling is null", feeder.WebName())
 				os.Exit(1)
 			}
 			log.WithCtx(context.Background()).Infof("%s Scheduling is: [%s]", feeder.WebName(), feeder.Scheduling())
 			c := cron.New()
 			_, _ = c.AddFunc(feeder.Scheduling(), func() {
-				ctx := context.Background()
 				ctx = log.SetRequestId(ctx)
 				videos, err := feeder.Crawler(ctx)
 				if err != nil {
@@ -106,12 +104,12 @@ func (m *MovieSpider) startFeed() {
 //
 //	@Description: 运行 Spider
 //	@receiver m
-func (m *MovieSpider) startSpider() {
+func (m *MovieSpider) startSpider(ctx context.Context) {
 	// Spider
 	m.spiders = append(m.spiders, douban.NewSpiderDouBan(config.Config.DouBan)...)
 	for _, s := range m.spiders {
 		go func(spider spider.Spider) {
-			spider.Run()
+			spider.Run(ctx)
 		}(s)
 	}
 }

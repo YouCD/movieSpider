@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"time"
 
@@ -138,7 +139,10 @@ func (m *MovieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*typ
 	nameList = make(map[*types.DouBanVideo][]string)
 
 	var videos []*types.DouBanVideo
-	result := m.db.Model(&types.DouBanVideo{}).Where("type = ?", typ.String()).Find(&videos)
+	// 时间范围限制在近一年
+	end := time.Now().Unix()
+	start := time.Now().AddDate(-1, 0, 0).Unix()
+	result := m.db.Model(&types.DouBanVideo{}).Where("type = ? and timestamp >= ? and timestamp <= ?", typ.String(), start, end).Find(&videos)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -149,7 +153,15 @@ func (m *MovieDB) FetchDouBanVideoByType(typ types.VideoType) (nameList map[*typ
 			log.WithCtx(context.Background()).Error(err)
 			continue
 		}
-		nameList[video] = names
+		var n []string
+		for _, name := range names {
+			if !tools.ContainsChinese(name) {
+				n = append(n, name)
+			}
+		}
+		if len(n) != 0 {
+			nameList[video] = n
+		}
 	}
 	return
 }

@@ -166,12 +166,12 @@ func (d *DouBan) Crawler() (videos []*types.DouBanVideo) {
 
 	return videos2
 }
-func (d *DouBan) Run() {
+func (d *DouBan) Run(ctx context.Context) {
 	if d.scheduling == "" {
-		log.WithCtx(context.Background()).Error("DouBan Scheduling is null")
+		log.WithCtx(ctx).Error("DouBan Scheduling is null")
 		os.Exit(1)
 	}
-	log.WithCtx(context.Background()).Infof("DouBan Scheduling is: [%s]", d.scheduling)
+	log.WithCtx(ctx).Infof("DouBan Scheduling is: [%s]", d.scheduling)
 	c := cron.New()
 	_, _ = c.AddFunc(d.scheduling, func() { d.Crawler() })
 	c.Start()

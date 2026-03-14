@@ -71,7 +71,7 @@ func Test_movieDB_CreatFeedVideo(t *testing.T) {
 }
 
 func Test_movieDB_FetchDouBanVideoByType(t *testing.T) {
-	var tt = types.VideoTypeMovie
+	var tt = types.VideoTypeTV
 	list, err := NewMovieDB().FetchDouBanVideoByType(tt)
 
 	if err != nil {

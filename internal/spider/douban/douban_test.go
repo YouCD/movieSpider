@@ -1,6 +1,7 @@
 package douban
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"movieSpider/internal/config"
@@ -17,24 +18,24 @@ import (
 func TestDouBan_Crawler(t *testing.T) {
 	request, err := http.NewRequest(http.MethodGet, "https://movie.douban.com/subject/26634250/", nil)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return
 	}
 	request.Header.Set("User-Agent", "go")
 	client := httpClient2.HTTPClient
 	resp, err := client.Do(request)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return
 	}
 	if resp == nil {
-		log.Warn("未能正常获取豆瓣数据")
+		log.WithCtx(context.Background()).Warn("未能正常获取豆瓣数据")
 		return
 	}
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		//return nil, errors.WithMessage(err, "getMovies goquery")
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return
 	}
 	//<script type="application/ld+json">
@@ -47,7 +48,7 @@ func TestDouBan_Crawler(t *testing.T) {
 	err = json.Unmarshal([]byte(content), &d)
 	if err != nil {
 		//return nil, errors.WithMessage(err, "getMovies goquery")
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return
 	}
 	fmt.Println(content)
@@ -70,7 +71,7 @@ func TestNewSpiderDouBan(t *testing.T) {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
 	marshal, err := json.Marshal(config.Config.DouBan)
 	if err != nil {
-		log.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 		return
 	}
 	t.Log(string(marshal))

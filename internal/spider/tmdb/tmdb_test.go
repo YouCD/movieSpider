@@ -1,14 +1,16 @@
 package tmdb
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"strings"
 	"testing"
+
+	"github.com/youcd/toolkit/log"
 )
 
 func init() {
@@ -21,19 +23,19 @@ func TestTmDB_FindByImdbID(t1 *testing.T) {
 	if err != nil {
 		t1.Logf("%+v", err)
 	}
-	t := NewSpiderTmDB(config.Config.TmDB.Scheduling, config.Config.TmDB.APIKey)
+	t := NewSpiderTmDB("config.Config.TmDB.Scheduling", "")
 	//log.Infof("len(videos)  %d  %v   ", len(videos), videos)
 	for _, video := range videos {
 		//log.Infof("video   %s   %s    %s ", video.Type, video.Names, video.ImdbID)
 		//
 		got, err := t.FindByImdbID(video.ImdbID)
 		if err != nil {
-			log.Errorf("FindByImdbID() error = %v", err)
+			log.WithCtx(context.Background()).Error("FindByImdbID() error = %v", err)
 			continue
 		}
 		marshal, err := json.Marshal(got)
 		if err != nil {
-			log.Errorf("json.Marshal() error = %v", err)
+			log.WithCtx(context.Background()).Error("json.Marshal() error = %v", err)
 			continue
 		}
 		switch types.Convert2VideoType(video.Type) {
@@ -46,14 +48,14 @@ func TestTmDB_FindByImdbID(t1 *testing.T) {
 					t1.Errorf("TvEpisodeResults() error = %v", err)
 					continue
 				}
-				log.Errorf("TvEpisodeResults  %s    imdb: %s    seasons： %v   TvEpisodeResults: %v  全部是英文名: %v  ", tv.Name, video.ImdbID, tv.NumberOfSeasons, got.TvEpisodeResults[0].ShowID, isEnglishString(strings.ReplaceAll(tv.Name, " ", "")))
+				log.WithCtx(context.Background()).Error("TvEpisodeResults  %s    imdb: %s    seasons： %v   TvEpisodeResults: %v  全部是英文名: %v  ", tv.Name, video.ImdbID, tv.NumberOfSeasons, got.TvEpisodeResults[0].ShowID, isEnglishString(strings.ReplaceAll(tv.Name, " ", "")))
 
 				tv, err = t.GetTVDetailByID(got.TvEpisodeResults[0].ShowID, true)
 				if err != nil {
 					t1.Errorf("TvEpisodeResults() error = %v", err)
 					continue
 				}
-				log.Errorf("TvEpisodeResults  %s    imdb: %s    seasons： %v   TvEpisodeResults: %v 全部是英文名: %v  ", tv.Name, video.ImdbID, tv.NumberOfSeasons, got.TvEpisodeResults[0].ShowID, isEnglishString(strings.ReplaceAll(tv.Name, " ", "")))
+				log.WithCtx(context.Background()).Error("TvEpisodeResults  %s    imdb: %s    seasons： %v   TvEpisodeResults: %v 全部是英文名: %v  ", tv.Name, video.ImdbID, tv.NumberOfSeasons, got.TvEpisodeResults[0].ShowID, isEnglishString(strings.ReplaceAll(tv.Name, " ", "")))
 
 				continue
 			}
@@ -65,7 +67,7 @@ func TestTmDB_FindByImdbID(t1 *testing.T) {
 					t1.Errorf("TvResults() error = %v", err)
 					continue
 				}
-				log.Errorf("TvResults  %s  seasons： %v   全部是英文名: %v ", tv.Name, tv.NumberOfSeasons, isEnglishString(strings.ReplaceAll(tv.Name, " ", "")))
+				log.WithCtx(context.Background()).Error("TvResults  %s  seasons： %v   全部是英文名: %v ", tv.Name, tv.NumberOfSeasons, isEnglishString(strings.ReplaceAll(tv.Name, " ", "")))
 
 				tv, err = t.GetTVDetailByID(got.TvResults[0].ID, true)
 				if err != nil {
@@ -73,7 +75,7 @@ func TestTmDB_FindByImdbID(t1 *testing.T) {
 					continue
 				}
 
-				log.Errorf("TvResults  %s  seasons： %v  全部是英文名: %v  ", tv.Name, tv.NumberOfSeasons, isEnglishString(strings.ReplaceAll(tv.Name, " ", "")))
+				log.WithCtx(context.Background()).Error("TvResults  %s  seasons： %v  全部是英文名: %v  ", tv.Name, tv.NumberOfSeasons, isEnglishString(strings.ReplaceAll(tv.Name, " ", "")))
 				continue
 			}
 
@@ -84,7 +86,7 @@ func TestTmDB_FindByImdbID(t1 *testing.T) {
 				//	t1.Errorf("TvSeasonResults() error = %v", err)
 				//	continue
 				//}
-				log.Warnf("TvSeasonResults  %s ", video.Names)
+				log.WithCtx(context.Background()).Error("TvSeasonResults  %s ", video.Names)
 				continue
 			}
 
@@ -125,7 +127,7 @@ func isEnglishString(str string) bool {
 
 func TestTmDB_Crawler(t1 *testing.T) {
 
-	t := NewSpiderTmDB(config.Config.TmDB.Scheduling, config.Config.TmDB.APIKey)
+	t := NewSpiderTmDB("config.Config.TmDB.Scheduling", "config.Config.TmDB.APIKey")
 
 	t.Crawler()
 

@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 )
 
 type RowData struct {
@@ -74,7 +73,7 @@ func (d *DouBanVideo) FormatName(names string) string {
 		name = strings.ReplaceAll(name, "..", ".")
 
 		if d.Type == "tv" {
-			ok := d.isChineseChar(name)
+			ok := tools.ContainsChinese(name)
 			if ok {
 				compileRegex := regexp.MustCompile(`(.*)\.第.季`)
 				matchArr := compileRegex.FindStringSubmatch(name)
@@ -134,14 +133,5 @@ func (d *DouBanVideo) IsDatePublished() bool {
 		return true
 	}
 
-	return false
-}
-
-func (d *DouBanVideo) isChineseChar(str string) bool {
-	for _, r := range str {
-		if unicode.Is(unicode.Scripts["Han"], r) || (regexp.MustCompile("[\u3002\uff1b\uff0c\uff1a\u201c\u201d\uff08\uff09\u3001\uff1f\u300a\u300b]").MatchString(string(r))) {
-			return true
-		}
-	}
 	return false
 }

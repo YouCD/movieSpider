@@ -1,13 +1,12 @@
 package download
 
 import (
-	"fmt"
-	"movieSpider/internal/aria2"
+	"context"
+	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"testing"
-	"time"
 )
 
 func init() {
@@ -27,51 +26,29 @@ func Test_download_DownloadByName(t *testing.T) {
 	d := &Download{
 		scheduling: "*/1 * * * *",
 	}
-
-	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	log.SetLogLevel("Debug")
+	err := d.download(types.VideoTypeTV, model.NewMovieDB().GetFeedVideoTVByNames)
 	if err != nil {
-		t.Error(err)
-	}
-	downLoadChan := make(chan *types.DownloadNotifyVideo)
-	defer close(downLoadChan)
-	go func() {
-		for {
-			time.Sleep(time.Second * 1)
-			newAria2.Subscribe(downLoadChan)
-			select {
-			case v, ok := <-downLoadChan:
-				if ok {
-					fmt.Println("subscribe", v)
-				}
-			}
-		}
-	}()
-	d.downloadTask()
-	select {}
-}
-
-func Test_download_downloadTvTask(t *testing.T) {
-
-	d := &Download{
-		scheduling: "tt.fields.scheduling",
-	}
-	err := d.downloadTvTask()
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Println("done")
-	//select {}
-}
-
-func TestDownload_downloadMovieTask(t *testing.T) {
-	d := &Download{
-		scheduling: "tt.fields.scheduling",
-	}
-	err := d.downloadMovieTask()
-	if err != nil {
-		t.Error(err)
+		log.WithCtx(context.Background()).Error(err)
 	}
 
-	fmt.Println("done")
-	//select {}
+	//newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//downLoadChan := make(chan *types.DownloadNotifyVideo)
+	//defer close(downLoadChan)
+	//go func() {
+	//	for {
+	//		time.Sleep(time.Second * 1)
+	//		newAria2.Subscribe(downLoadChan)
+	//		select {
+	//		case v, ok := <-downLoadChan:
+	//			if ok {
+	//				fmt.Println("subscribe", v)
+	//			}
+	//		}
+	//	}
+	//}()
+
 }

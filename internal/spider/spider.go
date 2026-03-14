@@ -1,5 +1,7 @@
 package spider
 
+import "context"
+
 type Spider interface {
-	Run()
+	Run(ctx context.Context)
 }
