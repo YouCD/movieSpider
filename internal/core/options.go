@@ -22,17 +22,11 @@ func (f optionFunc) apply(ms *MovieSpider) {
 	f(ms)
 }
 
-// WithFeeds
-//
-//	@Description: 初始化feeds
-//	@param feeds
-//	@return Option
+// WithFeeds 初始化feeds
 func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// EZTV
 	feedEZTV := feedspider.NewEztv()
 
-	// GLODLS
-	feedGLODLS := feedspider.NewGlodls()
 	// Knaben
 	feedKnaben := feedspider.NewFeedKnaben()
 
@@ -56,7 +50,6 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	return optionFunc(func(ms *MovieSpider) {
 		ms.feeds = append(ms.feeds,
 			feedEZTV,
-			feedGLODLS,
 			feedTorlockMovie,
 			feedTorlockTV,
 			//feed1337xMovie,
@@ -90,21 +83,14 @@ func createFeederWithURLs(urls []*config.BaseRT, create createFunc) (feedspider.
 	return tv, movie
 }
 
-// WithConfigFile
-//
-//	@Description: 初始化配置文件
-//	@param configFile
-//	@return Option
+// WithConfigFile 初始化配置文件
 func WithConfigFile(configFile string) Option {
 	config.InitConfig(configFile)
 	model.NewMovieDB()
 	return optionFunc(func(_ *MovieSpider) {})
 }
 
-// WithReport
-//
-//	@Description: 初始化 report
-//	@return Option
+// WithReport 初始化 report
 func WithReport() Option {
 	return optionFunc(func(ms *MovieSpider) {
 		ms.report = job.NewReport("*/1 * * * *")
@@ -112,21 +98,16 @@ func WithReport() Option {
 	})
 }
 
-// WithDownload
-//
-//	@Description: 初始化下载器
-//	@return Option
+// WithDownload 初始化下载器
 func WithDownload() Option {
 	return optionFunc(func(ms *MovieSpider) {
 		ms.download = download.NewDownloader(config.Config.Downloader.Scheduling)
-		go ms.download.Run()
+		ctx := context.Background()
+		go ms.download.Run(ctx)
 	})
 }
 
-// WithReleaseTimeJob
-//
-//	@Description: 初始化下载器
-//	@return Option
+// WithReleaseTimeJob 初始化下载器
 func WithReleaseTimeJob() Option {
 	if config.Config.TG == nil {
 		return optionFunc(func(_ *MovieSpider) {

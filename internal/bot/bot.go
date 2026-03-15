@@ -24,7 +24,6 @@ import (
 
 //nolint:gochecknoglobals,unused
 var (
-	pageNum     *int
 	tgBotClient *TGBot
 	once        sync.Once
 )
@@ -42,12 +41,7 @@ type TGBot struct {
 	mtx      sync.Mutex
 }
 
-// NewTgBot
-//
-//	@Description: 创建一个TGBot实例
-//	@param BotToken
-//	@param TgIDs
-//	@return *TGBot
+// NewTgBot 创建一个TGBot实例
 func NewTgBot(botToken string, tgIDs []int) *TGBot {
 	once.Do(func() {
 		ctx := context.Background()
@@ -77,10 +71,7 @@ const (
 	notifyTypeDatePublished
 )
 
-// StartBot
-//
-//	@Description: 启动bot
-//	@receiver t
+// StartBot 启动bot
 //
 //nolint:gocognit
 func (t *TGBot) StartBot() {
@@ -106,69 +97,77 @@ func (t *TGBot) StartBot() {
 			log.WithCtx(context.Background()).Warnf("用户 %s(%d) 没有权限执行命令 %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Command())
 			continue
 		}
-		switch update.Message.Command() {
-		case CMDReportDownload: // movie_download 指令
-			aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
-			if err != nil {
-				log.WithCtx(context.Background()).Error(err)
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "aria2下载器服务异常")
-				msg.ReplyToMessageID = update.Message.MessageID
-				_, err = t.bot.Send(msg)
-				if err != nil {
-					log.WithCtx(context.Background()).Error(err)
-				}
-				continue
-			}
 
-			files := aria2Server.CurrentActiveAndStopFiles()
-			var bs string
-			for _, file := range files {
-				if utf8.RuneCountInString(file.FileName) > 40 {
-					nameRune := []rune(file.FileName)
-					bs += fmt.Sprintf("%-40s | %s\n", string(nameRune[0:40]), file.Completed)
-				} else {
-					bs += fmt.Sprintf("%-40s | %s\n", file.FileName, file.Completed)
-				}
-			}
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, bs)
-			msg.ReplyToMessageID = update.Message.MessageID
-			_, err = t.bot.Send(msg)
-			if err != nil {
-				log.WithCtx(context.Background()).Error(err)
-			}
+		ctx := context.Background()
+		switch update.Message.Command() {
+		case CMDReportDownload:
+			t.handleReportDownload(ctx, update)
 		case CMDReportFeedVideos:
 			t.SendReportFeedVideosMsg(update.Message.Chat.ID, int64(update.Message.MessageID))
 		case CMDMoveDownload:
-			update.Message.Entities = []tgbotapi.MessageEntity{{Type: "bot_command", Offset: 0, Length: 15}}
-
-			arguments := update.Message.CommandArguments()
-			pars := tools.RemoveSpaceItem(strings.Split(arguments, " "))
-
-			downloader := download.NewDownloader(config.Config.Downloader.Scheduling)
-			downloadMsg := downloader.DownloadByName(pars[1], pars[2])
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, downloadMsg)
-			msg.ReplyToMessageID = update.Message.MessageID
-			_, err := t.bot.Send(msg)
-			if err != nil {
-				log.WithCtx(context.Background()).Error(err)
-			}
-
+			t.handleMovieDownload(ctx, update)
 		default:
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "不支持此指令")
-			msg.ReplyToMessageID = update.Message.MessageID
-			_, err := t.bot.Send(msg)
-			if err != nil {
-				log.WithCtx(context.Background()).Error(err)
-			}
+			t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, "不支持此指令")
 		}
 	}
 }
 
-// SendStrMsg
-//
-//	@Description: 发送字符串消息
-//	@receiver t
-//	@param msg
+// handleReportDownload 处理下载报告命令
+func (t *TGBot) handleReportDownload(ctx context.Context, update tgbotapi.Update) {
+	aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	if err != nil {
+		log.WithCtx(ctx).Error(err)
+		t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, "aria2下载器服务异常")
+		return
+	}
+
+	files := aria2Server.CurrentActiveAndStopFiles()
+	var sb strings.Builder
+	for _, file := range files {
+		fileName := truncateString(file.FileName, 40)
+		sb.WriteString(fmt.Sprintf("%-40s | %s\n", fileName, file.Completed))
+	}
+
+	t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, sb.String())
+}
+
+// handleMovieDownload 处理电影下载命令
+func (t *TGBot) handleMovieDownload(ctx context.Context, update tgbotapi.Update) {
+	update.Message.Entities = []tgbotapi.MessageEntity{{Type: "bot_command", Offset: 0, Length: 15}}
+
+	arguments := update.Message.CommandArguments()
+	pars := tools.RemoveSpaceItem(strings.Split(arguments, " "))
+
+	if len(pars) < 3 {
+		t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, "参数不足，格式: /movie_download <name> <resolution>")
+		return
+	}
+
+	downloader := download.NewDownloader(config.Config.Downloader.Scheduling)
+	downloadMsg := downloader.DownloadByName(ctx, pars[1], pars[2])
+	t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, downloadMsg)
+}
+
+// sendReplyMessage 发送回复消息
+func (t *TGBot) sendReplyMessage(chatID int64, messageID int, text string) {
+	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ReplyToMessageID = messageID
+	_, err := t.bot.Send(msg)
+	if err != nil {
+		log.WithCtx(context.Background()).Error(err)
+	}
+}
+
+// truncateString 截断字符串到指定长度
+func truncateString(s string, maxLen int) string {
+	if utf8.RuneCountInString(s) <= maxLen {
+		return s
+	}
+	nameRune := []rune(s)
+	return string(nameRune[:maxLen])
+}
+
+// SendStrMsg 发送字符串消息
 func (t *TGBot) SendStrMsg(msg string) {
 	for _, id := range t.IDs {
 		tgMsg := tgbotapi.NewMessage(int64(id), msg)
@@ -179,48 +178,26 @@ func (t *TGBot) SendStrMsg(msg string) {
 	}
 }
 
-// inArray
-//
-//	@Description: 判断数组中是否存在某个值
-//	@param val
-//	@param array
-//	@return ok
-//	@return i
-func inArray(val int, array []int) (ok bool, i int) {
-	for i = range array {
-		if ok = array[i] == val; ok {
-			return
+// inArray 判断数组中是否存在某个值
+func inArray(val int, array []int) bool {
+	for _, v := range array {
+		if v == val {
+			return true
 		}
 	}
-	return
+	return false
 }
 
-// checkUser
-//
-//	@Description: 检查用户是否有权限
-//	@receiver t
-//	@param ChatID
-//	@param update
-//	@return bool
+// checkUser 检查用户是否有权限
 func (t *TGBot) checkUser(chatID int64, update tgbotapi.Update) bool {
-	ok, _ := inArray(int(chatID), config.Config.TG.TgIDs)
-	if !ok {
-		msg := tgbotapi.NewMessage(chatID, "您没有权限")
-		msg.ReplyToMessageID = update.Message.MessageID
-		_, err := t.bot.Send(msg)
-		if err != nil {
-			log.WithCtx(context.Background()).Error(err)
-			return false
-		}
+	if !inArray(int(chatID), config.Config.TG.TgIDs) {
+		t.sendReplyMessage(chatID, update.Message.MessageID, "您没有权限")
 		return false
 	}
-	return ok
+	return true
 }
 
-// downloadNotify
-//
-//	@Description: 下载通知
-//	@receiver t
+// downloadNotify 下载通知
 func (t *TGBot) downloadNotify() {
 	go func() {
 		for {
@@ -234,12 +211,7 @@ func (t *TGBot) downloadNotify() {
 	}()
 }
 
-// datePublishedNotify
-//
-//	@Description: 上映通知
-//	@receiver t
-//
-
+// datePublishedNotify 上映通知
 func (t *TGBot) datePublishedNotify() {
 	go func() {
 		for {
@@ -260,10 +232,7 @@ func (t *TGBot) datePublishedNotify() {
 	}()
 }
 
-// downloadCompleteNotify
-//
-//	@Description: 下载完成通知
-//	@receiver t
+// downloadCompleteNotify 下载完成通知
 func (t *TGBot) downloadCompleteNotify() {
 	downLoadChan := make(chan *types.DownloadNotifyVideo)
 	go func() {
@@ -281,8 +250,10 @@ func (t *TGBot) downloadCompleteNotify() {
 			select {
 			case video, ok := <-downLoadChan:
 				if ok {
-					t.SendDatePublishedOrDownloadMsg(video, notifyTypeDownloadComplete)
-					t.mtx.Unlock()
+					func() {
+						defer t.mtx.Unlock()
+						t.SendDatePublishedOrDownloadMsg(video, notifyTypeDownloadComplete)
+					}()
 				}
 			}
 		}

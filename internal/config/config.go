@@ -35,6 +35,7 @@ type aria2 struct {
 	Token string `json:"Token" yaml:"Token" validate:"required"`
 	Label string `json:"Label" yaml:"Label" validate:"required"`
 }
+
 type llm struct {
 	ApiKey  string `json:"ApiKey,omitempty" yaml:"ApiKey" validate:"required"`
 	BaseURL string `json:"BaseURL,omitempty" yaml:"BaseURL" validate:"required,http_url"`
@@ -71,7 +72,6 @@ type BaseRT struct {
 
 //nolint:tagliatelle
 type config struct {
-	// TmDB   *tmDB   `json:"TmDB"`
 	MySQL        *mysql   `json:"MySQL" yaml:"MySQL" validate:"required"`
 	DouBan       *DouBan  `json:"DouBan" yaml:"DouBan" validate:"required"`
 	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
@@ -98,6 +98,8 @@ type config struct {
 var (
 	Config *config
 	v      = viper.New()
+	// validate 单例，避免重复创建
+	validate = validator.New()
 )
 
 func InitConfig(configFile string) {
@@ -105,74 +107,83 @@ func InitConfig(configFile string) {
 	v.SetConfigFile(configFile)
 
 	fmt.Printf("config file is %s.\n", configFile)
-	err := v.ReadInConfig()
-	if err != nil {
-		fmt.Printf("配置文件错误.")
+	if err := v.ReadInConfig(); err != nil {
+		fmt.Printf("配置文件错误: %v\n", err)
 		os.Exit(1)
 	}
 
-	err = v.Unmarshal(&Config)
-	if err != nil {
-		fmt.Println("读取配置错误")
+	if err := v.Unmarshal(&Config); err != nil {
+		fmt.Printf("读取配置错误: %v\n", err)
 		os.Exit(1)
 	}
 
-	//  设置豆瓣列表的调度时间
-	for _, ban := range Config.DouBan.DouBanList {
-		if ban.Scheduling == "" {
-			ban.Scheduling = Config.DouBan.Scheduling
-		}
-	}
+	// 设置豆瓣列表的调度时间
+	setDouBanScheduling(Config)
 
 	v.WatchConfig()
-	v.OnConfigChange(func(e fsnotify.Event) {
-		log.WithCtx(context.Background()).Infof("Config file changed: %s\n", e.Name)
-		c := new(config)
-		// 解析配置文件，反序列化
-		err = v.Unmarshal(c)
-		if err != nil {
-			log.WithCtx(context.Background()).Errorf("Unmarshal yaml faild: %s", err)
-			os.Exit(-1)
-		}
-		err = ValidateFc(Config)
-		if err == nil {
-			Config = c
-			logConfig := &log.Config{
-				Stdout: true,
-			}
-			if Config.Global.LogFile != "" {
-				logConfig.LumberjackCfg = &lumberjack.Logger{
-					Filename: Config.Global.LogFile,
-				}
-			}
-			log.SetLogLevel(Config.Global.LogLevel)
-			log.WithCtx(context.Background()).Debug("日志级别： ", Config.Global.LogLevel)
-		}
-	})
+	v.OnConfigChange(handleConfigChange)
 
-	logConfig := &log.Config{
-		Stdout: true,
+	if err := initLogger(Config); err != nil {
+		fmt.Printf("初始化日志失败: %v\n", err)
+		os.Exit(1)
 	}
-	if Config.Global.LogFile != "" {
-		logConfig.LumberjackCfg = &lumberjack.Logger{
-			Filename: Config.Global.LogFile,
-		}
-	}
-	// 打印 日志级别
-	log.Init(logConfig)
-	log.SetLogLevel(Config.Global.LogLevel)
-	log.WithCtx(context.Background()).Debug("日志级别： ", Config.Global.LogLevel)
-	err = ValidateFc(Config)
-	if err != nil {
+
+	if err := ValidateConfig(Config); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
-func ValidateFc(s interface{}) error {
-	validate := validator.New()
-	err := validate.Struct(s)
-	if err != nil {
+// setDouBanScheduling 设置豆瓣列表的调度时间
+func setDouBanScheduling(cfg *config) {
+	for _, ban := range cfg.DouBan.DouBanList {
+		if ban.Scheduling == "" {
+			ban.Scheduling = cfg.DouBan.Scheduling
+		}
+	}
+}
+
+// handleConfigChange 处理配置文件变更
+func handleConfigChange(e fsnotify.Event) {
+	log.WithCtx(context.Background()).Infof("Config file changed: %s\n", e.Name)
+	c := new(config)
+	// 解析配置文件，反序列化
+	if err := v.Unmarshal(c); err != nil {
+		log.WithCtx(context.Background()).Errorf("Unmarshal yaml failed: %s", err)
+		return
+	}
+
+	if err := ValidateConfig(c); err != nil {
+		log.WithCtx(context.Background()).Errorf("配置验证失败: %s", err)
+		return
+	}
+
+	Config = c
+	if err := initLogger(Config); err != nil {
+		log.WithCtx(context.Background()).Errorf("初始化日志失败: %s", err)
+		return
+	}
+	log.WithCtx(context.Background()).Debug("日志级别： ", Config.Global.LogLevel)
+}
+
+// initLogger 初始化日志配置
+func initLogger(cfg *config) error {
+	logConfig := &log.Config{
+		Stdout: true,
+	}
+	if cfg.Global.LogFile != "" {
+		logConfig.LumberjackCfg = &lumberjack.Logger{
+			Filename: cfg.Global.LogFile,
+		}
+	}
+	log.Init(logConfig)
+	log.SetLogLevel(cfg.Global.LogLevel)
+	return nil
+}
+
+// ValidateConfig 验证配置
+func ValidateConfig(s interface{}) error {
+	if err := validate.Struct(s); err != nil {
 		//nolint:errorlint
 		if _, ok := err.(*validator.InvalidValidationError); ok {
 			//nolint:wrapcheck
@@ -185,4 +196,10 @@ func ValidateFc(s interface{}) error {
 		}
 	}
 	return nil
+}
+
+// ValidateFc 是 ValidateConfig 的别名，保持向后兼容
+// Deprecated: 使用 ValidateConfig 代替
+func ValidateFc(s interface{}) error {
+	return ValidateConfig(s)
 }

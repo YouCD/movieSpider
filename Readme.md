@@ -8,7 +8,7 @@
 * ~~[[bt4g](https://bt4g.org)~~
 * ~~[btbt](https://www.1lou.me/forum-1.htm)~~
 * [eztv](https://eztv.re)
-* [glodls](https://gtorrents.com)
+* ~~[glodls](https://gtorrents.com)~~
 * [knaben](https://rss.knaben.eu)
 * ~~[rarbg](http://rarbg.to/)~~
 * ~~[TGx](https://tgx.rs)~~

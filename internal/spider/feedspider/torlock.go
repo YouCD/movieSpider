@@ -13,13 +13,13 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/mmcdole/gofeed"
 	"github.com/youcd/toolkit/log"
 	"go.uber.org/zap/buffer"
 )
 
 type Torlock struct {
 	BaseFeeder
-
 	typ types.VideoType
 }
 
@@ -34,135 +34,141 @@ func NewTorlock(scheduling string, resourceType types.VideoType, siteURL string,
 }
 
 func (t *Torlock) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
-	var Videos []*types.FeedVideoBase
 	fp := t.FeedParserUserAgent(ctx, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36")
-	if t.typ == types.VideoTypeMovie {
-		fd, err := fp.ParseURL(t.Url)
-		if err != nil {
-			return nil, fmt.Errorf("err:%s, err:%w", err, ErrFeedParseURL)
-		}
-		log.WithCtx(ctx).Debugf("%s type: %v Data: %s", t.web, t.typ, fd.String())
-		var videos1 []*types.FeedVideoBase
-		for _, v := range fd.Items {
-			// 片名
-			var fVideo types.FeedVideoBase
-			fVideo.Web = t.web
-			fVideo.TorrentName = v.Title
-			fVideo.TorrentURL = v.Link
-			fVideo.Type = "movie"
 
-			// 原始数据
-			//nolint:errchkjson
-			bytes, _ := json.Marshal(v)
-			fVideo.RowData = sql.NullString{String: string(bytes)}
-			videos1 = append(videos1, &fVideo)
-		}
-
-		videos2 := t.fetchMagnetDownLoad(ctx, videos1)
-		log.WithCtx(ctx).Infof("Movie MagnetDownLoad Url Count: %d", len(videos2))
-
-		Videos = t.fetchMagnet(ctx, videos2)
-		log.WithCtx(ctx).Infof("Movie Magnet Url Count: %d", len(Videos))
-
-		return Videos, nil
+	fd, err := fp.ParseURL(t.Url)
+	if err != nil {
+		return nil, fmt.Errorf("err:%s, err:%w", err, ErrFeedParseURL)
 	}
-	if t.typ == types.VideoTypeTV {
-		fd, err := fp.ParseURL(t.Url)
-		if err != nil {
-			return nil, ErrFeedParseURL
-		}
-		log.WithCtx(ctx).Debugf("%s type: %v Data: %s", t.web, t.typ, fd.String())
-		var videos1 []*types.FeedVideoBase
-		for _, v := range fd.Items {
-			var fVideo types.FeedVideoBase
-			fVideo.TorrentName = v.Title
-			fVideo.TorrentURL = v.Link
-			fVideo.Type = "tv"
-			//nolint:errchkjson
-			bytes, _ := json.Marshal(v)
-			fVideo.RowData = sql.NullString{String: string(bytes)}
 
-			fVideo.Web = t.web
-			videos1 = append(videos1, &fVideo)
-		}
+	log.WithCtx(ctx).Debugf("%s type: %v Data: %s", t.web, t.typ, fd.String())
 
-		videos2 := t.fetchMagnetDownLoad(ctx, videos1)
-		log.WithCtx(ctx).Infof("TV MagnetDownLoad Url Count: %d", len(videos2))
-		Videos = t.fetchMagnet(ctx, videos2)
-		log.WithCtx(ctx).Infof("TV Magnet Url Count: %d", len(Videos))
-		return Videos, nil
-	}
-	return nil, nil
+	videos := t.parseFeedItems(fd.Items)
+	log.WithCtx(ctx).Infof("%s parsed feed items: %d", t.typ.String(), len(videos))
+
+	videosWithMagnet := t.fetchMagnetDownLoad(ctx, videos)
+	log.WithCtx(ctx).Infof("%s MagnetDownLoad Url Count: %d", t.typ.String(), len(videosWithMagnet))
+
+	result := t.fetchMagnet(ctx, videosWithMagnet)
+	log.WithCtx(ctx).Infof("%s Magnet Url Count: %d", t.typ.String(), len(result))
+
+	return result, nil
 }
 
-func (t *Torlock) fetchMagnet(ctx context.Context, videos []*types.FeedVideoBase) (feedVideos []*types.FeedVideoBase) {
-	var wg sync.WaitGroup
+// parseFeedItems 解析 feed items 并转换为 FeedVideoBase 切片
+func (t *Torlock) parseFeedItems(items []*gofeed.Item) []*types.FeedVideoBase {
+	videos := make([]*types.FeedVideoBase, 0, len(items))
+	for _, v := range items {
+		//nolint:errchkjson
+		jsonBytes, _ := json.Marshal(v)
+		videos = append(videos, &types.FeedVideoBase{
+			Web:         t.web,
+			TorrentName: v.Title,
+			TorrentURL:  v.Link,
+			Type:        t.typ.String(),
+			RowData:     sql.NullString{String: string(jsonBytes)},
+		})
+	}
+	return videos
+}
+
+func (t *Torlock) fetchMagnet(ctx context.Context, videos []*types.FeedVideoBase) []*types.FeedVideoBase {
+	var (
+		wg         sync.WaitGroup
+		mu         sync.Mutex
+		feedVideos []*types.FeedVideoBase
+	)
+
 	for _, video := range videos {
 		wg.Add(1)
 		go func(video *types.FeedVideoBase) {
 			defer wg.Done()
-			var count int
-		RETRY:
+
 			if strings.HasPrefix(video.Magnet, "magnet:?x") {
+				mu.Lock()
 				feedVideos = append(feedVideos, video)
+				mu.Unlock()
 				return
 			}
-			magnet, err := magnetconvert.FetchMagnetWithHTTPClient(ctx, video.Magnet, t.HTTPClientDynamic(ctx))
-			if err != nil {
-				if count < 3 {
-					count++
-					if count == 2 {
-						log.WithCtx(ctx).Warnf("RETRY: torlock.%s %s http request url is %s retry count:%d, error:%s", video.Type, video.TorrentName, video.TorrentURL, count, err)
-					}
-					goto RETRY
+
+			// 使用 for 循环代替 goto 进行重试
+			var magnet string
+			var err error
+			for count := 0; count < 3; count++ {
+				magnet, err = magnetconvert.FetchMagnetWithHTTPClient(ctx, video.Magnet, t.HTTPClientDynamic(ctx))
+				if err == nil {
+					break
 				}
-			} else {
-				video.Magnet = magnet
-				log.WithCtx(ctx).Debugf("Add: torlock.%s   %#v", video.Type, video)
-				feedVideos = append(feedVideos, video)
+				if count == 1 {
+					log.WithCtx(ctx).Warnf("RETRY: torlock.%s %s http request url is %s retry count:%d, error:%s",
+						video.Type, video.TorrentName, video.TorrentURL, count+1, err)
+				}
 			}
+
+			if err != nil {
+				return
+			}
+
+			video.Magnet = magnet
+			log.WithCtx(ctx).Debugf("Add: torlock.%s   %#v", video.Type, video)
+
+			mu.Lock()
+			feedVideos = append(feedVideos, video)
+			mu.Unlock()
 		}(video)
 	}
 	wg.Wait()
+
 	return feedVideos
 }
 
 func (t *Torlock) fetchMagnetDownLoad(ctx context.Context, videos []*types.FeedVideoBase) []*types.FeedVideoBase {
-	var wg sync.WaitGroup
-	var videos2 []*types.FeedVideoBase
+	var (
+		wg      sync.WaitGroup
+		mu      sync.Mutex
+		results []*types.FeedVideoBase
+	)
+
 	for _, video := range videos {
 		wg.Add(1)
 		//nolint:noctx
 		go func(v *types.FeedVideoBase) {
 			defer wg.Done()
-			var count int
-		RETRY:
-			resp, err := t.HTTPClientDynamic(ctx).Get(v.TorrentURL)
-			if err == nil {
-				defer resp.Body.Close()
+
+			// 使用 for 循环代替 goto 进行重试
+			for count := 0; count < 3; count++ {
+				resp, err := t.HTTPClientDynamic(ctx).Get(v.TorrentURL)
+				if err != nil {
+					if count == 1 {
+						log.WithCtx(ctx).Debugf("RETRY: torlock.%s %s http request url is %s , retry count: %d",
+							v.Type, v.TorrentName, v.TorrentURL, count+1)
+					}
+					continue
+				}
+
 				var buf buffer.Buffer
 				_, _ = io.Copy(&buf, resp.Body)
+				resp.Body.Close() // 立即关闭，而不是 defer
+
 				doc, err := goquery.NewDocumentFromReader(bytes.NewReader(buf.Bytes()))
 				if err != nil {
-					log.WithCtx(ctx).Errorf("torlock.%s %#v url: %s  content：%s  error:%s", v.Type, v.TorrentName, v.TorrentURL, buf.String(), err)
+					log.WithCtx(ctx).Errorf("torlock.%s %#v url: %s  content：%s  error:%s",
+						v.Type, v.TorrentName, v.TorrentURL, buf.String(), err)
 					return
 				}
+
 				val, exists := doc.Find("body > article > div:nth-child(6) > div > div:nth-child(2) > a").Attr("href")
 				if exists {
 					v.Magnet = val
-					videos2 = append(videos2, v)
+					mu.Lock()
+					results = append(results, v)
+					mu.Unlock()
 				}
-			}
-
-			if count < 3 {
-				count++
-				if count == 2 {
-					log.WithCtx(ctx).Debugf("RETRY: torlock.%s %s http request url is %s , retry count: %d", v.Type, v.TorrentName, v.TorrentURL, count)
-				}
-				goto RETRY
+				return
 			}
 		}(video)
 	}
 	wg.Wait()
-	return videos2
+
+	return results
 }
