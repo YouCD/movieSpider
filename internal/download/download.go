@@ -118,13 +118,16 @@ func (d *Download) download(ctx context.Context, tvOrMovie types.VideoType, f ge
 	// FilterMap 暂存电视剧名相同的视频
 	filterMap := make(map[string][]*types.FeedVideo)
 
-	var videoList []*types.FeedVideo
+	// 用于收集所有需要更新的 video
+	var allVideoList []*types.FeedVideo
 	// 归类同一个电视剧名的 feedVideo
 	for douBanVideo, name := range videos {
 		log.WithCtx(ctx).Infow(tvOrMovie.String(), "douBanVideo", douBanVideo.Names)
-		videoList, err = f(name...)
+		// 在循环内声明 videoList，避免复用导致的脏数据问题
+		videoList, err := f(name...)
 		if err != nil {
 			log.WithCtx(ctx).Warn(err)
+			continue
 		}
 		if len(videoList) == 0 {
 			continue
@@ -142,18 +145,24 @@ func (d *Download) download(ctx context.Context, tvOrMovie types.VideoType, f ge
 				log.WithCtx(ctx).Debugf("TorrentName: %#v 不能转化为 downloadHistory ", video.TorrentName)
 				continue
 			}
-			filterMap[douBanVideo.Names] = append(filterMap[douBanVideo.Names], video)
+			// 使用 doubanID 作为 key，避免 Names 是 JSON 字符串的问题
+			filterMap[douBanVideo.DoubanID] = append(filterMap[douBanVideo.DoubanID], video)
+			// 收集所有需要更新的 video
+			allVideoList = append(allVideoList, video)
 		}
 	}
 	// 批量更新
-	if err = model.NewMovieDB().UpdateFeedVideos(videoList...); err != nil {
-		log.WithCtx(ctx).Error(err)
+	if len(allVideoList) > 0 {
+		if err = model.NewMovieDB().UpdateFeedVideos(allVideoList...); err != nil {
+			log.WithCtx(ctx).Error(err)
+		}
 	}
 
 	// 根据清晰度、季数和集数过滤
 	needDownloadFeedVideo := make([]*types.FeedVideo, 0)
 	for _, v := range filterMap {
-		list := FilterByResolution(types.VideoTypeTV, v...)
+		// 使用参数 tvOrMovie，而不是硬编码 types.VideoTypeTV
+		list := FilterByResolution(tvOrMovie, v...)
 		needDownloadFeedVideo = append(needDownloadFeedVideo, list...)
 	}
 

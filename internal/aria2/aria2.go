@@ -175,12 +175,40 @@ func (a *Aria2) List() (infos []rpc.StatusInfo, err error) {
 	return a.aria2Client.TellActive()
 }
 
+// RemoveTask 删除下载任务（支持活动和已完成的任务）
+func (a *Aria2) RemoveTask(gid string) error {
+	// 先尝试删除活动任务
+	_, err := a.aria2Client.Remove(gid)
+	if err != nil {
+		// 如果删除活动任务失败，尝试删除已完成任务的记录
+		_, err = a.aria2Client.RemoveDownloadResult(gid)
+		return err
+	}
+	return nil
+}
+
+// ForceRemoveTask 强制删除下载任务（支持活动和已完成的任务）
+func (a *Aria2) ForceRemoveTask(gid string) error {
+	// 先尝试强制删除活动任务
+	_, err := a.aria2Client.ForceRemove(gid)
+	if err != nil {
+		// 如果删除活动任务失败，尝试删除已完成任务的记录
+		_, err = a.aria2Client.RemoveDownloadResult(gid)
+		return err
+	}
+	return nil
+}
+
 // CurrentActiveAndStopFiles
 //
 //	@Description: 获取当前正在下载以及停止下载的文件
 //	@receiver a
 //	@return completedFiles
-func (a *Aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompletedFiles) {
+func (a *Aria2) CurrentActiveAndStopFiles() []*types.ReportCompletedFiles {
+	// 用于去重
+	seenGIDs := make(map[string]bool)
+	var completedFiles []*types.ReportCompletedFiles
+
 	// 获取已停止下载的文件
 	sessionInfo, err := a.aria2Client.TellStopped(0, 100)
 	if err != nil && !errors.Is(err, io.EOF) {
@@ -188,23 +216,35 @@ func (a *Aria2) CurrentActiveAndStopFiles() (completedFiles []*types.ReportCompl
 		return nil
 	}
 
-	completedFiles1 := a.completedHandler(sessionInfo, completedFiles...)
-	completedFiles = append(completedFiles, completedFiles1...)
+	completedFiles = a.completedHandler(sessionInfo)
+	for _, f := range completedFiles {
+		seenGIDs[f.GID] = true
+	}
+
 	// 获取正在下载的文件
 	ActiveSession, err := a.aria2Client.TellActive()
 	if err != nil && !errors.Is(err, io.EOF) {
 		log.WithCtx(context.Background()).Error(err)
 		return nil
 	}
-	completedFiles2 := a.completedHandler(ActiveSession, completedFiles...)
-	completedFiles = append(completedFiles, completedFiles2...)
-	return
+	activeFiles := a.completedHandler(ActiveSession)
+
+	// 添加活动文件，跳过已存在的GID
+	for _, f := range activeFiles {
+		if !seenGIDs[f.GID] {
+			completedFiles = append(completedFiles, f)
+		}
+	}
+	return completedFiles
 }
 
 func getFile(info rpc.StatusInfo) string {
 	var filename string
 	for _, f := range info.Files {
+		// 处理 METADATA 类型的文件（磁力链接下载的种子）
 		if strings.HasPrefix(f.Path, "[METADATA]") {
+			// 提取 METADATA 后面的内容作为文件名
+			filename = strings.TrimPrefix(f.Path, "[METADATA]")
 			continue
 		}
 		s := strings.Split(f.Path, "/")
@@ -261,30 +301,63 @@ func (a *Aria2) Subscribe(downLoadChan chan *types.DownloadNotifyVideo) {
 //	@Description: 处理已完成的文件
 //	@receiver a
 //	@param sessionInfo
-//	@param completedFiles
 //	@return []*types.ReportCompletedFiles
-func (a *Aria2) completedHandler(sessionInfo []rpc.StatusInfo, completedFiles ...*types.ReportCompletedFiles) []*types.ReportCompletedFiles {
-	infoMap := make(map[string]int)
-	for _, v := range sessionInfo {
-		for _, i := range v.Files {
-			infoMap[v.Gid] += cast.ToInt(i.Length)
-		}
-	}
-
+func (a *Aria2) completedHandler(sessionInfo []rpc.StatusInfo) []*types.ReportCompletedFiles {
+	var completedFiles []*types.ReportCompletedFiles
 	for _, v := range sessionInfo {
 		file := getFile(v)
 		if file == "" {
 			continue
 		}
 
-		// 文件完成度百分比
-		size := infoMap[v.Gid]
-		completed := cast.ToFloat32(v.CompletedLength) / float32(size) * 100
+		// 获取总大小（优先使用 TotalLength，如果为空则计算文件总大小）
+		var totalSize int64
+		if v.TotalLength != "" {
+			totalSize = cast.ToInt64(v.TotalLength)
+		} else {
+			for _, f := range v.Files {
+				totalSize += cast.ToInt64(f.Length)
+			}
+		}
+
+		// 计算完成度百分比
+		var completedPercent float32
+		completedLength := cast.ToInt64(v.CompletedLength)
+		if totalSize > 0 {
+			completedPercent = float32(completedLength) / float32(totalSize) * 100
+		}
+
+		// 根据状态设置完成度显示
+		completedStr := fmt.Sprintf("%.2f%%", completedPercent)
+		status := v.Status
+		var errorMsg string
+
+		switch v.Status {
+		case "complete":
+			completedStr = "100%"
+		case "error":
+			if v.ErrorMessage != "" {
+				errorMsg = v.ErrorMessage
+				completedStr = fmt.Sprintf("错误: %s", v.ErrorMessage)
+			} else {
+				errorMsg = fmt.Sprintf("code: %s", v.ErrorCode)
+				completedStr = fmt.Sprintf("错误(code: %s)", v.ErrorCode)
+			}
+		case "paused":
+			completedStr = fmt.Sprintf("已暂停 %s", completedStr)
+		case "waiting":
+			completedStr = fmt.Sprintf("等待中 %s", completedStr)
+		case "removed":
+			completedStr = "已移除"
+		}
+
 		completedFiles = append(completedFiles, &types.ReportCompletedFiles{
 			GID:       v.Gid,
-			Size:      tools.ByteCountBinary(int64(size)),
-			Completed: fmt.Sprintf("%.2f%%", completed),
+			Size:      tools.ByteCountBinary(totalSize),
+			Completed: completedStr,
 			FileName:  file,
+			Status:    status,
+			ErrorMsg:  errorMsg,
 		})
 	}
 	return completedFiles

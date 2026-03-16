@@ -36,6 +36,8 @@ type ReportCompletedFiles struct {
 	Size      string
 	Completed string
 	FileName  string
+	Status    string // 下载状态: active, waiting, paused, error, complete, removed
+	ErrorMsg  string // 错误信息（仅当状态为error时有值）
 }
 type DownloadNotifyVideo struct {
 	FeedVideo   *FeedVideo

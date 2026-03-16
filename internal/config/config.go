@@ -92,6 +92,10 @@ type config struct {
 	Aria2cList []aria2     `json:"Aria2cList" yaml:"Aria2cList" validate:"required"`
 	TG         *tg         `json:"TG" yaml:"TG" validate:"omitempty"`
 	LLM        *llm        `json:"LLM" yaml:"LLM" validate:"required"`
+	MCP        *struct {
+		HostPort string `json:"hostPort" yaml:"hostPort"`
+		ApiKey   string `json:"apiKey" yaml:"apiKey"`
+	} `json:"mcp" yaml:"mcp"`
 }
 
 //nolint:gochecknoglobals

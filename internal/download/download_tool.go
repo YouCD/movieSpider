@@ -50,20 +50,19 @@ func FilterByResolution(movieOrTV types.VideoType, videos ...*types.FeedVideo) (
 
 // FilterByResolutionInDownloadHistory
 //
-//	@Description: 根据 清晰度 在下载历史表中  过滤
+//	@Description: 根据 清晰度 在下载历史表中过滤
 //	@param videos
 //	@return list
 func FilterByResolutionInDownloadHistory(videos ...*types.FeedVideo) (list []*types.FeedVideo) {
+	db := model.NewMovieDB()
 	for _, video := range videos {
-		// 通过清晰度过滤
-		v, err := model.NewMovieDB().FindFeedVideoInDownloadHistory(video)
-		if err != nil {
-			log.WithCtx(context.Background()).Debug(err)
-			continue
+		result := db.ShouldDownload(video)
+		if result.ShouldDownload {
+			list = append(list, video)
+		} else {
+			log.WithCtx(context.Background()).Debugf("过滤视频: %s, 原因: %s", video.TorrentName, result.Reason)
 		}
-		list = append(list, v)
 	}
-
 	return
 }
 

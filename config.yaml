@@ -98,3 +98,7 @@ TG:
 #  BotToken: "TOKEN"
 #   能正常访问机器人的Telegram用户
 #  TgIDs: [ 123456 ]
+# 是否启用MCP server
+mcp:
+  hostPort: 0.0.0.0:9092
+  apiKey: test

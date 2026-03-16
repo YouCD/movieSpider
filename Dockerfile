@@ -1,4 +1,4 @@
-FROM golang:1.23.8-alpine AS builder
+FROM golang:1.24.0-alpine AS builder
 WORKDIR /movieSpider
 ENV GOPROXY=https://goproxy.cn,direct CGO_ENABLED=0 \
     GOPATH=/root/gopath \
