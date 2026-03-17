@@ -102,3 +102,6 @@ TG:
 mcp:
   hostPort: 0.0.0.0:9092
   apiKey: test
+tmdb:
+  apiToken: "xxxxxxxxx"
+  accountID: 0

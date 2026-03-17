@@ -188,3 +188,123 @@ type TmDBMovieDetailData struct {
 	VoteAverage float64 `json:"vote_average"`
 	VoteCount   int     `json:"vote_count"`
 }
+
+// WatchlistMovieItem watchlist 电影条目
+//
+//nolint:tagliatelle
+type WatchlistMovieItem struct {
+	Adult            bool    `json:"adult"`
+	BackdropPath     string  `json:"backdrop_path"`
+	GenreIDs         []int   `json:"genre_ids"`
+	ID               int     `json:"id"`
+	OriginalLanguage string  `json:"original_language"`
+	OriginalTitle    string  `json:"original_title"`
+	Overview         string  `json:"overview"`
+	Popularity       float64 `json:"popularity"`
+	PosterPath       string  `json:"poster_path"`
+	ReleaseDate      string  `json:"release_date"`
+	Title            string  `json:"title"`
+	Video            bool    `json:"video"`
+	VoteAverage      float64 `json:"vote_average"`
+	VoteCount        int     `json:"vote_count"`
+}
+
+// WatchlistTVItem watchlist 电视剧条目
+//
+//nolint:tagliatelle
+type WatchlistTVItem struct {
+	Adult            bool     `json:"adult"`
+	BackdropPath     string   `json:"backdrop_path"`
+	GenreIDs         []int    `json:"genre_ids"`
+	ID               int      `json:"id"`
+	OriginCountry    []string `json:"origin_country"`
+	OriginalLanguage string   `json:"original_language"`
+	OriginalName     string   `json:"original_name"`
+	Overview         string   `json:"overview"`
+	Popularity       float64  `json:"popularity"`
+	PosterPath       string   `json:"poster_path"`
+	FirstAirDate     string   `json:"first_air_date"`
+	Name             string   `json:"name"`
+	VoteAverage      float64  `json:"vote_average"`
+	VoteCount        int      `json:"vote_count"`
+}
+
+// WatchlistMoviesResponse watchlist 电影列表响应
+//
+//nolint:tagliatelle
+type WatchlistMoviesResponse struct {
+	Page         int                  `json:"page"`
+	Results      []WatchlistMovieItem `json:"results"`
+	TotalPages   int                  `json:"total_pages"`
+	TotalResults int                  `json:"total_results"`
+}
+
+// WatchlistTVResponse watchlist 电视剧列表响应
+//
+//nolint:tagliatelle
+type WatchlistTVResponse struct {
+	Page         int               `json:"page"`
+	Results      []WatchlistTVItem `json:"results"`
+	TotalPages   int               `json:"total_pages"`
+	TotalResults int               `json:"total_results"`
+}
+
+// SearchTVItem 搜索电视剧条目
+//
+//nolint:tagliatelle
+type SearchTVItem struct {
+	Adult            bool     `json:"adult"`
+	BackdropPath     string   `json:"backdrop_path"`
+	GenreIDs         []int    `json:"genre_ids"`
+	ID               int      `json:"id"`
+	OriginCountry    []string `json:"origin_country"`
+	OriginalLanguage string   `json:"original_language"`
+	OriginalName     string   `json:"original_name"`
+	Overview         string   `json:"overview"`
+	Popularity       float64  `json:"popularity"`
+	PosterPath       string   `json:"poster_path"`
+	FirstAirDate     string   `json:"first_air_date"`
+	Name             string   `json:"name"`
+	VoteAverage      float64  `json:"vote_average"`
+	VoteCount        int      `json:"vote_count"`
+}
+
+// SearchTVResponse 搜索电视剧响应
+//
+//nolint:tagliatelle
+type SearchTVResponse struct {
+	Page         int            `json:"page"`
+	Results      []SearchTVItem `json:"results"`
+	TotalPages   int            `json:"total_pages"`
+	TotalResults int            `json:"total_results"`
+}
+
+// SearchMovieItem 搜索电影条目
+//
+//nolint:tagliatelle
+type SearchMovieItem struct {
+	Adult            bool    `json:"adult"`
+	BackdropPath     string  `json:"backdrop_path"`
+	GenreIDs         []int   `json:"genre_ids"`
+	ID               int     `json:"id"`
+	OriginalLanguage string  `json:"original_language"`
+	OriginalTitle    string  `json:"original_title"`
+	Overview         string  `json:"overview"`
+	Popularity       float64 `json:"popularity"`
+	PosterPath       string  `json:"poster_path"`
+	ReleaseDate      string  `json:"release_date"`
+	Title            string  `json:"title"`
+	Video            bool    `json:"video"`
+	VoteAverage      float64 `json:"vote_average"`
+	VoteCount        int     `json:"vote_count"`
+}
+
+// SearchMovieResponse 搜索电影响应
+//
+//nolint:tagliatelle
+type SearchMovieResponse struct {
+	Page         int               `json:"page"`
+	Results      []SearchMovieItem `json:"results"`
+	TotalPages   int               `json:"total_pages"`
+	TotalResults int               `json:"total_results"`
+}

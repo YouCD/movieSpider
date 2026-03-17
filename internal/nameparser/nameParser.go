@@ -18,7 +18,7 @@ const prompt = `你是一位专业的媒体文件元数据解析专家，擅长�
 **输出**：严格的JSON数组，每个元素包含以下字段：
 - 'id': 数字类型，从0开始的递增序号
 - 'typeStr': 字符串（movie/tv/空字符串）
-- 'newName': 字符串，规范化剧名（英文单词首字母大写，用.连接）
+- 'newName': 字符串，规范化剧名（英文单词首字母大写）
 - 'year': 数字类型，4位年份（无法确定则返回'0'）
 - 'resolution': 数字类型，分辨率数值（无法确定则返回'0'）
 
@@ -36,9 +36,6 @@ const prompt = `你是一位专业的媒体文件元数据解析专家，擅长�
 - **剧集**：提取'SxxExx/1x02'或'Season.X'之前的所有连续英文字母片段
 - **多语言混合**：只保留英文字母片段（如示例5，忽略俄文'Подозрительные.лицы'）
 - **格式要求**：
-  - 每个单词首字母大写，用'.'连接
-  - 删除所有标点符号（':', '!', '?', '《》'等）
-  - '&'全局替换为'And'
   - 末尾不得有'.'或空格
   - **剧名不得包含年份**
 
@@ -67,13 +64,13 @@ const prompt = `你是一位专业的媒体文件元数据解析专家，擅长�
 <输入>
 A-Heavenly-Vintage-2009-1080p-BluRay-x265-RARBG
 <输出>
-[{"id":0,"typeStr":"movie","newName":"A.Heavenly.Vintage","year":2009,"resolution":1080}]
+[{"id":0,"typeStr":"movie","newName":"A Heavenly Vintage","year":2009,"resolution":1080}]
 
 **示例 2（剧集无年份）：**
 <输入>
 Big Antique Adventure With Susan Calman S01 1080p HDTV H264-DARKFLiX[rartv]
 <输出>
-[{"id":0,"typeStr":"tv","newName":"Big.Antique.Adventure.With.Susan.Calman","year":0,"resolution":1080}]
+[{"id":0,"typeStr":"tv","newName":"Big Antique Adventure With Susan Calman","year":0,"resolution":1080}]
 
 **示例 3（剧集含年份）：**
 <输入>
@@ -85,25 +82,25 @@ www.Torrenting.com - Tracker.2024.S02E07.1080p.HEVC.x265-MeGusta
 <输入>
 《The Book Of Solutions (2023) [1080p] [BluRay] [5.1] [YTS.MX]》
 <输出>
-[{"id":0,"typeStr":"movie","newName":"The.Book.Of.Solutions","year":2023,"resolution":1080}]
+[{"id":0,"typeStr":"movie","newName":"The Book Of Solutions","year":2023,"resolution":1080}]
 
 **示例 5（多语言）：**
 <输入>
 Подозрительные.лицы.The.Usual.Suspects.1995.JPN.Transfer.BDRip-HEVC.1080p.mkv
 <输出>
-[{"id":0,"typeStr":"movie","newName":"The.Usual.Suspects","year":1995,"resolution":1080}]
+[{"id":0,"typeStr":"movie","newName":"The Usual Suspects","year":1995,"resolution":1080}]
 
 **示例 6（剧集忽略副标题）：**
 <输入>
 Greys Anatomy S21E13 Dont You Forget About Me 1080p AMZN WEB-DL DDP5 1 HEVC
 <输出>
-[{"id":0,"typeStr":"tv","newName":"Greys.Anatomy","year":0,"resolution":1080}]
+[{"id":0,"typeStr":"tv","newName":"Greys Anatomy","year":0,"resolution":1080}]
 
 **示例 7（格式变体）：**
 <输入>
 Alien Earth 1x02 Mr October 1080p WEB-DL H265 Ita Eng AC3 5 1 Multisub iDN CreW
 <输出>
-[{"id":0,"typeStr":"tv","newName":"Alien.Earth","year":0,"resolution":1080}]
+[{"id":0,"typeStr":"tv","newName":"Alien Earth","year":0,"resolution":1080}]
 
 **示例 8（无法识别）：**
 <输入>
@@ -117,7 +114,7 @@ A-Heavenly-Vintage-2009-1080p-BluRay-x265-RARBG
 Tracker.2024.S02E07.1080p.HEVC.x265-MeGusta
 无效种子名称无关键信息
 <输出>
-[{"id":0,"typeStr":"movie","newName":"A.Heavenly.Vintage","year":2009,"resolution":1080},{"id":1,"typeStr":"tv","newName":"Tracker","year":2024,"resolution":1080},{"id":2,"typeStr":"","newName":"","year":0,"resolution":0}]
+[{"id":0,"typeStr":"movie","newName":"A Heavenly Vintage","year":2009,"resolution":1080},{"id":1,"typeStr":"tv","newName":"Tracker","year":2024,"resolution":1080}]
 
 ---
 

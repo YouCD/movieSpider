@@ -96,6 +96,10 @@ type config struct {
 		HostPort string `json:"hostPort" yaml:"hostPort"`
 		ApiKey   string `json:"apiKey" yaml:"apiKey"`
 	} `json:"mcp" yaml:"mcp"`
+	TMDB struct {
+		ApiToken  string `json:"apiToken" yaml:"apiToken"`
+		AccountID int    `json:"accountID" yaml:"accountID"`
+	} `json:"tmdb" yaml:"tmdb"`
 }
 
 //nolint:gochecknoglobals
