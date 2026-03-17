@@ -499,3 +499,36 @@ func convertWatchProviderResult(provider tmdb.WatchProviderResult) WatchProvider
 
 	return result
 }
+
+// TVExternalIDs 电视剧外部ID
+type TVExternalIDs struct {
+	ImdbID      string `json:"imdb_id"`
+	FreebaseMID string `json:"freebase_mid"`
+	FreebaseID  string `json:"freebase_id"`
+	TVDBID      int64  `json:"tvdb_id"`
+	TVRageID    int64  `json:"tvrage_id"`
+	WikidataID  string `json:"wikidata_id"`
+	FacebookID  string `json:"facebook_id"`
+	InstagramID string `json:"instagram_id"`
+	TwitterID   string `json:"twitter_id"`
+}
+
+// GetTVExternalIDs 获取电视剧外部ID
+func (c *Client) GetTVExternalIDs(ctx context.Context, tvID int) (*TVExternalIDs, error) {
+	result, err := c.client.GetTVExternalIDs(tvID, nil)
+	if err != nil {
+		return nil, fmt.Errorf("获取电视剧外部ID失败: %w", err)
+	}
+
+	return &TVExternalIDs{
+		ImdbID:      result.IMDbID,
+		FreebaseMID: result.FreebaseMID,
+		FreebaseID:  result.FreebaseID,
+		TVDBID:      result.TVDBID,
+		TVRageID:    result.TVRageID,
+		WikidataID:  result.WikiDataID,
+		FacebookID:  result.FacebookID,
+		InstagramID: result.InstagramID,
+		TwitterID:   result.TwitterID,
+	}, nil
+}

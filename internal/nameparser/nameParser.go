@@ -151,7 +151,9 @@ func ModelHandler(ctx context.Context, names ...string) (map[string]*types.LLMRe
 		//nolint:err113
 		return nil, fmt.Errorf("解析失败: %s,err:%w", names, err)
 	}
-
+	if len(resp.Choices) == 0 {
+		return nil, fmt.Errorf("解析失败: %s,err:%w", names, err)
+	}
 	Content := resp.Choices[0].Message.Content
 
 	var result []*types.LLMResult

@@ -7,6 +7,7 @@ import (
 	"movieSpider/internal/job"
 	"movieSpider/internal/model"
 	"movieSpider/internal/spider/feedspider"
+	tmdbspider "movieSpider/internal/spider/tmdb"
 	"movieSpider/internal/types"
 
 	"github.com/youcd/toolkit/log"
@@ -125,5 +126,19 @@ func WithDHT() Option {
 		if config.Config.Global.DHTThread > 0 {
 			ms.DHTThread = config.Config.Global.DHTThread
 		}
+	})
+}
+
+// WithTMDBSpider 初始化TMDB爬虫
+func WithTMDBSpider(accountID int, apiToken string) Option {
+	return optionFunc(func(ms *MovieSpider) {
+		tmdbSpider, err := tmdbspider.NewTMDBSpider(accountID, apiToken)
+		if err != nil {
+			log.WithCtx(context.Background()).Errorf("创建TMDB爬虫失败: %s", err)
+			return
+		}
+
+		ms.spiders = append(ms.spiders, tmdbSpider)
+		log.WithCtx(context.Background()).Info("TMDB爬虫已初始化，每10分钟执行一次")
 	})
 }

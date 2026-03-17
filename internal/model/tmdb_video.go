@@ -181,3 +181,59 @@ func (m *MovieDB) FetchThisYearVideo() ([]*types.TMDBVideo, error) {
 	}
 	return videos, nil
 }
+
+// FetchPlayableVideos 通过播放状态查找视频
+//
+//	@Description: 获取 playable=false 的视频列表
+//	@receiver m
+//	@return []*types.TMDBVideo
+//	@return error
+func (m *MovieDB) FetchPlayableVideos(ctx context.Context, p bool) ([]*types.TMDBVideo, error) {
+	var flag string
+	if p {
+		flag = "true"
+	} else {
+		flag = "false"
+	}
+	var videos []*types.TMDBVideo
+
+	err := m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Where("playable = ?", flag).Find(&videos).Error
+	if err != nil {
+		return nil, fmt.Errorf("获取不可播放视频失败: %w", err)
+	}
+	return videos, nil
+}
+func (m *MovieDB) FetchPlayableVideosAndUpdate(ctx context.Context, p bool, update int64) ([]*types.TMDBVideo, error) {
+	var flag string
+	if p {
+		flag = "true"
+	} else {
+		flag = "false"
+	}
+	var videos []*types.TMDBVideo
+
+	err := m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Where("playable = ? and update_time >= ?", flag, update).Find(&videos).Error
+	if err != nil {
+		return nil, fmt.Errorf("获取不可播放视频失败: %w", err)
+	}
+	return videos, nil
+}
+
+// UpdatePlayableStatus 更新视频的播放状态
+//
+//	@Description: 更新 playable 和 update 字段
+//	@receiver m
+//	@param imdbID
+//	@return error
+func (m *MovieDB) UpdatePlayableStatus(imdbID string) error {
+	now := time.Now().Unix()
+	err := m.db.Model(&types.TMDBVideo{}).Where("imdb_id = ?", imdbID).Updates(map[string]interface{}{
+		"playable": "true",
+		"update":   now,
+	}).Error
+	if err != nil {
+		return fmt.Errorf("更新播放状态失败, imdbID: %s, err: %w", imdbID, err)
+	}
+	log.WithCtx(context.Background()).Infof("更新播放状态成功, imdbID: %s, update: %d", imdbID, now)
+	return nil
+}

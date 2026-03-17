@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"sync"
+	"time"
 
 	"github.com/youcd/toolkit/log"
 )
@@ -42,10 +43,10 @@ func (s *MovieService) getAria2Client() (*aria2.Aria2, error) {
 type MovieResult struct {
 	ID          int32  `json:"id"`
 	Name        string `json:"name"`
-	TorrentName string `json:"torrent_name"`
-	Resolution  string `json:"resolution"`
+	TorrentName string `json:"torrent_name,omitempty"`
+	Resolution  string `json:"resolution,omitempty"`
 	Type        string `json:"type"`
-	Web         string `json:"web"`
+	Web         string `json:"web,omitempty"`
 	Magnet      string `json:"magnet,omitempty"`
 }
 
@@ -324,6 +325,41 @@ func (s *MovieService) getVideoByID(id int32) (*types.FeedVideo, error) {
 		return nil, fmt.Errorf("未找到ID为 %d 的视频: %w", id, result.Error)
 	}
 	return &video, nil
+}
+
+// 获取今日凌晨时间戳
+func getTodayStartTimestamp() int64 {
+	now := time.Now()
+	year, month, day := now.Date()
+	todayStart := time.Date(year, month, day, 0, 0, 0, 0, now.Location())
+	return todayStart.Unix()
+}
+
+// PlayableTodayMovieTV 搜索电影
+func (s *MovieService) PlayableTodayMovieTV(ctx context.Context) ([]MovieResult, error) {
+	log.WithCtx(ctx).Infof("开始检查")
+	// 今日凌晨整点
+	start := getTodayStartTimestamp()
+
+	// 从数据库获取搜索结果
+	videos, err := model.NewMovieDB().FetchPlayableVideosAndUpdate(ctx, true, start)
+	if err != nil {
+
+		return nil, fmt.Errorf("查询数据库失败: %w", err)
+	}
+
+	// 转换结果
+	var results []MovieResult
+	for _, v := range videos {
+		results = append(results, MovieResult{
+			ID:   int32(v.ID),
+			Name: v.Names,
+			Type: v.Type,
+		})
+	}
+
+	log.WithCtx(ctx).Infof("搜索完成，找到 %d 个结果", len(results))
+	return results, nil
 }
 
 // resolutionReg 分辨率正则表达式

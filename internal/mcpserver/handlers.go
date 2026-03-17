@@ -188,3 +188,33 @@ func RemoveDownloadHandler(service *MovieService) func(ctx context.Context, requ
 		return mcp.NewToolResultText(fmt.Sprintf("✅ 已成功删除下载任务%s，GID: %s", forceStr, gid)), nil
 	}
 }
+
+// PlayableTodayMovieTV 获取最近24小时内更新为可播放状态的电影或电视剧
+func PlayableTodayMovieTV(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		// 调用搜索服务
+		results, err := service.PlayableTodayMovieTV(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("搜索失败: %v", err)), nil
+		}
+
+		if len(results) == 0 {
+			return mcp.NewToolResultText("今日无可播放的电影或电视剧，稍后再试"), nil
+		}
+
+		// 格式化输出结果
+		var output string
+		output = fmt.Sprintf("找到 %d 个搜索结果:\n\n", len(results))
+		for _, r := range results {
+			output += fmt.Sprintf("   名称: %s\n", r.Name)
+			output += fmt.Sprintf("   类型: %s\n", r.Type)
+		}
+
+		// 同时返回JSON格式数据
+		jsonData, _ := json.MarshalIndent(results, "", "  ")
+		output += "详细数据(JSON格式):\n" + string(jsonData)
+
+		return mcp.NewToolResultText(output), nil
+	}
+}

@@ -92,6 +92,9 @@ func (d *Download) Run(ctx context.Context) {
 		os.Exit(1)
 	}
 	c.Start()
+	<-ctx.Done()
+	c.Stop()
+	log.WithCtx(ctx).Info("Downloader: Stopped")
 }
 
 func (d *Download) downloadTask(ctx context.Context) {

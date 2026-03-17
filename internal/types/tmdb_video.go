@@ -52,7 +52,8 @@ type TMDBVideo struct {
 	Timestamp     int64  `gorm:"column:timestamp;type:bigint(11);comment:修改创建时间;NOT NULL" json:"timestamp"`
 	Type          string `gorm:"column:type;type:varchar(255);comment:类型;NOT NULL" json:"type"`
 	Playable      string `gorm:"column:playable;type:varchar(255);comment:是否可以播放;NOT NULL" json:"playable"`
-	DatePublished string `gorm:"column:date_published;type:varchar(255);comment:上映时间;NOT NULL" json:"datePublished"`
+	DatePublished string `gorm:"column:date_published;type:varchar(255);comment:上映时间;NOT NULL" json:"date_published"`
+	UpdateTime    int64  `gorm:"column:update_time;type:bigint(11);comment:更新时间;NOT NULL;default:0" json:"update_time"`
 }
 
 func (d *TMDBVideo) TableName() string {

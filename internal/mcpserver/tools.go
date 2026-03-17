@@ -47,4 +47,11 @@ func RegisterTools(s *server.MCPServer, movieService *MovieService) {
 		),
 	)
 	s.AddTool(removeDownloadTool, RemoveDownloadHandler(movieService))
+
+	// 注册最近24小时内更新为可播放状态的视频
+	playableTodayMovieTvTool := mcp.NewTool("playable_today_movie_tv",
+		mcp.WithDescription("获取今天可播放状态的电影或电视剧"),
+	)
+	s.AddTool(playableTodayMovieTvTool, PlayableTodayMovieTV(movieService))
+
 }

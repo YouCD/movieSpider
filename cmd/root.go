@@ -44,6 +44,7 @@ var rootCmd = &cobra.Command{
 			core.WithReport(),
 			core.WithReleaseTimeJob(),
 			core.WithDHT(),
+			core.WithTMDBSpider(config.Config.TMDB.AccountID, config.Config.TMDB.ApiToken),
 		)
 
 		movieSpider.Start(ctx)
