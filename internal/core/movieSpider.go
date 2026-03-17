@@ -10,7 +10,6 @@ import (
 	"movieSpider/internal/download"
 	"movieSpider/internal/job"
 	"movieSpider/internal/spider"
-	"movieSpider/internal/spider/douban"
 	"movieSpider/internal/spider/feedspider"
 	"os"
 	"strings"
@@ -119,7 +118,6 @@ func (m *MovieSpider) processFeed(ctx context.Context, feeder feedspider.Feeder)
 // startSpider 运行 Spider
 func (m *MovieSpider) startSpider(ctx context.Context) {
 	// Spider
-	m.spiders = append(m.spiders, douban.NewSpiderDouBan(config.Config.DouBan)...)
 	for _, s := range m.spiders {
 		m.wg.Add(1)
 		go func(spider spider.Spider) {

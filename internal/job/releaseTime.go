@@ -37,7 +37,7 @@ func (r *ReleaseTimeJob) Run() {
 		}
 		for _, video := range videos {
 			if video.IsDatePublished() {
-				go func(v *types.DouBanVideo) {
+				go func(v *types.TMDBVideo) {
 					bus.DatePublishedChan <- v
 				}(video)
 				var names []string

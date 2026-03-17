@@ -110,9 +110,9 @@ type getVideosFunc func(names ...string) ([]*types.FeedVideo, error)
 
 func (d *Download) download(ctx context.Context, tvOrMovie types.VideoType, f getVideosFunc) error {
 	log.WithCtx(ctx).Infof("%s Downloader working...", tvOrMovie.String())
-	videos, err := model.NewMovieDB().FetchDouBanVideoByType(tvOrMovie)
+	videos, err := model.NewMovieDB().FetchTMDBVideoByType(tvOrMovie)
 	if err != nil {
-		return fmt.Errorf("FetchDouBanVideoByType,err: %w", err)
+		return fmt.Errorf("FetchTMDBVideoByType,err: %w", err)
 	}
 
 	// FilterMap 暂存电视剧名相同的视频
@@ -121,8 +121,8 @@ func (d *Download) download(ctx context.Context, tvOrMovie types.VideoType, f ge
 	// 用于收集所有需要更新的 video
 	var allVideoList []*types.FeedVideo
 	// 归类同一个电视剧名的 feedVideo
-	for douBanVideo, name := range videos {
-		log.WithCtx(ctx).Infow(tvOrMovie.String(), "douBanVideo", douBanVideo.Names)
+	for tmdbVideo, name := range videos {
+		log.WithCtx(ctx).Infow(tvOrMovie.String(), "tmdbVideo", tmdbVideo.Names)
 		// 在循环内声明 videoList，避免复用导致的脏数据问题
 		videoList, err := f(name...)
 		if err != nil {
@@ -132,11 +132,11 @@ func (d *Download) download(ctx context.Context, tvOrMovie types.VideoType, f ge
 		if len(videoList) == 0 {
 			continue
 		}
-		log.WithCtx(ctx).Infof("douBanVideo:%v   种子数: %#v", douBanVideo.Names, len(videoList))
+		log.WithCtx(ctx).Infof("tmdbVideo:%v   种子数: %#v", tmdbVideo.Names, len(videoList))
 		// 归类同一个电视剧名的视频
 		for _, video := range videoList {
-			// 添加豆瓣ID
-			video.DoubanID = douBanVideo.DoubanID
+			// 添加imdbID
+			video.ImdbID = tmdbVideo.ImdbID
 			// 将此次所有feedVideo的下载状态更新为3
 			video.Download = 3
 			// 如果 feedVideo 不能转化为 downloadHistory 则跳过
@@ -145,8 +145,8 @@ func (d *Download) download(ctx context.Context, tvOrMovie types.VideoType, f ge
 				log.WithCtx(ctx).Debugf("TorrentName: %#v 不能转化为 downloadHistory ", video.TorrentName)
 				continue
 			}
-			// 使用 doubanID 作为 key，避免 Names 是 JSON 字符串的问题
-			filterMap[douBanVideo.DoubanID] = append(filterMap[douBanVideo.DoubanID], video)
+			// 使用 imdbID 作为 key，避免 Names 是 JSON 字符串的问题
+			filterMap[tmdbVideo.ImdbID] = append(filterMap[tmdbVideo.ImdbID], video)
 			// 收集所有需要更新的 video
 			allVideoList = append(allVideoList, video)
 		}

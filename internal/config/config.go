@@ -58,13 +58,6 @@ type mysql struct {
 }
 
 //nolint:tagliatelle
-type DouBan struct {
-	DouBanList []*DouBan `json:"DouBanList,omitempty" yaml:"DouBanList,omitempty" validate:"required,omitempty"`
-	Scheduling string    `json:"Scheduling" yaml:"Scheduling" validate:"cron"`
-	URL        string    `json:"URL,omitempty" yaml:"URL,omitempty" validate:"omitempty"`
-}
-
-//nolint:tagliatelle
 type BaseRT struct {
 	types.BaseFeed `mapstructure:",squash"`
 	ResourceType   types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
@@ -73,7 +66,6 @@ type BaseRT struct {
 //nolint:tagliatelle
 type config struct {
 	MySQL        *mysql   `json:"MySQL" yaml:"MySQL" validate:"required"`
-	DouBan       *DouBan  `json:"DouBan" yaml:"DouBan" validate:"required"`
 	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
 	Feed         struct {
 		EZTV    *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
@@ -125,9 +117,6 @@ func InitConfig(configFile string) {
 		os.Exit(1)
 	}
 
-	// 设置豆瓣列表的调度时间
-	setDouBanScheduling(Config)
-
 	v.WatchConfig()
 	v.OnConfigChange(handleConfigChange)
 
@@ -139,15 +128,6 @@ func InitConfig(configFile string) {
 	if err := ValidateConfig(Config); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
-	}
-}
-
-// setDouBanScheduling 设置豆瓣列表的调度时间
-func setDouBanScheduling(cfg *config) {
-	for _, ban := range cfg.DouBan.DouBanList {
-		if ban.Scheduling == "" {
-			ban.Scheduling = cfg.DouBan.Scheduling
-		}
 	}
 }
 

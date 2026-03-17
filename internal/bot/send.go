@@ -90,7 +90,7 @@ var notificationTemplates = map[notifyType]string{
 
 // SendDatePublishedOrDownloadMsg 发送电影上映消息或下载通知
 func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, notify notifyType) {
-	video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.FeedVideo.DoubanID)
+	video, err := model.NewMovieDB().FetchOneTMDBVideoByImdbID(v.FeedVideo.ImdbID)
 	if err != nil {
 		log.WithCtx(context.Background()).Error(err)
 		return

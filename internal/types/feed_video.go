@@ -31,7 +31,7 @@ type FeedVideo struct {
 	Name      string `gorm:"uniqueIndex:nt;column:name;type:varchar(255);comment:片名;NOT NULL" json:"name"`
 	Download  int    `gorm:"column:download;type:int(11);comment:1:已经下载;NOT NULL" json:"download"`
 	Timestamp int64  `gorm:"column:timestamp;type:bigint(11);comment:修改创建时间;NOT NULL" json:"timestamp"`
-	DoubanID  string `gorm:"column:douban_id;type:varchar(255);comment:豆瓣ID;NOT NULL" json:"douban_id"`
+	ImdbID    string `gorm:"column:imdb_id;type:varchar(255);comment:imdbID;NOT NULL" json:"imdb_id"`
 }
 
 func (f *FeedVideo) TableName() string {
@@ -51,7 +51,7 @@ func (f *FeedVideo) Convert2DownloadHistory() *DownloadHistory {
 	var downloadHistory DownloadHistory
 	downloadHistory.TorrentName = f.TorrentName
 	downloadHistory.Type = f.Type
-	downloadHistory.DoubanID = f.DoubanID
+	downloadHistory.ImdbID = f.ImdbID
 	downloadHistory.Name = f.Name
 	//nolint:exhaustive
 	switch f.VideoType() {

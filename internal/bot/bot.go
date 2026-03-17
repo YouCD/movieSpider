@@ -8,7 +8,6 @@ import (
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
 	"movieSpider/internal/httpclient"
-	"movieSpider/internal/model"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"net/http"
@@ -217,13 +216,8 @@ func (t *TGBot) datePublishedNotify() {
 		for {
 			v, ok := <-bus.DatePublishedChan
 			if ok {
-				video, err := model.NewMovieDB().FetchOneDouBanVideoByDouBanID(v.DoubanID)
-				if err != nil {
-					log.WithCtx(context.Background()).Error(err)
-				}
-
 				t.SendDatePublishedOrDownloadMsg(&types.DownloadNotifyVideo{
-					DouBanVideo: video,
+					TMDBVideo: v,
 				}, notifyTypeDatePublished)
 			} else {
 				return

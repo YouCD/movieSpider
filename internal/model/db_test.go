@@ -42,12 +42,11 @@ func Test_movieDB_CountFeedVideo(t *testing.T) {
 
 }
 
-func Test_movieDB_CreatDouBanVideo(t *testing.T) {
-	err := NewMovieDB().CreatDouBanVideo(&types.DouBanVideo{
+func Test_movieDB_CreatTMDBVideo(t *testing.T) {
+	err := NewMovieDB().CreatTMDBVideo(&types.TMDBVideo{
 		ID:        99119,
 		Names:     `["阿凡达3：带种者111","Avatar:The.Seed.Bearer11"]`,
-		DoubanID:  "878",
-		ImdbID:    "444444444",
+		ImdbID:    "tt444444444",
 		RowData:   "444444444",
 		Timestamp: 0,
 		Type:      "444444444",
@@ -70,9 +69,9 @@ func Test_movieDB_CreatFeedVideo(t *testing.T) {
 	}
 }
 
-func Test_movieDB_FetchDouBanVideoByType(t *testing.T) {
+func Test_movieDB_FetchTMDBVideoByType(t *testing.T) {
 	var tt = types.VideoTypeTV
-	list, err := NewMovieDB().FetchDouBanVideoByType(tt)
+	list, err := NewMovieDB().FetchTMDBVideoByType(tt)
 
 	if err != nil {
 		t.Error(err)
@@ -82,8 +81,8 @@ func Test_movieDB_FetchDouBanVideoByType(t *testing.T) {
 	}
 }
 
-func Test_movieDB_FetchOneDouBanVideoByDouBanID(t *testing.T) {
-	video, err := NewMovieDB().FetchOneDouBanVideoByDouBanID("30222734")
+func Test_movieDB_FetchOneTMDBVideoByImdbID(t *testing.T) {
+	video, err := NewMovieDB().FetchOneTMDBVideoByImdbID("tt30222734")
 	if err != nil {
 		t.Error(err)
 	}
@@ -112,20 +111,19 @@ func Test_movieDB_FindLikeTVFromFeedVideo(t *testing.T) {
 	fmt.Println(len(videos))
 }
 
-func Test_movieDB_RandomOneDouBanVideo(t *testing.T) {
-	video, err := NewMovieDB().RandomOneDouBanVideo()
+func Test_movieDB_RandomOneTMDBVideo(t *testing.T) {
+	video, err := NewMovieDB().RandomOneTMDBVideo()
 	if err != nil {
 		t.Error(err)
 	}
 	fmt.Println(video)
 }
 
-func Test_movieDB_UpdateDouBanVideo(t *testing.T) {
-	NewMovieDB().UpdateDouBanVideo(&types.DouBanVideo{
+func Test_movieDB_UpdateTMDBVideo(t *testing.T) {
+	NewMovieDB().UpdateTMDBVideo(&types.TMDBVideo{
 		ID:        99119,
 		Names:     `["阿凡达3：带种者111","Avatar:The.Seed.Bearer11"]`,
-		DoubanID:  "878",
-		ImdbID:    "5555555",
+		ImdbID:    "tt5555555",
 		RowData:   "5555555",
 		Timestamp: 0,
 		Type:      "444444444",
@@ -154,11 +152,10 @@ func Test_movieDB_checkDownloadHistory(t *testing.T) {
 }
 
 func Test_movieDB_IsDatePublished(t *testing.T) {
-	obj := types.DouBanVideo{
+	obj := types.TMDBVideo{
 		ID:            99119,
 		Names:         `["阿凡达3：带种者111","Avatar:The.Seed.Bearer11"]`,
-		DoubanID:      "878",
-		ImdbID:        "444444444",
+		ImdbID:        "tt444444444",
 		RowData:       "444444444",
 		Timestamp:     0,
 		Type:          "444444444",

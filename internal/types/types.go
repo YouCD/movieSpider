@@ -40,11 +40,11 @@ type ReportCompletedFiles struct {
 	ErrorMsg  string // 错误信息（仅当状态为error时有值）
 }
 type DownloadNotifyVideo struct {
-	FeedVideo   *FeedVideo
-	DouBanVideo *DouBanVideo
-	File        string
-	Size        string
-	Gid         string
+	FeedVideo *FeedVideo
+	TMDBVideo *TMDBVideo
+	File      string
+	Size      string
+	Gid       string
 }
 type LLMResult struct {
 	ID         int    `json:"id"`

@@ -80,7 +80,7 @@ func initDatabase() error {
 		return fmt.Errorf("连接数据库失败: %w", err)
 	}
 
-	if err = gormDB.Set("gorm:table_options", "CHARSET=utf8mb4").AutoMigrate(&types.FeedVideo{}, &types.DownloadHistory{}, &types.DouBanVideo{}); err != nil {
+	if err = gormDB.Set("gorm:table_options", "CHARSET=utf8mb4").AutoMigrate(&types.FeedVideo{}, &types.DownloadHistory{}, &types.TMDBVideo{}); err != nil {
 		return fmt.Errorf("自动迁移失败: %w", err)
 	}
 

@@ -43,11 +43,10 @@ type RowData struct {
 	} `json:"aggregateRating"`
 }
 
-//nolint:tagliatelle
-type DouBanVideo struct {
+// TMDBVideo TMDB视频数据结构
+type TMDBVideo struct {
 	ID            int    `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
 	Names         string `gorm:"uniqueIndex;column:names;type:varchar(255);comment:片名列表;NOT NULL" json:"names"`
-	DoubanID      string `gorm:"column:douban_id;type:varchar(255);comment:豆瓣ID;NOT NULL" json:"douban_id"`
 	ImdbID        string `gorm:"column:imdb_id;type:varchar(255);comment:imdbID;NOT NULL" json:"imdb_id"`
 	RowData       string `gorm:"column:row_data;type:longtext;comment:原始数据;NOT NULL" json:"row_data"`
 	Timestamp     int64  `gorm:"column:timestamp;type:bigint(11);comment:修改创建时间;NOT NULL" json:"timestamp"`
@@ -56,11 +55,11 @@ type DouBanVideo struct {
 	DatePublished string `gorm:"column:date_published;type:varchar(255);comment:上映时间;NOT NULL" json:"datePublished"`
 }
 
-func (d *DouBanVideo) TableName() string {
-	return "douban_video"
+func (d *TMDBVideo) TableName() string {
+	return "tmdb_video"
 }
 
-func (d *DouBanVideo) FormatName(names string) string {
+func (d *TMDBVideo) FormatName(names string) string {
 	var n []string
 
 	split := strings.Split(names, "/")
@@ -115,14 +114,15 @@ func (d *DouBanVideo) FormatName(names string) string {
 
 	return string(marshal)
 }
-func (d *DouBanVideo) FormatType(typ string) string {
+
+func (d *TMDBVideo) FormatType(typ string) string {
 	if strings.ToLower(typ) == "tvseries" {
 		return "tv"
 	}
 	return "movie"
 }
 
-func (d *DouBanVideo) IsDatePublished() bool {
+func (d *TMDBVideo) IsDatePublished() bool {
 	// 如果没有上映时间，就返回false
 	if d.DatePublished == "" {
 		return false

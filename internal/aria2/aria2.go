@@ -260,7 +260,7 @@ func getFile(info rpc.StatusInfo) string {
 //
 //	@Description: 添加下载任务
 //	@receiver a
-//	@param douBanVideo
+//	@param feedVideo
 //	@param gid
 func (a *Aria2) AddDownloadTask(feedVideo *types.FeedVideo, gid string) {
 	a.mtx.Lock()
