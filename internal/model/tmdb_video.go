@@ -20,39 +20,39 @@ import (
 //	@receiver m
 //	@param video
 //	@return err
-func (m *MovieDB) CreatTMDBVideo(video *types.TMDBVideo) (err error) {
+func (m *MovieDB) CreatTMDBVideo(ctx context.Context, video *types.TMDBVideo) (err error) {
 	if video == nil {
 		return ErrVideoIsNil
 	}
-	v, err := m.FetchOneTMDBVideoByImdbID(video.ImdbID)
+	v, err := m.FetchOneTMDBVideoByImdbID(ctx, video.ImdbID)
 	if err != nil {
 		// 忽略 错误信息： sql: no rows in result set
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.WithCtx(context.Background()).Error("video.ImdbID : %s,err: %s", video.ImdbID, err)
+			log.WithCtx(ctx).Errorf("video.ImdbID : %s,err: %s", video.ImdbID, err)
 		}
 	}
 
 	if v != nil {
-		log.WithCtx(context.Background()).Debugf("CreatTMDBVideo已存在 %#v", v)
+		log.WithCtx(ctx).Debugf("CreatTMDBVideo已存在 %#v", v)
 		// 将该记录变更为 可播放
-		if err = m.UpdateTMDBVideo(video); err != nil {
-			log.WithCtx(context.Background()).Error(err)
-		}
+		//if err = m.UpdateTMDBVideo(video); err != nil {
+		//	log.WithCtx(ctx).Error(err)
+		//}
 		return ErrDataExist
 	}
 
 	if video.Names == "null" {
-		log.WithCtx(context.Background()).Errorf("CreatTMDBVideo 数据错误. video: %#v", video)
+		log.WithCtx(ctx).Errorf("CreatTMDBVideo 数据错误. video: %#v", video)
 		//nolint:nakedret
 		return
 	}
 
-	err = m.db.Model(&types.TMDBVideo{}).Create(video).Error
+	err = m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Create(video).Error
 
 	if err != nil {
 		return fmt.Errorf("CreatTMDBVideo 数据已添加. video: %#v, err: %w", video, err)
 	}
-	log.WithCtx(context.Background()).Debugf("CreatTMDBVideo 数据已添加. video: %#v", video)
+	log.WithCtx(ctx).Debugf("CreatTMDBVideo 数据已添加. video: %#v", video)
 	//nolint:nakedret
 	return
 }
@@ -63,11 +63,11 @@ func (m *MovieDB) CreatTMDBVideo(video *types.TMDBVideo) (err error) {
 //	@receiver m
 //	@return video
 //	@return err
-func (m *MovieDB) RandomOneTMDBVideo() (video *types.TMDBVideo, err error) {
+func (m *MovieDB) RandomOneTMDBVideo(ctx context.Context) (video *types.TMDBVideo, err error) {
 	//nolint:wastedassign
 	video = new(types.TMDBVideo)
 	//nolint:rowserrcheck
-	rows, err := m.db.Model(&types.TMDBVideo{}).Select(" id,names,imdb_id,playable").Where("imdb_id = ''").Rows()
+	rows, err := m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Select(" id,names,imdb_id,playable").Where("imdb_id = ''").Rows()
 	if err != nil {
 		return nil, fmt.Errorf("RandomOneTMDBVideo, err:%w", err)
 	}
@@ -88,7 +88,7 @@ func (m *MovieDB) RandomOneTMDBVideo() (video *types.TMDBVideo, err error) {
 	//nolint:gosec
 	index := rand.Intn(len(videos))
 	video = videos[index]
-	log.WithCtx(context.Background()).Debugf("RandomOneTMDBVideo video: %#v", video)
+	log.WithCtx(ctx).Debugf("RandomOneTMDBVideo video: %#v", video)
 	return
 }
 
@@ -99,12 +99,12 @@ func (m *MovieDB) RandomOneTMDBVideo() (video *types.TMDBVideo, err error) {
 //	@param ImdbID
 //	@return video
 //	@return err
-func (m *MovieDB) FetchOneTMDBVideoByImdbID(imdbID string) (video *types.TMDBVideo, err error) {
-	err = m.db.Model(&types.TMDBVideo{}).Where("imdb_id=?", imdbID).Scan(&video).Error
+func (m *MovieDB) FetchOneTMDBVideoByImdbID(ctx context.Context, imdbID string) (video *types.TMDBVideo, err error) {
+	err = m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Where("imdb_id=?", imdbID).Scan(&video).Error
 	if err != nil {
 		return nil, err
 	}
-	log.WithCtx(context.Background()).Debugf("FetchOneTMDBVideoByImdbID video: %#v", video)
+	log.WithCtx(ctx).Debugf("FetchOneTMDBVideoByImdbID video: %#v", video)
 	return
 }
 
@@ -114,13 +114,13 @@ func (m *MovieDB) FetchOneTMDBVideoByImdbID(imdbID string) (video *types.TMDBVid
 //	@receiver m
 //	@param video
 //	@return err
-func (m *MovieDB) UpdateTMDBVideo(video *types.TMDBVideo) (err error) {
+func (m *MovieDB) UpdateTMDBVideo(ctx context.Context, video *types.TMDBVideo) (err error) {
 	if video == nil {
 		return ErrVideoIsNil
 	}
 	video.Timestamp = time.Now().Unix()
 
-	err = m.db.Model(&types.TMDBVideo{}).Where("imdb_id = ?", video.ImdbID).Updates(video).Error
+	err = m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Where("imdb_id = ?", video.ImdbID).Updates(video).Error
 	if err != nil {
 		return fmt.Errorf("更新失败, video: %#v, err: %w", video, err)
 	}
@@ -134,14 +134,14 @@ func (m *MovieDB) UpdateTMDBVideo(video *types.TMDBVideo) (err error) {
 //	@param typ
 //	@return nameList
 //	@return err
-func (m *MovieDB) FetchTMDBVideoByType(typ types.VideoType) (nameList map[*types.TMDBVideo][]string, err error) {
+func (m *MovieDB) FetchTMDBVideoByType(ctx context.Context, typ types.VideoType) (nameList map[*types.TMDBVideo][]string, err error) {
 	nameList = make(map[*types.TMDBVideo][]string)
 
 	var videos []*types.TMDBVideo
 	// 时间范围限制在近一年
 	end := time.Now().Unix()
 	start := time.Now().AddDate(-1, 0, 0).Unix()
-	result := m.db.Model(&types.TMDBVideo{}).Where("type = ? and timestamp >= ? and timestamp <= ?", typ.String(), start, end).Find(&videos)
+	result := m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Where("type = ? and timestamp >= ? and timestamp <= ?", typ.String(), start, end).Find(&videos)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -149,7 +149,7 @@ func (m *MovieDB) FetchTMDBVideoByType(typ types.VideoType) (nameList map[*types
 		var names []string
 		err = json.Unmarshal([]byte(video.Names), &names)
 		if err != nil {
-			log.WithCtx(context.Background()).Error(err)
+			log.WithCtx(ctx).Error(err)
 			continue
 		}
 		var n []string
@@ -171,11 +171,11 @@ func (m *MovieDB) FetchTMDBVideoByType(typ types.VideoType) (nameList map[*types
 //	@receiver m
 //	@return []types.TMDBVideo
 //	@return error
-func (m *MovieDB) FetchThisYearVideo() ([]*types.TMDBVideo, error) {
+func (m *MovieDB) FetchThisYearVideo(ctx context.Context) ([]*types.TMDBVideo, error) {
 	thisYear := time.Now().Format("2006")
 	var videos []*types.TMDBVideo
 	//nolint:perfsprint
-	err := m.db.Model(&types.TMDBVideo{}).Where("date_published like  ?", fmt.Sprintf("%s%%", thisYear)).Find(&videos).Error
+	err := m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Where("date_published like  ?", fmt.Sprintf("%s%%", thisYear)).Find(&videos).Error
 	if err != nil {
 		return nil, err
 	}
@@ -225,15 +225,15 @@ func (m *MovieDB) FetchPlayableVideosAndUpdate(ctx context.Context, p bool, upda
 //	@receiver m
 //	@param imdbID
 //	@return error
-func (m *MovieDB) UpdatePlayableStatus(imdbID string) error {
+func (m *MovieDB) UpdatePlayableStatus(ctx context.Context, imdbID string) error {
 	now := time.Now().Unix()
-	err := m.db.Model(&types.TMDBVideo{}).Where("imdb_id = ?", imdbID).Updates(map[string]interface{}{
-		"playable": "true",
-		"update":   now,
+	err := m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Where("imdb_id = ?", imdbID).Updates(map[string]interface{}{
+		"playable":    "true",
+		"update_time": now,
 	}).Error
 	if err != nil {
 		return fmt.Errorf("更新播放状态失败, imdbID: %s, err: %w", imdbID, err)
 	}
-	log.WithCtx(context.Background()).Infof("更新播放状态成功, imdbID: %s, update: %d", imdbID, now)
+	log.WithCtx(ctx).Infof("更新播放状态成功, imdbID: %s, update: %d", imdbID, now)
 	return nil
 }

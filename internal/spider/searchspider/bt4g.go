@@ -38,7 +38,7 @@ func NewFeedBt4g(name string, resolution types.Resolution) *BT4g {
 }
 
 //nolint:nakedret
-func (b *BT4g) Search() (videos []*types.FeedVideo, err error) {
+func (b *BT4g) Search(ctx context.Context) (videos []*types.FeedVideo, err error) {
 	f := gofeed.NewParser()
 	fd, err := f.ParseURL(b.url)
 	if fd == nil {
@@ -72,7 +72,7 @@ func (b *BT4g) Search() (videos []*types.FeedVideo, err error) {
 		videos = append(videos, fVideo)
 	}
 
-	model.ProxySaveVideo2DB(videos...)
+	model.ProxySaveVideo2DB(ctx, videos...)
 	// 指定清晰度
 	if b.resolution != types.ResolutionOther {
 		var resolutionVideos []*types.FeedVideo

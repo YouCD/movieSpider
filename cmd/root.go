@@ -40,19 +40,26 @@ var rootCmd = &cobra.Command{
 		movieSpider := core.NewMovieSpider(
 			core.WithConfigFile(configFile),
 			core.WithFeeds(),
-			core.WithDownload(),
+			core.WithDownload(ctx),
 			core.WithReport(),
-			core.WithReleaseTimeJob(),
+			core.WithReleaseTimeJob(ctx),
 			core.WithDHT(),
-			core.WithTMDBSpider(config.Config.TMDB.AccountID, config.Config.TMDB.ApiToken),
+			core.WithTMDBSpider(config.Config.TMDB.AccountID, config.Config.TMDB.BearerToken),
 		)
 
 		movieSpider.Start(ctx)
-
+		mcpCfg := &mcpserver.McpConfig{
+			MovieConfig: &mcpserver.MovieServiceConfig{
+				AccountID:   config.Config.TMDB.AccountID,
+				BearerToken: config.Config.TMDB.BearerToken,
+			},
+			Host:   config.Config.MCP.HostPort,
+			ApiKey: config.Config.MCP.ApiKey,
+		}
 		// 启动 MCP server
 		if config.Config.MCP != nil {
 			go func() {
-				err := mcpserver.Start(ctx, config.Config.MCP.HostPort, "youcd")
+				err := mcpserver.Start(ctx, mcpCfg)
 				if err != nil {
 					log.WithCtx(ctx).Errorf("MCP server error: %v", err)
 				}

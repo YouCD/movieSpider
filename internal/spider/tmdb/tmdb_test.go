@@ -14,7 +14,7 @@ var (
 func init() {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
 	accountID = config.Config.TMDB.AccountID
-	apiToken = config.Config.TMDB.ApiToken
+	apiToken = config.Config.TMDB.BearerToken
 }
 
 func TestGetWatchlistMovies(t *testing.T) {
@@ -86,7 +86,7 @@ func TestGetTVDetails(t *testing.T) {
 
 	ctx := context.Background()
 	// 使用一个真实的电视剧 ID 进行测试，例如：《权力的游戏》ID: 1399
-	tvID := 1399
+	tvID := 111110
 
 	result, err := client.GetTVDetails(ctx, tvID)
 	if err != nil {
@@ -184,4 +184,60 @@ func TestGetTVWatchProviders(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestClient_GetSearchMovies(t *testing.T) {
+	client, err := NewClient(0, apiToken)
+	if err != nil {
+		t.Fatalf("创建 TMDB 客户端失败: %v", err)
+	}
+
+	ctx := context.Background()
+
+	client.GetSearchMovies(ctx, "阿凡达")
+}
+
+func TestClient_GetSearchTVShow(t *testing.T) {
+	client, err := NewClient(0, apiToken)
+	if err != nil {
+		t.Fatalf("创建 TMDB 客户端失败: %v", err)
+	}
+
+	ctx := context.Background()
+
+	show, err := client.GetSearchTVShow(ctx, "One Piece")
+	if err != nil {
+		t.Fatalf("搜索电视剧失败: %v", err)
+	}
+	for _, result := range show {
+		t.Logf("搜索结果: %+v", result)
+	}
+}
+
+func TestClient_GetTVSeasonWatchProviders(t *testing.T) {
+	client, err := NewClient(0, apiToken)
+	if err != nil {
+		t.Fatalf("创建 TMDB 客户端失败: %v", err)
+	}
+
+	ctx := context.Background()
+	providers, err := client.GetTVSeasonWatchProviders(ctx, 111110, 1, nil)
+	if err != nil {
+		t.Fatalf("获取电视剧季的观看提供商失败: %v", err)
+	}
+	t.Logf("电视剧季的观看提供商: %+v", providers)
+}
+
+func TestClient_GetTVSeasonDetails(t *testing.T) {
+	client, err := NewClient(0, apiToken)
+	if err != nil {
+		t.Fatalf("创建 TMDB 客户端失败: %v", err)
+	}
+
+	ctx := context.Background()
+	season, err := client.GetTVSeasonDetails(ctx, 111110, 2)
+	if err != nil {
+		t.Fatalf("获取电视剧季详情失败: %v", err)
+	}
+	t.Logf("电视剧季详情: %+v", season)
 }

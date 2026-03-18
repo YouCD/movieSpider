@@ -9,7 +9,13 @@ import (
 	"github.com/youcd/toolkit/log"
 )
 
-func Start(ctx context.Context, host, apiKey string) error {
+type McpConfig struct {
+	MovieConfig *MovieServiceConfig
+	Host        string
+	ApiKey      string
+}
+
+func Start(ctx context.Context, config *McpConfig) error {
 	// 创建 MCP Server
 	s := server.NewMCPServer(
 		"Movie Spider MCP Server",
@@ -19,7 +25,10 @@ func Start(ctx context.Context, host, apiKey string) error {
 	)
 
 	// 创建服务实例
-	movieService := NewMovieService()
+	movieService, err := NewMovieService(config.MovieConfig)
+	if err != nil {
+		return err
+	}
 
 	// 注册所有工具
 	RegisterTools(s, movieService)
@@ -28,9 +37,9 @@ func Start(ctx context.Context, host, apiKey string) error {
 	log.WithCtx(ctx).Info("Movie Spider MCP Server 正在启动...")
 	stream := server.NewStreamableHTTPServer(s, server.WithLogger(log.GetLogger()))
 	mux := http.NewServeMux()
-	mux.Handle("/mcp", tokenAuth(stream, apiKey))
+	mux.Handle("/mcp", tokenAuth(stream, config.ApiKey))
 	httpSrv := &http.Server{
-		Addr:    host,
+		Addr:    config.Host,
 		Handler: mux,
 	}
 	// 创建错误通道用于接收服务器错误

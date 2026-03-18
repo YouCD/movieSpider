@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"movieSpider/internal/config"
+	"movieSpider/internal/model"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
 	"strconv"
@@ -151,15 +152,43 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 	}
 */
 
-func (a *Aria2) DownloadByWithVideo(v *types.FeedVideo, url string) (gid string, err error) {
+func (a *Aria2) DownloadByWithVideo(ctx context.Context, v *types.FeedVideo, url string) (gid string, err error) {
 	gid, err = a.DownloadByMagnet(url)
 	if err != nil {
 		return "", err
 	}
-	if v != nil {
-		a.AddDownloadTask(v, gid)
+	if v == nil {
+		return gid, nil
+	}
+	a.AddDownloadTask(v, gid)
+	//  将下载信息存储到数据库中
+	err = a.updateSeasonInfo(ctx, v)
+	if err != nil {
+		log.WithCtx(ctx).Error(err)
 	}
 	return
+}
+
+func (a *Aria2) updateSeasonInfo(ctx context.Context, v *types.FeedVideo) error {
+	db := model.NewMovieDB()
+	video, err := db.FetchOneTMDBVideoByImdbID(ctx, v.ImdbID)
+	if err != nil {
+		return err
+	}
+	var info []*types.SeasonInfo
+	if err = json.Unmarshal([]byte(video.SeasonInfo), &info); err != nil {
+		return err
+	}
+
+	for _, seasonInfo := range info {
+		if seasonInfo.S == v.Season && seasonInfo.E == v.Episode {
+			seasonInfo.Status = "download"
+			break
+		}
+	}
+	marshal, _ := json.Marshal(info)
+	video.SeasonInfo = string(marshal)
+	return db.UpdateTMDBVideo(ctx, video)
 }
 
 // List

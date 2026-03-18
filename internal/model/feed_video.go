@@ -42,13 +42,13 @@ func (m *MovieDB) GetFeedVideoByName(name string) (*types.FeedVideo, error) {
 //	@param names
 //	@return videos
 //	@return err
-func (m *MovieDB) GetFeedVideoTVByNames(names ...string) ([]*types.FeedVideo, error) {
-	log.WithCtx(context.Background()).Debugf("开始第一次查找tv数据: %s.", names)
+func (m *MovieDB) GetFeedVideoTVByNames(ctx context.Context, names ...string) ([]*types.FeedVideo, error) {
+	log.WithCtx(ctx).Debugf("开始第一次查找tv数据: %s.", names)
 	firstQuery := `name like ? and magnet!="" and  type="tv" and download=0;`
 	argsFunc := func(name string) string {
 		return fmt.Sprintf("%%%s%%", name)
 	}
-	videos, err := m.findTV(names, firstQuery, argsFunc)
+	videos, err := m.findTV(ctx, names, firstQuery, argsFunc)
 	if err != nil {
 		return videos, err
 	}
@@ -56,12 +56,12 @@ func (m *MovieDB) GetFeedVideoTVByNames(names ...string) ([]*types.FeedVideo, er
 		return videos, nil
 	}
 
-	log.WithCtx(context.Background()).Debugf("开始第二次查找tv数据: %s.", names)
+	log.WithCtx(ctx).Debugf("开始第二次查找tv数据: %s.", names)
 	argsFunc = func(name string) string {
 		return name + "%"
 	}
 	secondQuery := `name like ? and magnet!="" and download !=1 and type="movie"`
-	videos, err = m.findTV(names, secondQuery, argsFunc)
+	videos, err = m.findTV(ctx, names, secondQuery, argsFunc)
 	if err != nil {
 		return videos, err
 	}
@@ -69,12 +69,12 @@ func (m *MovieDB) GetFeedVideoTVByNames(names ...string) ([]*types.FeedVideo, er
 		return videos, nil
 	}
 
-	log.WithCtx(context.Background()).Debugf("开始第三次查找tv数据: %s.", names)
+	log.WithCtx(ctx).Debugf("开始第三次查找tv数据: %s.", names)
 	argsFunc = func(name string) string {
 		return name + "%"
 	}
 	thirdQuery := `name like ? and magnet!="" and download !=1`
-	videos, err = m.findTV(names, thirdQuery, argsFunc)
+	videos, err = m.findTV(ctx, names, thirdQuery, argsFunc)
 	if err != nil {
 		return videos, err
 	}
@@ -90,15 +90,15 @@ var (
 	ErrTVNotFound     = errors.New("TV Not Found")
 )
 
-func (m *MovieDB) findTV(names []string, query string, argsFunc func(name string) string) ([]*types.FeedVideo, error) {
+func (m *MovieDB) findTV(ctx context.Context, names []string, query string, argsFunc func(name string) string) ([]*types.FeedVideo, error) {
 	var firstVideos []*types.FeedVideo
-	log.WithCtx(context.Background()).Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", names)
+	log.WithCtx(ctx).Debugf("GetFeedVideoMovieByName 开始第一次查找tv数据: %s.", names)
 	for _, n := range names {
 		if tools.ContainsChinese(n) {
 			continue
 		}
-		log.WithCtx(context.Background()).Debugf("findTV 获取数据: %s.", n)
-		result := m.db.Model(&types.FeedVideo{}).Where(query, argsFunc(n)).Find(&firstVideos)
+		log.WithCtx(ctx).Debugf("findTV 获取数据: %s.", n)
+		result := m.db.Model(&types.FeedVideo{}).WithContext(ctx).Where(query, argsFunc(n)).Find(&firstVideos)
 		if result.Error != nil {
 			return nil, fmt.Errorf("查找失败, err:%w", result.Error)
 		}
@@ -136,47 +136,47 @@ func (m *MovieDB) CountFeedVideo() (counts []*types.ReportCount, err error) {
 	return
 }
 
-func (m *MovieDB) GetFeedVideoMovieByNames(names ...string) ([]*types.FeedVideo, error) {
-	log.WithCtx(context.Background()).Debugf("开始第一次查找Movie数据: %s.", names)
+func (m *MovieDB) GetFeedVideoMovieByNames(ctx context.Context, names ...string) ([]*types.FeedVideo, error) {
+	log.WithCtx(ctx).Debugf("开始第一次查找Movie数据: %s.", names)
 	firstQuery := `name = ? and magnet!="" and type="movie"`
-	videos, err := m.findMovie(names, firstQuery)
+	videos, err := m.findMovie(ctx, names, firstQuery)
 	if err != nil {
 		return videos, err
 	}
 	if len(videos) > 0 {
-		log.WithCtx(context.Background()).Debugf("%#v 种子数:%d", names, len(videos))
+		log.WithCtx(ctx).Debugf("%#v 种子数:%d", names, len(videos))
 		return videos, nil
 	}
-	log.WithCtx(context.Background()).Debugf("开始第二次查找Movie数据: %s.", names)
+	log.WithCtx(ctx).Debugf("开始第二次查找Movie数据: %s.", names)
 
 	secondQuery := `name = ? and magnet!="" and download!=1 and type="movie"`
-	videos, err = m.findMovie(names, secondQuery)
+	videos, err = m.findMovie(ctx, names, secondQuery)
 	if err != nil {
 		return videos, err
 	}
 	if len(videos) > 0 {
-		log.WithCtx(context.Background()).Debugf("%#v 种子数:%d", names, len(videos))
+		log.WithCtx(ctx).Debugf("%#v 种子数:%d", names, len(videos))
 		return videos, nil
 	}
 
-	log.WithCtx(context.Background()).Debugf("开始第三次查找Movie数据: %s.", names)
+	log.WithCtx(ctx).Debugf("开始第三次查找Movie数据: %s.", names)
 	thirdQuery := `name = ? and magnet!=""`
-	videos, err = m.findMovie(names, thirdQuery)
+	videos, err = m.findMovie(ctx, names, thirdQuery)
 	if err != nil {
 		return videos, err
 	}
 	if len(videos) > 0 {
-		log.WithCtx(context.Background()).Debugf("%#v 种子数:%d", names, len(videos))
+		log.WithCtx(ctx).Debugf("%#v 种子数:%d", names, len(videos))
 		return videos, nil
 	}
 	return videos, ErrMoviesNotFound
 }
 
-func (m *MovieDB) findMovie(names []string, query string) ([]*types.FeedVideo, error) {
+func (m *MovieDB) findMovie(ctx context.Context, names []string, query string) ([]*types.FeedVideo, error) {
 	var movies []*types.FeedVideo
 	for _, n := range names {
 		//  只查找 没有下载过 && 类型为movie数据   and download=0
-		result := m.db.Model(&types.FeedVideo{}).Where(query, n).Find(&movies)
+		result := m.db.Model(&types.FeedVideo{}).WithContext(ctx).Where(query, n).Find(&movies)
 		if result.Error != nil {
 			return nil, fmt.Errorf("查找失败, err:%w", result.Error)
 		}
@@ -193,7 +193,7 @@ func (m *MovieDB) findMovie(names []string, query string) ([]*types.FeedVideo, e
 //	@receiver m
 //	@param video
 //	@return err
-func (m *MovieDB) CreatFeedVideo(video *types.FeedVideo) (err error) {
+func (m *MovieDB) CreatFeedVideo(ctx context.Context, video *types.FeedVideo) (err error) {
 	if video.Magnet == "" {
 		//nolint:err113
 		return fmt.Errorf("CreatFeedVideo Magnet is nill : %#v", video)
@@ -201,15 +201,15 @@ func (m *MovieDB) CreatFeedVideo(video *types.FeedVideo) (err error) {
 	video.Timestamp = time.Now().Unix()
 	video.RowData.Valid = true
 
-	err = m.db.Model(types.FeedVideo{}).Create(video).Error
+	err = m.db.Model(types.FeedVideo{}).WithContext(ctx).Create(video).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "Duplicate entry") || strings.Contains(err.Error(), "1062") {
-			log.WithCtx(context.Background()).Debugf("CreatFeedVideo 数据已存在 video: %#v", video)
+			log.WithCtx(ctx).Debugf("CreatFeedVideo 数据已存在 video: %#v", video)
 			return fmt.Errorf("name: %s type: %s. err:%w", video.Name, video.Type, ErrDataExist)
 		}
 		return fmt.Errorf("%s err:%w", video.Name, err)
 	}
-	log.WithCtx(context.Background()).Debugf("CreatFeedVideo 数据已添加 video.TorrentName: %s", video.TorrentName)
+	log.WithCtx(ctx).Debugf("CreatFeedVideo 数据已添加 video.TorrentName: %s", video.TorrentName)
 	return
 }
 
@@ -233,11 +233,11 @@ func (m *MovieDB) UpdateFeedVideo(video *types.FeedVideo) (err error) {
 //	@receiver m
 //	@param videos
 //	@return err
-func (m *MovieDB) UpdateFeedVideos(videos ...*types.FeedVideo) (err error) {
+func (m *MovieDB) UpdateFeedVideos(ctx context.Context, videos ...*types.FeedVideo) (err error) {
 	if len(videos) == 0 {
 		return nil
 	}
-	log.WithCtx(context.Background()).Debugw("MovieDB", "数据量", len(videos))
+	log.WithCtx(ctx).Debugw("MovieDB", "数据量", len(videos))
 
 	// 使用事务确保数据一致性
 	tx := m.db.Begin()

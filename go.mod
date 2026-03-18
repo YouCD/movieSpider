@@ -10,7 +10,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/go-sql-driver/mysql v1.9.3
-	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
+	github.com/go-telegram/bot v1.19.0
 	github.com/mark3labs/mcp-go v0.45.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible

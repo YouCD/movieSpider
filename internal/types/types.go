@@ -52,4 +52,7 @@ type LLMResult struct {
 	NewName    string `json:"newName"`
 	Year       int    `json:"year,omitempty"`
 	Resolution int    `json:"resolution,omitempty"`
+	Season     int    `json:"season,omitempty"`
+	Episode    int    `json:"episode,omitempty"`
+	Complete   bool   `json:"complete,omitempty"`
 }

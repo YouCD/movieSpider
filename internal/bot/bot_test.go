@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"context"
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
@@ -14,7 +15,7 @@ func init() {
 }
 func TestTGBot_SendDatePublishedMsg(t1 *testing.T) {
 	t := NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
-	go t.StartBot()
+	go t.StartBot(context.Background())
 	obj := &types.TMDBVideo{
 		ID:            99119,
 		Names:         `["阿凡达3：带种者"]`,

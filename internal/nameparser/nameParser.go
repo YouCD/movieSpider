@@ -70,13 +70,13 @@ A-Heavenly-Vintage-2009-1080p-BluRay-x265-RARBG
 <输入>
 Big Antique Adventure With Susan Calman S01 1080p HDTV H264-DARKFLiX[rartv]
 <输出>
-[{"id":0,"typeStr":"tv","newName":"Big Antique Adventure With Susan Calman","year":0,"resolution":1080}]
+[{"id":0,"typeStr":"tv","newName":"Big Antique Adventure With Susan Calman","year":0,"season":1,"episode":0,"resolution":1080}]
 
 **示例 3（剧集含年份）：**
 <输入>
 www.Torrenting.com - Tracker.2024.S02E07.1080p.HEVC.x265-MeGusta
 <输出>
-[{"id":0,"typeStr":"tv","newName":"Tracker","year":2024,"resolution":1080}]
+[{"id":0,"typeStr":"tv","newName":"Tracker","year":2024,"season":2,"episode":7,"resolution":1080}]
 
 **示例 4（电影带符号）：**
 <输入>
@@ -114,8 +114,14 @@ A-Heavenly-Vintage-2009-1080p-BluRay-x265-RARBG
 Tracker.2024.S02E07.1080p.HEVC.x265-MeGusta
 无效种子名称无关键信息
 <输出>
-[{"id":0,"typeStr":"movie","newName":"A Heavenly Vintage","year":2009,"resolution":1080},{"id":1,"typeStr":"tv","newName":"Tracker","year":2024,"resolution":1080}]
+[{"id":0,"typeStr":"movie","newName":"A Heavenly Vintage","year":2009,"resolution":1080},{"id":1,"typeStr":"tv","newName":"Tracker","year":2024,"season":2,"episode":7,"resolution":1080}]
 
+**示例 10（完整版）：**
+<输入>
+Fallout.S02.COMPLETE.2160p.AMZN.WEB-DL.DV.HDR10+.MULTi.DDP5.1.Atmos.H265.MP4-BTM
+无效种子名称无关键信息
+<输出>
+[{"id":0,"typeStr":"tv","newName":"Fallout","year":0,"season":2,"episode":0,“complete”:true,"resolution":2160}]
 ---
 
 **只输出解析后的JSON数组，不要包含任何额外文字或解释。**

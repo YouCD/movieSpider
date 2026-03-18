@@ -100,16 +100,15 @@ func WithReport() Option {
 }
 
 // WithDownload 初始化下载器
-func WithDownload() Option {
+func WithDownload(ctx context.Context) Option {
 	return optionFunc(func(ms *MovieSpider) {
 		ms.download = download.NewDownloader(config.Config.Downloader.Scheduling)
-		ctx := context.Background()
 		go ms.download.Run(ctx)
 	})
 }
 
 // WithReleaseTimeJob 初始化下载器
-func WithReleaseTimeJob() Option {
+func WithReleaseTimeJob(ctx context.Context) Option {
 	if config.Config.TG == nil {
 		return optionFunc(func(_ *MovieSpider) {
 			log.WithCtx(context.Background()).Warn("未开启TG通知，无法运行 电影上线 通知job")
@@ -117,7 +116,7 @@ func WithReleaseTimeJob() Option {
 	}
 	return optionFunc(func(ms *MovieSpider) {
 		ms.releaseTimeJob = job.NewReleaseTimeJob("")
-		go ms.releaseTimeJob.Run()
+		go ms.releaseTimeJob.Run(ctx)
 	})
 }
 
@@ -130,9 +129,9 @@ func WithDHT() Option {
 }
 
 // WithTMDBSpider 初始化TMDB爬虫
-func WithTMDBSpider(accountID int, apiToken string) Option {
+func WithTMDBSpider(accountID int, bearerToken string) Option {
 	return optionFunc(func(ms *MovieSpider) {
-		tmdbSpider, err := tmdbspider.NewTMDBSpider(accountID, apiToken)
+		tmdbSpider, err := tmdbspider.NewTMDBSpider(accountID, bearerToken)
 		if err != nil {
 			log.WithCtx(context.Background()).Errorf("创建TMDB爬虫失败: %s", err)
 			return

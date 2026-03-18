@@ -32,7 +32,7 @@ func (d *Download) DownloadByName(ctx context.Context, name, resolution string) 
 	go func() {
 		defer wg.Done()
 		feedBt4g := searchspider.NewFeedBt4g(name, d.ResolutionStr2Int(resolution))
-		_, err := feedBt4g.Search()
+		_, err := feedBt4g.Search(ctx)
 		if err != nil {
 			log.WithCtx(ctx).Error(err)
 		}
@@ -40,7 +40,7 @@ func (d *Download) DownloadByName(ctx context.Context, name, resolution string) 
 	wg.Wait()
 
 	// 获取磁力连接
-	videos, err := model.NewMovieDB().GetFeedVideoMovieByNames([]string{name}...)
+	videos, err := model.NewMovieDB().GetFeedVideoMovieByNames(ctx, []string{name}...)
 	if err != nil {
 		log.WithCtx(ctx).Error(err)
 	}
@@ -62,7 +62,7 @@ func (d *Download) DownloadByName(ctx context.Context, name, resolution string) 
 			log.WithCtx(ctx).Warnf("TorrentName: %v ,name is nil", v.TorrentName)
 			continue
 		}
-		gid, err := newAria2.DownloadByWithVideo(v, v.Magnet)
+		gid, err := newAria2.DownloadByWithVideo(ctx, v, v.Magnet)
 		if err != nil {
 			log.WithCtx(ctx).Error(err)
 			continue
@@ -109,11 +109,11 @@ func (d *Download) downloadTask(ctx context.Context) {
 }
 
 // getVideosFunc 定义获取视频的函数类型
-type getVideosFunc func(names ...string) ([]*types.FeedVideo, error)
+type getVideosFunc func(ctx context.Context, names ...string) ([]*types.FeedVideo, error)
 
 func (d *Download) download(ctx context.Context, tvOrMovie types.VideoType, f getVideosFunc) error {
 	log.WithCtx(ctx).Infof("%s Downloader working...", tvOrMovie.String())
-	videos, err := model.NewMovieDB().FetchTMDBVideoByType(tvOrMovie)
+	videos, err := model.NewMovieDB().FetchTMDBVideoByType(ctx, tvOrMovie)
 	if err != nil {
 		return fmt.Errorf("FetchTMDBVideoByType,err: %w", err)
 	}
@@ -127,7 +127,7 @@ func (d *Download) download(ctx context.Context, tvOrMovie types.VideoType, f ge
 	for tmdbVideo, name := range videos {
 		log.WithCtx(ctx).Infow(tvOrMovie.String(), "tmdbVideo", tmdbVideo.Names)
 		// 在循环内声明 videoList，避免复用导致的脏数据问题
-		videoList, err := f(name...)
+		videoList, err := f(ctx, name...)
 		if err != nil {
 			log.WithCtx(ctx).Warn(err)
 			continue
@@ -156,7 +156,7 @@ func (d *Download) download(ctx context.Context, tvOrMovie types.VideoType, f ge
 	}
 	// 批量更新
 	if len(allVideoList) > 0 {
-		if err = model.NewMovieDB().UpdateFeedVideos(allVideoList...); err != nil {
+		if err = model.NewMovieDB().UpdateFeedVideos(ctx, allVideoList...); err != nil {
 			log.WithCtx(ctx).Error(err)
 		}
 	}
@@ -204,7 +204,7 @@ func (d *Download) aria2Download(ctx context.Context, videos ...*types.FeedVideo
 			log.WithCtx(ctx).Warnf("TorrentName: %v ,name is nil", v.TorrentName)
 			continue
 		}
-		gid, err := newAria2.DownloadByWithVideo(v, v.Magnet)
+		gid, err := newAria2.DownloadByWithVideo(ctx, v, v.Magnet)
 		if err != nil {
 			log.WithCtx(ctx).Error(err)
 			continue

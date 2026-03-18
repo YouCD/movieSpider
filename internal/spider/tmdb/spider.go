@@ -18,8 +18,8 @@ type TMDBSpider struct {
 }
 
 // NewTMDBSpider 创建TMDB爬虫
-func NewTMDBSpider(accountID int, apiToken string) (*TMDBSpider, error) {
-	client, err := NewClient(accountID, apiToken)
+func NewTMDBSpider(accountID int, bearerToken string) (*TMDBSpider, error) {
+	client, err := NewClient(accountID, bearerToken)
 	if err != nil {
 		return nil, fmt.Errorf("创建TMDB客户端失败: %w", err)
 	}
@@ -77,45 +77,67 @@ func (s *TMDBSpider) crawl(ctx context.Context) {
 // crawlMovies 爬取电影Watchlist
 func (s *TMDBSpider) crawlMovies(ctx context.Context) {
 	page := 1
-	for {
-		response, err := s.client.GetWatchlistMovies(ctx, page)
-		if err != nil {
-			log.WithCtx(ctx).Errorf("获取电影Watchlist失败: %s", err)
-			break
-		}
-
-		for _, movie := range response.Results {
-			s.processMovie(ctx, movie)
-		}
-
-		// 如果已经是最后一页，退出循环
-		if page >= response.TotalPages {
-			break
-		}
-		page++
+	response, err := s.client.GetWatchlistMovies(ctx, page)
+	if err != nil {
+		log.WithCtx(ctx).Errorf("获取电影Watchlist失败: %s", err)
+		return
 	}
+	for _, movie := range response.Results {
+		s.processMovie(ctx, movie)
+	}
+	/*
+		for {
+				response, err := s.client.GetWatchlistMovies(ctx, page)
+				if err != nil {
+					log.WithCtx(ctx).Errorf("获取电影Watchlist失败: %s", err)
+					break
+				}
+
+				for _, movie := range response.Results {
+					s.processMovie(ctx, movie)
+				}
+
+				// 如果已经是最后一页，退出循环
+				if page >= response.TotalPages {
+					break
+				}
+				page++
+			}
+	*/
 }
 
 // crawlTV 爬取电视剧Watchlist
 func (s *TMDBSpider) crawlTV(ctx context.Context) {
 	page := 1
-	for {
-		response, err := s.client.GetWatchlistTV(ctx, page)
-		if err != nil {
-			log.WithCtx(ctx).Errorf("获取电视剧Watchlist失败: %s", err)
-			break
-		}
-
-		for _, tv := range response.Results {
-			s.processTV(ctx, tv)
-		}
-
-		// 如果已经是最后一页，退出循环
-		if page >= response.TotalPages {
-			break
-		}
-		page++
+	response, err := s.client.GetWatchlistTV(ctx, page)
+	if err != nil {
+		log.WithCtx(ctx).Errorf("获取电视剧Watchlist失败: %s", err)
+		return
 	}
+
+	for _, tv := range response.Results {
+		s.processTV(ctx, tv)
+	}
+	/*
+		for {
+			response, err := s.client.GetWatchlistTV(ctx, page)
+			if err != nil {
+				log.WithCtx(ctx).Errorf("获取电视剧Watchlist失败: %s", err)
+				break
+			}
+
+			for _, tv := range response.Results {
+				s.processTV(ctx, tv)
+			}
+
+			// 如果已经是最后一页，退出循环
+			if page >= response.TotalPages {
+				break
+			}
+			page++
+		}
+
+	*/
 }
 
 // processMovie 处理电影数据
@@ -158,7 +180,7 @@ func (s *TMDBSpider) processMovie(ctx context.Context, movie types.WatchlistMovi
 
 	// 存入数据库
 	db := model.NewMovieDB()
-	if err := db.CreatTMDBVideo(video); err != nil {
+	if err := db.CreatTMDBVideo(ctx, video); err != nil {
 		if err == model.ErrDataExist {
 			log.WithCtx(ctx).Debugf("电影已存在: %s (IMDB: %s)", movie.Title, details.ImdbID)
 			return
@@ -204,6 +226,20 @@ func (s *TMDBSpider) processTV(ctx context.Context, tv types.WatchlistTVItem) {
 		return
 	}
 
+	// 解析出电视剧的所有季信息
+	var seasons []types.SeasonInfo
+	for _, season := range details.Seasons {
+		for i := range season.EpisodeCount {
+			seasons = append(seasons, types.SeasonInfo{
+				S:    season.SeasonNumber,
+				E:    i + 1,
+				Date: season.AirDate,
+			})
+		}
+	}
+	seasonsInfo, _ := json.Marshal(seasons)
+	s.client.GetTVSeasonDetails(ctx, tv.ID, 1)
+
 	// 创建TMDBVideo
 	video := &types.TMDBVideo{
 		Names:         string(namesJSON),
@@ -213,11 +249,12 @@ func (s *TMDBSpider) processTV(ctx context.Context, tv types.WatchlistTVItem) {
 		Type:          "tv",
 		Playable:      "false",
 		DatePublished: tv.FirstAirDate,
+		SeasonInfo:    string(seasonsInfo),
 	}
 
 	// 存入数据库
 	db := model.NewMovieDB()
-	if err := db.CreatTMDBVideo(video); err != nil {
+	if err := db.CreatTMDBVideo(ctx, video); err != nil {
 		if err == model.ErrDataExist {
 			log.WithCtx(ctx).Debugf("电视剧已存在: %s (IMDB: %s)", tv.Name, externalIDs.ImdbID)
 			return
@@ -273,12 +310,12 @@ func (s *TMDBSpider) checkVideoWatchProviders(ctx context.Context, videos ...*ty
 			continue
 		}
 		// 检查是否有提供商
-		if s.hasWatchProviders(providers) {
+		if HasWatchProviders(providers) {
 			log.WithCtx(ctx).Infof("发现可观看资源: %s (IMDB: %s, TMDB ID: %d, Type: %s)", video.Names, video.ImdbID, tmdbID, video.Type)
 
 			// 更新播放状态
 			db := model.NewMovieDB()
-			if err := db.UpdatePlayableStatus(video.ImdbID); err != nil {
+			if err := db.UpdatePlayableStatus(ctx, video.ImdbID); err != nil {
 				log.WithCtx(ctx).Errorf("更新播放状态失败, imdbID: %s, err: %s", video.ImdbID, err)
 			}
 			result = append(result, video)
@@ -303,29 +340,4 @@ func (s *TMDBSpider) parseTmdbIDFromRowData(rowData, videoType string) (int, err
 		return 0, fmt.Errorf("解析电视剧详情JSON失败: %w", err)
 	}
 	return detail.ID, nil
-}
-
-// hasWatchProviders 检查是否有可用的观看提供商
-func (s *TMDBSpider) hasWatchProviders(providers *WatchProvidersResponse) bool {
-	if providers == nil || len(providers.Results) == 0 {
-		return false
-	}
-
-	// 遍历所有国家/地区的提供商
-	for _, result := range providers.Results {
-		// 检查是否有流媒体订阅
-		if result.Flatrate != nil && len(*result.Flatrate) > 0 {
-			return true
-		}
-		// 检查是否有租赁
-		if result.Rent != nil && len(*result.Rent) > 0 {
-			return true
-		}
-		// 检查是否有购买
-		if result.Buy != nil && len(*result.Buy) > 0 {
-			return true
-		}
-	}
-
-	return false
 }

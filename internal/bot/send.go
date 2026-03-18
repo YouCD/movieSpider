@@ -9,14 +9,15 @@ import (
 	"strings"
 	"text/template"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 	"github.com/youcd/toolkit/log"
 )
 
-func (t *TGBot) SendReportFeedVideosMsg(msgChatID, msgID int64) {
+func (t *TGBot) SendReportFeedVideosMsg(ctx context.Context, msgChatID, msgID int64) {
 	count, err := model.NewMovieDB().CountFeedVideo()
 	if err != nil {
-		log.WithCtx(context.Background()).Error(err)
+		log.WithCtx(ctx).Error(err)
 	}
 	reportFeedVideosTmpl := template.New("reportFeedVideosTmpl")
 	_, _ = reportFeedVideosTmpl.Parse(`<b>Feed数据统计</b>
@@ -25,12 +26,17 @@ func (t *TGBot) SendReportFeedVideosMsg(msgChatID, msgID int64) {
 `)
 	b := new(bytes.Buffer)
 	_ = reportFeedVideosTmpl.Execute(b, count)
-	msg := tgbotapi.NewMessage(msgChatID, b.String())
-	msg.ReplyToMessageID = int(msgID)
-	msg.ParseMode = tgbotapi.ModeHTML
-	_, err = t.bot.Send(msg)
+
+	_, err = t.bot.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    msgChatID,
+		Text:      b.String(),
+		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: int(msgID),
+		},
+	})
 	if err != nil {
-		log.WithCtx(context.Background()).Error(err)
+		log.WithCtx(ctx).Error(err)
 	}
 }
 
@@ -89,24 +95,24 @@ var notificationTemplates = map[notifyType]string{
 }
 
 // SendDatePublishedOrDownloadMsg 发送电影上映消息或下载通知
-func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, notify notifyType) {
-	video, err := model.NewMovieDB().FetchOneTMDBVideoByImdbID(v.FeedVideo.ImdbID)
+func (t *TGBot) SendDatePublishedOrDownloadMsg(ctx context.Context, v *types.DownloadNotifyVideo, notify notifyType) {
+	video, err := model.NewMovieDB().FetchOneTMDBVideoByImdbID(ctx, v.FeedVideo.ImdbID)
 	if err != nil {
-		log.WithCtx(context.Background()).Error(err)
+		log.WithCtx(ctx).Error(err)
 		return
 	}
 
 	// 处理原始信息
 	var rowData types.RowData
 	if err = json.Unmarshal([]byte(video.RowData), &rowData); err != nil {
-		log.WithCtx(context.Background()).Error(err)
+		log.WithCtx(ctx).Error(err)
 		return
 	}
 
 	// 处理电影名
 	var names []string
 	if err = json.Unmarshal([]byte(video.Names), &names); err != nil {
-		log.WithCtx(context.Background()).Error(err)
+		log.WithCtx(ctx).Error(err)
 		return
 	}
 
@@ -127,7 +133,7 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, not
 	// 获取对应通知类型的模板
 	tmplStr, ok := notificationTemplates[notify]
 	if !ok {
-		log.WithCtx(context.Background()).Errorf("unknown notify type: %v", notify)
+		log.WithCtx(ctx).Errorf("unknown notify type: %v", notify)
 		return
 	}
 
@@ -135,26 +141,28 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(v *types.DownloadNotifyVideo, not
 	datePublishedMsgTmpl.Funcs(template.FuncMap{"splitSpace": splitSpace})
 	_, err = datePublishedMsgTmpl.Parse(tmplStr)
 	if err != nil {
-		log.WithCtx(context.Background()).Error(err)
+		log.WithCtx(ctx).Error(err)
 		return
 	}
 
 	// 定义缓冲区 用于存储模板渲染后的数据
 	b := new(bytes.Buffer)
 	if err = datePublishedMsgTmpl.Execute(b, msg); err != nil {
-		log.WithCtx(context.Background()).Error(err)
+		log.WithCtx(ctx).Error(err)
 		return
 	}
 
 	image := rowData.Image
 
 	for _, id := range t.IDs {
-		photo := tgbotapi.NewPhoto(int64(id), tgbotapi.FileURL(image))
-		photo.Caption = b.String()
-		photo.ParseMode = tgbotapi.ModeHTML
-		_, err = t.bot.Send(photo)
+		_, err = t.bot.SendPhoto(ctx, &bot.SendPhotoParams{
+			ChatID:    int64(id),
+			Photo:     &models.InputFileString{Data: image},
+			Caption:   b.String(),
+			ParseMode: models.ParseModeHTML,
+		})
 		if err != nil {
-			log.WithCtx(context.Background()).Error(err)
+			log.WithCtx(ctx).Error(err)
 		}
 	}
 }

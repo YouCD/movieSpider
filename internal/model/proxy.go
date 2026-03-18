@@ -15,24 +15,24 @@ import (
 //	@param videos
 //
 
-func ProxySaveVideo2DB(videos ...*types.FeedVideo) {
+func ProxySaveVideo2DB(ctx context.Context, videos ...*types.FeedVideo) {
 	if len(videos) == 0 {
-		log.WithCtx(context.Background()).Warn("没有数据")
+		log.WithCtx(ctx).Warn("没有数据")
 		return
 	}
 
 	for _, v := range videos {
 		go func(video *types.FeedVideo) {
-			err := NewMovieDB().CreatFeedVideo(video)
+			err := NewMovieDB().CreatFeedVideo(ctx, video)
 			if err != nil {
 				if errors.Is(err, ErrDataExist) {
-					log.WithCtx(context.Background()).Debugf("%s.%s err: %s", strings.ToUpper(video.Web), video.Type, err)
+					log.WithCtx(ctx).Debugf("%s.%s err: %s", strings.ToUpper(video.Web), video.Type, err)
 					return
 				}
-				log.WithCtx(context.Background()).Error(err)
+				log.WithCtx(ctx).Error(err)
 				return
 			}
-			log.WithCtx(context.Background()).Infof("%s.%s: %s 保存完毕.", strings.ToUpper(video.Web), video.Type, video.Name)
+			log.WithCtx(ctx).Infof("%s.%s: %s 保存完毕.", strings.ToUpper(video.Web), video.Type, video.Name)
 		}(v)
 	}
 }

@@ -50,8 +50,30 @@ func RegisterTools(s *server.MCPServer, movieService *MovieService) {
 
 	// 注册最近24小时内更新为可播放状态的视频
 	playableTodayMovieTvTool := mcp.NewTool("playable_today_movie_tv",
-		mcp.WithDescription("获取今天可播放状态的电影或电视剧"),
+		mcp.WithDescription("获取关注列表中电影或电视剧的可播放状态，返回可播放的电影或电视剧的名称信息"),
 	)
 	s.AddTool(playableTodayMovieTvTool, PlayableTodayMovieTV(movieService))
 
+	// 注册最近24小时内更新为可播放状态的视频
+	checkMovieIsPlayableTool := mcp.NewTool("check_movie_is_playable",
+		mcp.WithDescription("检查电影是否可播放"),
+		mcp.WithString("movie_name",
+			mcp.Required(),
+			mcp.Description("电影的名称"),
+		),
+	)
+	s.AddTool(checkMovieIsPlayableTool, CheckMovieIsPlayable(movieService))
+
+	checkTvIsPlayableTool := mcp.NewTool("check_tv_is_playable",
+		mcp.WithDescription("检查电视剧是否可播放"),
+		mcp.WithString("tv_name",
+			mcp.Required(),
+			mcp.Description("电视剧的名称"),
+		),
+		mcp.WithNumber("season_id",
+			mcp.Required(),
+			mcp.Description("电视剧的第几季"),
+		),
+	)
+	s.AddTool(checkTvIsPlayableTool, CheckTVIsPlayable(movieService))
 }

@@ -6,6 +6,7 @@ import (
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
+	"movieSpider/internal/spider/tmdb"
 	"movieSpider/internal/types"
 	"net/http"
 	"regexp"
@@ -20,11 +21,22 @@ type MovieService struct {
 	aria2Client *aria2.Aria2
 	once        sync.Once
 	apiKey      string
+	tmdbClient  *tmdb.Client
+}
+
+type MovieServiceConfig struct {
+	AccountID   int
+	BearerToken string
 }
 
 // NewMovieService 创建新的MovieService实例
-func NewMovieService() *MovieService {
-	return &MovieService{}
+func NewMovieService(cfg *MovieServiceConfig) (*MovieService, error) {
+	client, err := tmdb.NewClient(cfg.AccountID, cfg.BearerToken)
+	if err != nil {
+		return nil, fmt.Errorf("初始化 TMDB 客户端失败: %w", err)
+	}
+
+	return &MovieService{tmdbClient: client}, nil
 }
 
 // getAria2Client 获取aria2客户端（懒加载）
@@ -55,7 +67,7 @@ func (s *MovieService) SearchMovie(ctx context.Context, movieName string) ([]Mov
 	log.WithCtx(ctx).Infof("开始搜索电影: %s", movieName)
 
 	// 从数据库获取搜索结果
-	videos, err := model.NewMovieDB().GetFeedVideoMovieByNames(movieName)
+	videos, err := model.NewMovieDB().GetFeedVideoMovieByNames(ctx, movieName)
 	if err != nil {
 		if err == model.ErrMoviesNotFound {
 			return nil, fmt.Errorf("未找到电影: %s", movieName)
@@ -126,7 +138,7 @@ func (s *MovieService) DownloadMovieByID(ctx context.Context, id int32) (*Downlo
 	}
 
 	// 开始下载
-	gid, err := client.DownloadByWithVideo(video, video.Magnet)
+	gid, err := client.DownloadByWithVideo(ctx, video, video.Magnet)
 	if err != nil {
 		return &DownloadResult{
 			Success: false,
@@ -159,7 +171,7 @@ func (s *MovieService) DownloadMovieByName(ctx context.Context, name string) (*D
 	}
 
 	// 搜索视频
-	videos, err := model.NewMovieDB().GetFeedVideoMovieByNames(name)
+	videos, err := model.NewMovieDB().GetFeedVideoMovieByNames(ctx, name)
 	if err != nil {
 		if err == model.ErrMoviesNotFound {
 			return &DownloadResult{
@@ -188,7 +200,7 @@ func (s *MovieService) DownloadMovieByName(ctx context.Context, name string) (*D
 	}
 
 	// 开始下载
-	gid, err := client.DownloadByWithVideo(video, video.Magnet)
+	gid, err := client.DownloadByWithVideo(ctx, video, video.Magnet)
 	if err != nil {
 		return &DownloadResult{
 			Success: false,
@@ -335,7 +347,7 @@ func getTodayStartTimestamp() int64 {
 	return todayStart.Unix()
 }
 
-// PlayableTodayMovieTV 搜索电影
+// PlayableTodayMovieTV 获取最近24小时内更新为可播放状态的电影或电视剧
 func (s *MovieService) PlayableTodayMovieTV(ctx context.Context) ([]MovieResult, error) {
 	log.WithCtx(ctx).Infof("开始检查")
 	// 今日凌晨整点
@@ -360,6 +372,50 @@ func (s *MovieService) PlayableTodayMovieTV(ctx context.Context) ([]MovieResult,
 
 	log.WithCtx(ctx).Infof("搜索完成，找到 %d 个结果", len(results))
 	return results, nil
+}
+
+// CheckMovieIsPlayable 检查电影是否可播放
+func (s *MovieService) CheckMovieIsPlayable(ctx context.Context, movieName string) (bool, error) {
+	log.WithCtx(ctx).Infof("开始检查:%s", movieName)
+	movies, err := s.tmdbClient.GetSearchMovies(ctx, movieName)
+	if err != nil {
+		return false, fmt.Errorf("搜索电影失败: %w", err)
+	}
+	if len(movies) == 0 {
+		return false, fmt.Errorf("未找到电影: %s", movieName)
+	}
+	providers, err := s.tmdbClient.GetMovieWatchProviders(ctx, int(movies[0].ID))
+	if err != nil {
+		return false, fmt.Errorf("获取电影播放提供者失败: %w", err)
+	}
+	if tmdb.HasWatchProviders(providers) {
+		log.WithCtx(ctx).Infof("电影 %s 可播放", movieName)
+		return true, nil
+	}
+	return false, nil
+}
+
+// CheckTVIsPlayable 检查电视剧是否可播放
+func (s *MovieService) CheckTVIsPlayable(ctx context.Context, tvName string, season int) (bool, error) {
+	log.WithCtx(ctx).Infof("开始检查:%s", tvName)
+	movies, err := s.tmdbClient.GetSearchTVShow(ctx, tvName)
+	if err != nil {
+		return false, fmt.Errorf("搜索电视剧失败: %w", err)
+	}
+	if len(movies) == 0 {
+		return false, fmt.Errorf("未找到电视剧: %s", tvName)
+	}
+	providers, err := s.tmdbClient.GetTVSeasonWatchProviders(ctx, int(movies[0].ID), season, nil)
+	if err != nil {
+		return false, fmt.Errorf("获取电视剧播放提供者失败: %w", err)
+	}
+
+	if tmdb.HasWatchProviders(providers) {
+		log.WithCtx(ctx).Infof("电视剧: %s 第%d季 可播放", tvName, season)
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // resolutionReg 分辨率正则表达式

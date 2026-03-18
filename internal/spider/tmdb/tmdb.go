@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/types"
+	"net/http"
 	"strconv"
 
 	"github.com/cyruzin/golang-tmdb"
@@ -12,24 +13,28 @@ import (
 
 // Client TMDB 客户端
 type Client struct {
-	client    *tmdb.Client
-	accountID int
+	client      *tmdb.Client
+	accountID   int
+	bearerToken string
+	httpClient  *http.Client
 }
 
 // NewClient 创建 TMDB 客户端
 // accountID: TMDB 账户 ID
 // apiToken: TMDB API Token (Bearer Token)
 // sessionID: TMDB 会话 ID (可选，获取 watchlist 需要)
-func NewClient(accountID int, apiToken string) (*Client, error) {
-	client, err := tmdb.InitV4(apiToken)
+func NewClient(accountID int, bearerToken string) (*Client, error) {
+	client, err := tmdb.InitV4(bearerToken)
 	if err != nil {
 		return nil, fmt.Errorf("初始化 TMDB 客户端失败: %w", err)
 	}
-
-	client.SetClientConfig(*httpclient.NewProxyHTTPClient(context.Background()))
+	c := httpclient.NewProxyHTTPClient(context.Background())
+	client.SetClientConfig(*c)
 	return &Client{
-		client:    client,
-		accountID: accountID,
+		client:      client,
+		accountID:   accountID,
+		bearerToken: bearerToken,
+		httpClient:  c,
 	}, nil
 }
 
@@ -389,28 +394,6 @@ func convertEpisodeRunTime(runtimes []int) []interface{} {
 	return result
 }
 
-// WatchProvider 观看提供商
-type WatchProvider struct {
-	LogoPath        string `json:"logo_path"`
-	ProviderID      int    `json:"provider_id"`
-	ProviderName    string `json:"provider_name"`
-	DisplayPriority int    `json:"display_priority"`
-}
-
-// WatchProviderResult 国家/地区的观看提供商结果
-type WatchProviderResult struct {
-	Link     string           `json:"link"`
-	Flatrate *[]WatchProvider `json:"flatrate"` // 流媒体订阅
-	Rent     *[]WatchProvider `json:"rent"`     // 租赁
-	Buy      *[]WatchProvider `json:"buy"`      // 购买
-}
-
-// WatchProvidersResponse 观看提供商响应
-type WatchProvidersResponse struct {
-	ID      int                            `json:"id"`
-	Results map[string]WatchProviderResult `json:"results"` // key 是国家代码 (如 "CN", "US")
-}
-
 // GetMovieWatchProviders 获取电影的观看提供商
 // movieID: 电影 ID
 // 返回按国家/地区分组的观看提供商信息（流媒体、租赁、购买等）
@@ -451,6 +434,24 @@ func (c *Client) GetTVWatchProviders(ctx context.Context, tvID int) (*WatchProvi
 	}
 
 	return response, nil
+}
+
+// GetSearchMovies 搜索电影
+func (c *Client) GetSearchMovies(ctx context.Context, query string) ([]tmdb.MovieResult, error) {
+	result, err := c.client.GetSearchMovies(query, nil)
+	if err != nil {
+		return nil, fmt.Errorf("搜索电影失败，query:%s  err: %w", query, err)
+	}
+	return result.Results, nil
+}
+
+// GetSearchTVShow 搜索电视剧
+func (c *Client) GetSearchTVShow(ctx context.Context, query string) ([]tmdb.TVShowResult, error) {
+	result, err := c.client.GetSearchTVShow(query, nil)
+	if err != nil {
+		return nil, fmt.Errorf("获取电视剧观看提供商失败: %w", err)
+	}
+	return result.Results, nil
 }
 
 func convertWatchProviderResult(provider tmdb.WatchProviderResult) WatchProviderResult {
@@ -500,19 +501,6 @@ func convertWatchProviderResult(provider tmdb.WatchProviderResult) WatchProvider
 	return result
 }
 
-// TVExternalIDs 电视剧外部ID
-type TVExternalIDs struct {
-	ImdbID      string `json:"imdb_id"`
-	FreebaseMID string `json:"freebase_mid"`
-	FreebaseID  string `json:"freebase_id"`
-	TVDBID      int64  `json:"tvdb_id"`
-	TVRageID    int64  `json:"tvrage_id"`
-	WikidataID  string `json:"wikidata_id"`
-	FacebookID  string `json:"facebook_id"`
-	InstagramID string `json:"instagram_id"`
-	TwitterID   string `json:"twitter_id"`
-}
-
 // GetTVExternalIDs 获取电视剧外部ID
 func (c *Client) GetTVExternalIDs(ctx context.Context, tvID int) (*TVExternalIDs, error) {
 	result, err := c.client.GetTVExternalIDs(tvID, nil)
@@ -531,4 +519,52 @@ func (c *Client) GetTVExternalIDs(ctx context.Context, tvID int) (*TVExternalIDs
 		InstagramID: result.InstagramID,
 		TwitterID:   result.TwitterID,
 	}, nil
+}
+
+// GetTVSeasonWatchProviders search for a TV Show.
+//
+// https://developer.themoviedb.org/reference/tv-season-watch-providers
+func (c *Client) GetTVSeasonWatchProviders(ctx context.Context, tvID int, seasonID int, urlOptions map[string]string) (*WatchProvidersResponse, error) {
+	options := c.fmtOptions(urlOptions)
+	tmdbURL := fmt.Sprintf(
+		"%s/tv/%d/season/%d/watch/providers?query=%s",
+		c.client.GetBaseURL(),
+		tvID,
+		seasonID,
+		options,
+	)
+
+	var result tmdb.WatchProviderResults
+	if err := c.get(ctx, tmdbURL, &result); err != nil {
+		return nil, fmt.Errorf("获取电视剧季观看提供商失败: %w", err)
+	}
+
+	response := &WatchProvidersResponse{
+		ID:      int(result.ID),
+		Results: make(map[string]WatchProviderResult),
+	}
+
+	for country, provider := range result.Results {
+		response.Results[country] = convertWatchProviderResult(provider)
+	}
+
+	return response, nil
+}
+
+// GetTVSeasonDetails 获取电视剧季详情
+//
+// https://developer.themoviedb.org/reference/tv-season-details
+func (c *Client) GetTVSeasonDetails(ctx context.Context, tvID int, seasonID int) (*SeasonDetailResult, error) {
+	tmdbURL := fmt.Sprintf(
+		"%s/tv/%d/season/%d",
+		c.client.GetBaseURL(),
+		tvID,
+		seasonID,
+	)
+	var result SeasonDetailResult
+	if err := c.get(ctx, tmdbURL, &result); err != nil {
+		return nil, fmt.Errorf("获取电视剧季详情失败: %w", err)
+	}
+
+	return &result, nil
 }

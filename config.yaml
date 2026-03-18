@@ -103,5 +103,5 @@ mcp:
   hostPort: 0.0.0.0:9092
   apiKey: test
 tmdb:
-  apiToken: "xxxxxxxxx"
+  bearerToken: "xxxxxxxxx"
   accountID: 0

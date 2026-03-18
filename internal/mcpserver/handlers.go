@@ -218,3 +218,47 @@ func PlayableTodayMovieTV(service *MovieService) func(ctx context.Context, reque
 		return mcp.NewToolResultText(output), nil
 	}
 }
+func CheckMovieIsPlayable(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		// 获取GID参数
+		movieName := request.GetString("movie_name", "")
+		if movieName == "" {
+			return mcp.NewToolResultError("请提供 movie_name 参数"), nil
+		}
+		// 调用搜索服务
+		ok, err := service.CheckMovieIsPlayable(ctx, movieName)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("搜索失败: %v", err)), nil
+		}
+
+		if ok {
+			return mcp.NewToolResultText("该电影今日可播放"), nil
+		}
+
+		return mcp.NewToolResultText("该电影今日不可播放,有可能输入的名称不正确"), nil
+	}
+}
+func CheckTVIsPlayable(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		// 获取GID参数
+		tvName := request.GetString("tv_name", "")
+		if tvName == "" {
+			return mcp.NewToolResultError("请提供 tv_name 参数"), nil
+		}
+		season := request.GetInt("season_id", 0)
+		if season <= 0 {
+			return mcp.NewToolResultError("请提供正确的 season_id 参数"), nil
+		}
+		// 调用搜索服务
+		ok, err := service.CheckTVIsPlayable(ctx, tvName, season)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("搜索失败: %v", err)), nil
+		}
+
+		if ok {
+			return mcp.NewToolResultText("该电视剧今日可播放"), nil
+		}
+
+		return mcp.NewToolResultText("该电视剧今日不可播放,有可能输入的名称不正确"), nil
+	}
+}

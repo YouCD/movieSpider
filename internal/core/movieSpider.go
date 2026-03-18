@@ -45,7 +45,7 @@ func NewMovieSpider(options ...Option) *MovieSpider {
 func (m *MovieSpider) Start(ctx context.Context) {
 	if config.Config.TG != nil {
 		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
-		go ms.bot.StartBot()
+		go ms.bot.StartBot(ctx)
 	}
 	if m.DHTThread > 0 {
 		go dhtc_client.Boot(m.DHTThread)

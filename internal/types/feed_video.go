@@ -32,6 +32,9 @@ type FeedVideo struct {
 	Download  int    `gorm:"column:download;type:int(11);comment:1:已经下载;NOT NULL" json:"download"`
 	Timestamp int64  `gorm:"column:timestamp;type:bigint(11);comment:修改创建时间;NOT NULL" json:"timestamp"`
 	ImdbID    string `gorm:"column:imdb_id;type:varchar(255);comment:imdbID;NOT NULL" json:"imdb_id"`
+	Season    int    `gorm:"column:season;type:int(11);comment:季;default:0" json:"season"`
+	Episode   int    `gorm:"column:episode;type:int(11);comment:集;default:0" json:"episode"`
+	Complete  bool   `gorm:"column:complete;type:tinyint(1);comment:是否完成;default:0" json:"complete"`
 }
 
 func (f *FeedVideo) TableName() string {

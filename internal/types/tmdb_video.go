@@ -43,6 +43,14 @@ type RowData struct {
 	} `json:"aggregateRating"`
 }
 
+// SeasonInfo 季信息
+type SeasonInfo struct {
+	S      int    `json:"s"`
+	E      int    `json:"e"`
+	Date   string `json:"date,omitempty"`
+	Status string `json:"status,omitempty"`
+}
+
 // TMDBVideo TMDB视频数据结构
 type TMDBVideo struct {
 	ID            int    `gorm:"column:id;type:int(11);AUTO_INCREMENT;primary_key" json:"id"`
@@ -54,6 +62,7 @@ type TMDBVideo struct {
 	Playable      string `gorm:"column:playable;type:varchar(255);comment:是否可以播放;NOT NULL" json:"playable"`
 	DatePublished string `gorm:"column:date_published;type:varchar(255);comment:上映时间;NOT NULL" json:"date_published"`
 	UpdateTime    int64  `gorm:"column:update_time;type:bigint(11);comment:更新时间;NOT NULL;default:0" json:"update_time"`
+	SeasonInfo    string `gorm:"column:season_info;type:varchar(255);comment:季信息;NOT NULL" json:"season_info"`
 }
 
 func (d *TMDBVideo) TableName() string {

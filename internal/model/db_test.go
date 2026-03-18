@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
@@ -43,7 +44,7 @@ func Test_movieDB_CountFeedVideo(t *testing.T) {
 }
 
 func Test_movieDB_CreatTMDBVideo(t *testing.T) {
-	err := NewMovieDB().CreatTMDBVideo(&types.TMDBVideo{
+	err := NewMovieDB().CreatTMDBVideo(context.Background(), &types.TMDBVideo{
 		ID:        99119,
 		Names:     `["阿凡达3：带种者111","Avatar:The.Seed.Bearer11"]`,
 		ImdbID:    "tt444444444",
@@ -82,7 +83,7 @@ func Test_movieDB_FetchTMDBVideoByType(t *testing.T) {
 }
 
 func Test_movieDB_FetchOneTMDBVideoByImdbID(t *testing.T) {
-	video, err := NewMovieDB().FetchOneTMDBVideoByImdbID("tt30222734")
+	video, err := NewMovieDB().FetchOneTMDBVideoByImdbID(context.Background(), "tt30222734")
 	if err != nil {
 		t.Error(err)
 	}
@@ -120,7 +121,7 @@ func Test_movieDB_RandomOneTMDBVideo(t *testing.T) {
 }
 
 func Test_movieDB_UpdateTMDBVideo(t *testing.T) {
-	NewMovieDB().UpdateTMDBVideo(&types.TMDBVideo{
+	NewMovieDB().UpdateTMDBVideo(context.Background(), &types.TMDBVideo{
 		ID:        99119,
 		Names:     `["阿凡达3：带种者111","Avatar:The.Seed.Bearer11"]`,
 		ImdbID:    "tt5555555",

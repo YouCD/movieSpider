@@ -3,12 +3,13 @@ package job
 import (
 	"context"
 	"encoding/json"
-	"github.com/robfig/cron/v3"
-	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
 	"os"
+
+	"github.com/robfig/cron/v3"
+	"github.com/youcd/toolkit/log"
 )
 
 type ReleaseTimeJob struct {
@@ -21,19 +22,19 @@ func NewReleaseTimeJob(scheduling string) *ReleaseTimeJob {
 	}
 	return &ReleaseTimeJob{scheduling: scheduling}
 }
-func (r *ReleaseTimeJob) Run() {
+func (r *ReleaseTimeJob) Run(ctx context.Context) {
 	if r.scheduling == "" {
-		log.WithCtx(context.Background()).Error("ReleaseTimeJob: Scheduling is null")
+		log.WithCtx(ctx).Error("ReleaseTimeJob: Scheduling is null")
 		os.Exit(1)
 	}
-	log.WithCtx(context.Background()).Infof("ReleaseTimeJob: Scheduling is: [%s]", r.scheduling)
+	log.WithCtx(ctx).Infof("ReleaseTimeJob: Scheduling is: [%s]", r.scheduling)
 	c := cron.New()
 	_, _ = c.AddFunc(r.scheduling, func() {
-		log.WithCtx(context.Background()).Infof("ReleaseTimeJob: Check video date for published.", r.scheduling)
+		log.WithCtx(ctx).Infof("ReleaseTimeJob: Check video date for published.", r.scheduling)
 
-		videos, err := model.NewMovieDB().FetchThisYearVideo()
+		videos, err := model.NewMovieDB().FetchThisYearVideo(ctx)
 		if err != nil {
-			log.WithCtx(context.Background()).Error(err)
+			log.WithCtx(ctx).Error(err)
 		}
 		for _, video := range videos {
 			if video.IsDatePublished() {
@@ -43,9 +44,9 @@ func (r *ReleaseTimeJob) Run() {
 				var names []string
 				err := json.Unmarshal([]byte(video.Names), &names)
 				if err != nil {
-					log.WithCtx(context.Background()).Error(err)
+					log.WithCtx(ctx).Error(err)
 				}
-				log.WithCtx(context.Background()).Infof("Video: %s , DatePublished: %v", names[0], video.DatePublished)
+				log.WithCtx(ctx).Infof("Video: %s , DatePublished: %v", names[0], video.DatePublished)
 			}
 		}
 	})

@@ -10,14 +10,14 @@ import (
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
-	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 	"github.com/youcd/toolkit/log"
 )
 
@@ -36,7 +36,7 @@ const (
 type TGBot struct {
 	botToken string
 	IDs      []int
-	bot      *tgbotapi.BotAPI
+	bot      *bot.Bot
 	mtx      sync.Mutex
 }
 
@@ -44,19 +44,22 @@ type TGBot struct {
 func NewTgBot(botToken string, tgIDs []int) *TGBot {
 	once.Do(func() {
 		ctx := context.Background()
-		client := http.DefaultClient
+		opts := []bot.Option{}
+
 		if config.Config.Global.ProxyURL != "" {
 			log.WithCtx(ctx).Info("ProxyURL ", config.Config.Global.ProxyURL)
-			client = httpclient.NewProxyHTTPClient(ctx)
+			client := httpclient.NewProxyHTTPClient(ctx)
+			opts = append(opts, bot.WithHTTPClient(time.Second*60, client))
 		}
-		bot, err := tgbotapi.NewBotAPIWithClient(config.Config.TG.BotToken, "https://api.telegram.org/bot%s/%s", client)
+
+		b, err := bot.New(config.Config.TG.BotToken, opts...)
 		if err != nil {
 			log.WithCtx(ctx).Error(err)
 			os.Exit(-1)
 		}
 
 		tgBotClient = &TGBot{
-			botToken: botToken, IDs: tgIDs, bot: bot,
+			botToken: botToken, IDs: tgIDs, bot: b,
 		}
 	})
 	return tgBotClient
@@ -73,50 +76,46 @@ const (
 // StartBot 启动bot
 //
 //nolint:gocognit
-func (t *TGBot) StartBot() {
+func (t *TGBot) StartBot(ctx context.Context) {
 	// 发送通知 下载 通知
 	t.downloadNotify()
 	// 发送通知 上映 通知
 	t.datePublishedNotify()
 	// 发送通知 下载完毕 通知
 	t.downloadCompleteNotify()
-	log.WithCtx(context.Background()).Infof("Authorized on account %s", t.bot.Self.UserName)
 
-	u := tgbotapi.NewUpdate(0)
-	updates := t.bot.GetUpdatesChan(u)
-	for update := range updates {
-		if update.Message == nil { // ignore any non-Message updates
-			continue
-		}
-
-		if !update.Message.IsCommand() { // ignore any non-command Messages
-			continue
-		}
-		if !t.checkUser(update.Message.Chat.ID, update) {
-			log.WithCtx(context.Background()).Warnf("用户 %s(%d) 没有权限执行命令 %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Command())
-			continue
-		}
-
-		ctx := context.Background()
-		switch update.Message.Command() {
-		case CMDReportDownload:
-			t.handleReportDownload(ctx, update)
-		case CMDReportFeedVideos:
-			t.SendReportFeedVideosMsg(update.Message.Chat.ID, int64(update.Message.MessageID))
-		case CMDMoveDownload:
-			t.handleMovieDownload(ctx, update)
-		default:
-			t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, "不支持此指令")
-		}
+	// 获取 bot 信息
+	me, err := t.bot.GetMe(ctx)
+	if err != nil {
+		log.WithCtx(ctx).Errorf("获取 bot 信息失败: %v", err)
+	} else {
+		log.WithCtx(ctx).Infof("Authorized on account %s", me.Username)
 	}
+
+	// 注册命令处理器
+	t.bot.RegisterHandler(bot.HandlerTypeMessageText, CMDReportDownload, bot.MatchTypeCommand, t.handleReportDownloadHandler)
+	t.bot.RegisterHandler(bot.HandlerTypeMessageText, CMDReportFeedVideos, bot.MatchTypeCommand, t.handleReportFeedVideosHandler)
+	t.bot.RegisterHandler(bot.HandlerTypeMessageText, CMDMoveDownload, bot.MatchTypeCommand, t.handleMovieDownloadHandler)
+
+	// 启动 bot
+	t.bot.Start(ctx)
 }
 
-// handleReportDownload 处理下载报告命令
-func (t *TGBot) handleReportDownload(ctx context.Context, update tgbotapi.Update) {
+// handleReportDownloadHandler 处理下载报告命令
+func (t *TGBot) handleReportDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
+
+	if !t.checkUser(update.Message.Chat.ID, update) {
+		log.WithCtx(ctx).Warnf("用户 %s(%d) 没有权限执行命令", update.Message.From.Username, update.Message.From.ID)
+		return
+	}
+
 	aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		log.WithCtx(ctx).Error(err)
-		t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, "aria2下载器服务异常")
+		t.sendReplyMessage(update.Message.Chat.ID, update.Message.ID, "aria2下载器服务异常")
 		return
 	}
 
@@ -127,33 +126,63 @@ func (t *TGBot) handleReportDownload(ctx context.Context, update tgbotapi.Update
 		sb.WriteString(fmt.Sprintf("%-40s | %s\n", fileName, file.Completed))
 	}
 
-	t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, sb.String())
+	t.sendReplyMessage(update.Message.Chat.ID, update.Message.ID, sb.String())
 }
 
-// handleMovieDownload 处理电影下载命令
-func (t *TGBot) handleMovieDownload(ctx context.Context, update tgbotapi.Update) {
-	update.Message.Entities = []tgbotapi.MessageEntity{{Type: "bot_command", Offset: 0, Length: 15}}
+// handleReportFeedVideosHandler 处理 Feed 视频报告命令
+func (t *TGBot) handleReportFeedVideosHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
 
-	arguments := update.Message.CommandArguments()
-	pars := tools.RemoveSpaceItem(strings.Split(arguments, " "))
+	if !t.checkUser(update.Message.Chat.ID, update) {
+		log.WithCtx(ctx).Warnf("用户 %s(%d) 没有权限执行命令", update.Message.From.Username, update.Message.From.ID)
+		return
+	}
 
-	if len(pars) < 3 {
-		t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, "参数不足，格式: /movie_download <name> <resolution>")
+	t.SendReportFeedVideosMsg(ctx, update.Message.Chat.ID, int64(update.Message.ID))
+}
+
+// handleMovieDownloadHandler 处理电影下载命令
+func (t *TGBot) handleMovieDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
+
+	if !t.checkUser(update.Message.Chat.ID, update) {
+		log.WithCtx(ctx).Warnf("用户 %s(%d) 没有权限执行命令", update.Message.From.Username, update.Message.From.ID)
+		return
+	}
+
+	// 获取命令参数
+	text := update.Message.Text
+	// 移除命令部分，获取参数
+	args := strings.TrimPrefix(text, "/"+CMDMoveDownload)
+	args = strings.TrimSpace(args)
+	pars := tools.RemoveSpaceItem(strings.Split(args, " "))
+
+	if len(pars) < 2 {
+		t.sendReplyMessage(update.Message.Chat.ID, update.Message.ID, "参数不足，格式: /movie_download <name> <resolution>")
 		return
 	}
 
 	downloader := download.NewDownloader(config.Config.Downloader.Scheduling)
-	downloadMsg := downloader.DownloadByName(ctx, pars[1], pars[2])
-	t.sendReplyMessage(update.Message.Chat.ID, update.Message.MessageID, downloadMsg)
+	downloadMsg := downloader.DownloadByName(ctx, pars[0], pars[1])
+	t.sendReplyMessage(update.Message.Chat.ID, update.Message.ID, downloadMsg)
 }
 
 // sendReplyMessage 发送回复消息
 func (t *TGBot) sendReplyMessage(chatID int64, messageID int, text string) {
-	msg := tgbotapi.NewMessage(chatID, text)
-	msg.ReplyToMessageID = messageID
-	_, err := t.bot.Send(msg)
+	ctx := context.Background()
+	_, err := t.bot.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: chatID,
+		Text:   text,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: messageID,
+		},
+	})
 	if err != nil {
-		log.WithCtx(context.Background()).Error(err)
+		log.WithCtx(ctx).Error(err)
 	}
 }
 
@@ -168,11 +197,14 @@ func truncateString(s string, maxLen int) string {
 
 // SendStrMsg 发送字符串消息
 func (t *TGBot) SendStrMsg(msg string) {
+	ctx := context.Background()
 	for _, id := range t.IDs {
-		tgMsg := tgbotapi.NewMessage(int64(id), msg)
-		_, err := t.bot.Send(tgMsg)
+		_, err := t.bot.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: int64(id),
+			Text:   msg,
+		})
 		if err != nil {
-			log.WithCtx(context.Background()).Error(err)
+			log.WithCtx(ctx).Error(err)
 		}
 	}
 }
@@ -188,9 +220,9 @@ func inArray(val int, array []int) bool {
 }
 
 // checkUser 检查用户是否有权限
-func (t *TGBot) checkUser(chatID int64, update tgbotapi.Update) bool {
+func (t *TGBot) checkUser(chatID int64, update *models.Update) bool {
 	if !inArray(int(chatID), config.Config.TG.TgIDs) {
-		t.sendReplyMessage(chatID, update.Message.MessageID, "您没有权限")
+		t.sendReplyMessage(chatID, update.Message.ID, "您没有权限")
 		return false
 	}
 	return true
@@ -202,7 +234,7 @@ func (t *TGBot) downloadNotify() {
 		for {
 			video, ok := <-bus.DownloadNotifyChan
 			if ok {
-				t.SendDatePublishedOrDownloadMsg(video, notifyTypeDownload)
+				t.SendDatePublishedOrDownloadMsg(context.Background(), video, notifyTypeDownload)
 			} else {
 				return
 			}
@@ -216,7 +248,7 @@ func (t *TGBot) datePublishedNotify() {
 		for {
 			v, ok := <-bus.DatePublishedChan
 			if ok {
-				t.SendDatePublishedOrDownloadMsg(&types.DownloadNotifyVideo{
+				t.SendDatePublishedOrDownloadMsg(context.Background(), &types.DownloadNotifyVideo{
 					TMDBVideo: v,
 				}, notifyTypeDatePublished)
 			} else {
@@ -246,7 +278,7 @@ func (t *TGBot) downloadCompleteNotify() {
 				if ok {
 					func() {
 						defer t.mtx.Unlock()
-						t.SendDatePublishedOrDownloadMsg(video, notifyTypeDownloadComplete)
+						t.SendDatePublishedOrDownloadMsg(context.Background(), video, notifyTypeDownloadComplete)
 					}()
 				}
 			}

@@ -220,9 +220,12 @@ func (m *MovieDB) processFeedVideos(ctx context.Context, items ...*types.FeedVid
 		feedVideo.Name = result.NewName
 		feedVideo.Year = cast.ToString(result.Year)
 		feedVideo.Type = result.TypeStr
+		feedVideo.Season = result.Season
+		feedVideo.Episode = result.Episode
+		feedVideo.Complete = result.Complete
 
 		// 保存到数据库
-		if err = m.CreatFeedVideo(feedVideo); err != nil {
+		if err = m.CreatFeedVideo(ctx, feedVideo); err != nil {
 			if errors.Is(err, ErrDataExist) {
 				log.WithCtx(ctx).Debugf("%s.%s err: %s", feedVideo.Web, feedVideo.Type, err)
 				continue

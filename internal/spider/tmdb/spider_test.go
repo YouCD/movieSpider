@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewTMDBSpider(t *testing.T) {
-	spider, err := NewTMDBSpider(config.Config.TMDB.AccountID, config.Config.TMDB.ApiToken)
+	spider, err := NewTMDBSpider(config.Config.TMDB.AccountID, config.Config.TMDB.BearerToken)
 	if err != nil {
 		t.Errorf("创建TMDB爬虫失败: %s", err)
 		return
