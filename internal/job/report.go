@@ -2,12 +2,13 @@ package job
 
 import (
 	"context"
+	"os"
+	"strconv"
+
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
-	"os"
-	"strconv"
 
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/olekukonko/tablewriter"

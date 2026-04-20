@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
-	"time"
 
 	"github.com/robfig/cron/v3"
 	"github.com/youcd/toolkit/log"

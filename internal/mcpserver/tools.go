@@ -12,7 +12,7 @@ func RegisterTools(s *server.MCPServer, movieService *MovieService) {
 		mcp.WithDescription("搜索电影资源，返回电影的名称、ID和分辨率信息"),
 		mcp.WithString("movie_name",
 			mcp.Required(),
-			mcp.Description("要搜索的电影名称，如：'The Matrix',只支持英文、数字、点"),
+			mcp.Description("要搜索的电影名称，如：'The Matrix',请提供英文名称"),
 		),
 	)
 	s.AddTool(searchMovieTool, SearchMovieHandler(movieService))
@@ -59,7 +59,7 @@ func RegisterTools(s *server.MCPServer, movieService *MovieService) {
 		mcp.WithDescription("检查电影是否可播放"),
 		mcp.WithString("movie_name",
 			mcp.Required(),
-			mcp.Description("电影的名称"),
+			mcp.Description("请提供电影的英文名称"),
 		),
 	)
 	s.AddTool(checkMovieIsPlayableTool, CheckMovieIsPlayable(movieService))

@@ -3,8 +3,9 @@ package config
 import (
 	"context"
 	"fmt"
-	"movieSpider/internal/types"
 	"os"
+
+	"movieSpider/internal/types"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-playground/validator/v10"
@@ -71,7 +72,7 @@ type config struct {
 		EZTV    *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
 		GLODLS  *types.BaseFeed `json:"GLODLS" yaml:"GLODLS" validate:"required"`
 		TORLOCK []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
-		//Web1337x      []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
+		// Web1337x      []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
 		ThePirateBay  *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
 		Knaben        *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
 		TheRarbg      []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`

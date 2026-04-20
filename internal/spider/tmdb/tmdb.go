@@ -3,10 +3,11 @@ package tmdb
 import (
 	"context"
 	"fmt"
-	"movieSpider/internal/httpclient"
-	"movieSpider/internal/types"
 	"net/http"
 	"strconv"
+
+	"movieSpider/internal/httpclient"
+	"movieSpider/internal/types"
 
 	"github.com/cyruzin/golang-tmdb"
 )

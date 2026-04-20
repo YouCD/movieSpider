@@ -3,9 +3,10 @@ package searchspider
 import (
 	"context"
 	"fmt"
-	"movieSpider/internal/types"
 	"net/url"
 	"os"
+
+	"movieSpider/internal/types"
 
 	"github.com/youcd/toolkit/log"
 )

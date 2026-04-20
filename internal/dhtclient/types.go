@@ -26,8 +26,7 @@ type Statistics struct {
 	TotalSize   map[string]uint64 `json:"totalSize"`
 
 	// All these slices below have the exact length equal to the Period.
-	//NDiscovered []uint64  `json:"nDiscovered"`
-
+	// NDiscovered []uint64  `json:"nDiscovered"`
 }
 
 type File struct {

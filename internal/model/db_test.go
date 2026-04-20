@@ -3,20 +3,21 @@ package model
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
-	"testing"
 )
 
 func init() {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
 }
+
 func TestNewMovieDB(t *testing.T) {
 	NewMovieDB()
 }
 
 func Test_movieDB_AddDownloadHistory(t *testing.T) {
-
 	err := NewMovieDB().AddDownloadHistory(&types.DownloadHistory{
 		ID:          0,
 		Name:        "Raven.of.the.Inner.Palace",
@@ -40,7 +41,6 @@ func Test_movieDB_CountFeedVideo(t *testing.T) {
 	for _, count := range counts {
 		fmt.Println(count)
 	}
-
 }
 
 func Test_movieDB_CreatTMDBVideo(t *testing.T) {
@@ -71,9 +71,8 @@ func Test_movieDB_CreatFeedVideo(t *testing.T) {
 }
 
 func Test_movieDB_FetchTMDBVideoByType(t *testing.T) {
-	var tt = types.VideoTypeTV
+	tt := types.VideoTypeTV
 	list, err := NewMovieDB().FetchTMDBVideoByType(tt)
-
 	if err != nil {
 		t.Error(err)
 	}

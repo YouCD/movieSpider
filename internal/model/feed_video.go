@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"movieSpider/internal/tools"
-	"movieSpider/internal/types"
 	"strings"
 	"time"
+
+	"movieSpider/internal/tools"
+	"movieSpider/internal/types"
 
 	"github.com/youcd/toolkit/log"
 )
@@ -26,6 +27,7 @@ func (m *MovieDB) FindLikeTVFromFeedVideo(name string) (videos []*types.FeedVide
 	}
 	return
 }
+
 func (m *MovieDB) GetFeedVideoByName(name string) (*types.FeedVideo, error) {
 	var video *types.FeedVideo
 	err := m.db.Model(&types.FeedVideo{}).Where("torrent_name = ?", name).First(&video).Error
@@ -260,6 +262,7 @@ func (m *MovieDB) UpdateFeedVideos(ctx context.Context, videos ...*types.FeedVid
 	}
 	return tx.Commit().Error
 }
+
 func (m *MovieDB) CountFeedVideoByToday() (counts []*types.ReportCount, err error) {
 	// select count(*) as cnt, web from feed_video  where timestamp>=1767801600 group by web  ;
 	// 获取当前时间

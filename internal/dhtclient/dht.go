@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
-	"movieSpider/internal/bus"
-	"movieSpider/internal/types"
 	"os"
 	"time"
 	"unicode"
+
+	"movieSpider/internal/bus"
+	"movieSpider/internal/types"
 
 	"github.com/youcd/toolkit/log"
 )
@@ -36,9 +37,9 @@ func crawl() {
 	for stopped := false; !stopped; {
 		select {
 		case result := <-trawlingManager.Output():
-			//hash := result.InfoHash()
-			//fmt.Println("", hash)
-			//if !cache.InfoHashCache.Contains(hash) {
+			// hash := result.InfoHash()
+			// fmt.Println("", hash)
+			// if !cache.InfoHashCache.Contains(hash) {
 			//	cache.InfoHashCache.Add(hash)
 			metadataSink.Sink(result)
 			//}

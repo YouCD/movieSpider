@@ -5,14 +5,15 @@ import (
 	"errors"
 	"fmt"
 	log1 "log"
+	"os"
+	"sync"
+	"time"
+
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/nameparser"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
-	"os"
-	"sync"
-	"time"
 
 	// 引入 MySQL 驱动以初始化数据库连接
 	_ "github.com/go-sql-driver/mysql"

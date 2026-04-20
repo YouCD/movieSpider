@@ -3,11 +3,12 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"movieSpider/internal/tools"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"movieSpider/internal/tools"
 )
 
 type RowData struct {

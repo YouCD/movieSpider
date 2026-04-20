@@ -2,8 +2,9 @@ package aria2
 
 import (
 	"fmt"
-	"movieSpider/internal/config"
 	"testing"
+
+	"movieSpider/internal/config"
 
 	"github.com/youcd/toolkit/log"
 )
@@ -51,7 +52,8 @@ func Test_aria2_DownloadList(t *testing.T) {
 	//}
 	//url := `magnet:?xt=urn:btih:0ceaa977f733050a60c0164488f70fdad14ac4d9&dn=Extraction.2.2023.2160p.NF.WEB-DL.DDP5.1.Atmos.DV.H.265-FLUX&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2740%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&tr=udp%3A%2F%2Fopentor.org%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.demonii.si%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.tracker.cl%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.cyberia.is%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.moeking.me%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.me%3A2740%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2790%2Fannounce`
 	urls := []string{
-		`http://z9.shunchangjc.com:8080/110/%E7%BA%A2%E8%89%B2%E8%AD%A6%E6%88%922%E6%A0%B8%E6%88%98%E4%BA%893.0%E4%B9%8B%E9%A3%8E%E4%BA%91%E5%86%8D%E8%B5%B7.rar?tk=UmNzATY1MjN5IzN0IjYmVmM4QWO4Q2NjBzYwQjYhNGN852b852Yu42dvR2cyxXMzUTNwYDOwcTM`}
+		`http://z9.shunchangjc.com:8080/110/%E7%BA%A2%E8%89%B2%E8%AD%A6%E6%88%922%E6%A0%B8%E6%88%98%E4%BA%893.0%E4%B9%8B%E9%A3%8E%E4%BA%91%E5%86%8D%E8%B5%B7.rar?tk=UmNzATY1MjN5IzN0IjYmVmM4QWO4Q2NjBzYwQjYhNGN852b852Yu42dvR2cyxXMzUTNwYDOwcTM`,
+	}
 	for _, url := range urls {
 
 		gid, err := newAria2.DownloadByMagnet(url)
@@ -61,11 +63,9 @@ func Test_aria2_DownloadList(t *testing.T) {
 		fmt.Println("gidgidgidgid             ", gid)
 
 	}
-
 }
 
 func Test_aria2_CompletedFiles(t *testing.T) {
-
 	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
 	if err != nil {
 		t.Error(err)
@@ -77,8 +77,7 @@ func Test_aria2_CompletedFiles(t *testing.T) {
 	}
 
 	log.Infof("Report: 下载统计: %s", msg)
-	//fmt.Println(bs)
-
+	// fmt.Println(bs)
 }
 
 func Test_aria2_getAllActiveGID(t *testing.T) {
@@ -91,7 +90,6 @@ func Test_aria2_getAllActiveGID(t *testing.T) {
 	info, err := newAria2.aria2Client.TellStatus("187a69be1bfeec9e", "files", "gid", "status", "errorMessage", "belongsTo", "following", "followedBy")
 	if err != nil {
 		t.Error(err)
-
 	}
 	fmt.Println(info.Files)
 	fmt.Println(info.Status)

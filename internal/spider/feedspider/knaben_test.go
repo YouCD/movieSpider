@@ -3,8 +3,9 @@ package feedspider
 import (
 	"context"
 	"errors"
-	"movieSpider/internal/model"
 	"testing"
+
+	"movieSpider/internal/model"
 
 	"github.com/youcd/toolkit/log"
 )
@@ -21,7 +22,7 @@ func TestEztv_Crawler(t *testing.T) {
 			if errors.Is(err, model.ErrFeedVideoExclude) {
 				continue
 			}
-			//log.Errorf("err: %s    %#v", err, video)
+			// log.Errorf("err: %s    %#v", err, video)
 			continue
 		}
 		log.WithCtx(context.Background()).Infof("%#v", filterVideo)

@@ -3,9 +3,10 @@ package model
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"movieSpider/internal/nameparser"
 	"movieSpider/internal/types"
-	"testing"
 
 	"github.com/youcd/toolkit/log"
 )
@@ -19,6 +20,7 @@ func TestMovieDB_GetFeedVideoMovieByNames(t *testing.T) {
 	}
 	fmt.Println(got)
 }
+
 func TestNameParserModelHandler(t *testing.T) {
 	dbA := NewMovieDB().GetDB()
 	var tvs []*types.FeedVideo

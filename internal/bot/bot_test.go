@@ -2,17 +2,19 @@ package bot
 
 import (
 	"context"
+	"testing"
+
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
-	"testing"
 )
 
 func init() {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
 	model.NewMovieDB()
 }
+
 func TestTGBot_SendDatePublishedMsg(t1 *testing.T) {
 	t := NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
 	go t.StartBot(context.Background())

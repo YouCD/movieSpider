@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"strings"
+
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
-	"strings"
 
 	"github.com/youcd/toolkit/log"
 )

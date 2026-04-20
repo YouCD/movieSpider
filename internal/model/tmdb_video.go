@@ -6,9 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"time"
+
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
-	"time"
 
 	"github.com/youcd/toolkit/log"
 	"gorm.io/gorm"
@@ -48,7 +49,6 @@ func (m *MovieDB) CreatTMDBVideo(ctx context.Context, video *types.TMDBVideo) (e
 	}
 
 	err = m.db.Model(&types.TMDBVideo{}).WithContext(ctx).Create(video).Error
-
 	if err != nil {
 		return fmt.Errorf("CreatTMDBVideo 数据已添加. video: %#v, err: %w", video, err)
 	}
@@ -203,6 +203,7 @@ func (m *MovieDB) FetchPlayableVideos(ctx context.Context, p bool) ([]*types.TMD
 	}
 	return videos, nil
 }
+
 func (m *MovieDB) FetchPlayableVideosAndUpdate(ctx context.Context, p bool, update int64) ([]*types.TMDBVideo, error) {
 	var flag string
 	if p {

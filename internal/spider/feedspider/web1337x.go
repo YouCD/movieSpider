@@ -5,9 +5,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"movieSpider/internal/types"
 	"net/url"
 	"regexp"
+
+	"movieSpider/internal/types"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/youcd/toolkit/log"

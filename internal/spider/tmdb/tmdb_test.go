@@ -2,8 +2,9 @@ package tmdb
 
 import (
 	"context"
-	"movieSpider/internal/config"
 	"testing"
+
+	"movieSpider/internal/config"
 )
 
 var (

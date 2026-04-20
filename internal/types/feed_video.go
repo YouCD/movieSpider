@@ -40,6 +40,7 @@ type FeedVideo struct {
 func (f *FeedVideo) TableName() string {
 	return "feed_video"
 }
+
 func (f *FeedVideo) VideoType() VideoType {
 	return Convert2VideoType(f.Type)
 }

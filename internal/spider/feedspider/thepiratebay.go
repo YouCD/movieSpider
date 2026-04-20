@@ -2,9 +2,10 @@ package feedspider
 
 import (
 	"context"
+	"strings"
+
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
-	"strings"
 
 	"github.com/youcd/toolkit/log"
 )
@@ -25,6 +26,7 @@ func NewThePirateBay() *ThePirateBay {
 		},
 	}
 }
+
 func (t *ThePirateBay) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
 	fd, err := t.FeedParser(ctx).ParseURL(t.Url)
 	if err != nil {

@@ -3,10 +3,11 @@ package httpclient
 import (
 	"context"
 	"crypto/tls"
-	"movieSpider/internal/config"
 	"net/http"
 	"net/url"
 	"time"
+
+	"movieSpider/internal/config"
 
 	"github.com/youcd/toolkit/log"
 )

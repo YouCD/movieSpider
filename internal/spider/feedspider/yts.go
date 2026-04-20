@@ -3,10 +3,11 @@ package feedspider
 import (
 	"bytes"
 	"context"
+	"sync"
+
 	"movieSpider/internal/config"
 	"movieSpider/internal/magnetconvert"
 	"movieSpider/internal/types"
-	"sync"
 
 	"github.com/youcd/toolkit/log"
 )

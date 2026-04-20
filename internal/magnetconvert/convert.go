@@ -2,11 +2,10 @@ package magnetconvert
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
-
-	"errors"
 
 	"github.com/anacrolix/torrent/metainfo"
 )

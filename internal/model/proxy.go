@@ -3,8 +3,9 @@ package model
 import (
 	"context"
 	"errors"
-	"movieSpider/internal/types"
 	"strings"
+
+	"movieSpider/internal/types"
 
 	"github.com/youcd/toolkit/log"
 )

@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"strings"
+
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
-	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/youcd/toolkit/log"

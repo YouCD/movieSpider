@@ -3,15 +3,16 @@ package mcpserver
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"regexp"
+	"sync"
+	"time"
+
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"movieSpider/internal/spider/tmdb"
 	"movieSpider/internal/types"
-	"net/http"
-	"regexp"
-	"sync"
-	"time"
 
 	"github.com/youcd/toolkit/log"
 )
@@ -356,7 +357,6 @@ func (s *MovieService) PlayableTodayMovieTV(ctx context.Context) ([]MovieResult,
 	// 从数据库获取搜索结果
 	videos, err := model.NewMovieDB().FetchPlayableVideosAndUpdate(ctx, true, start)
 	if err != nil {
-
 		return nil, fmt.Errorf("查询数据库失败: %w", err)
 	}
 
@@ -429,6 +429,7 @@ func parseResolution(torrentName string) string {
 	}
 	return "未知"
 }
+
 func tokenAuth(next http.Handler, apiKey string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.URL.Query().Get("token")

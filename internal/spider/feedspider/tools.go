@@ -2,9 +2,10 @@ package feedspider
 
 import (
 	"context"
-	"movieSpider/internal/types"
 	"strings"
 	"sync"
+
+	"movieSpider/internal/types"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/youcd/toolkit/log"

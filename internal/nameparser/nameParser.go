@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"movieSpider/internal/config"
 	"movieSpider/internal/types"
-	"strings"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/youcd/toolkit/log"
@@ -127,9 +128,7 @@ Fallout.S02.COMPLETE.2160p.AMZN.WEB-DL.DV.HDR10+.MULTi.DDP5.1.Atmos.H265.MP4-BTM
 **只输出解析后的JSON数组，不要包含任何额外文字或解释。**
 `
 
-var (
-	ErrNamesIsEmpty = fmt.Errorf("names is empty")
-)
+var ErrNamesIsEmpty = fmt.Errorf("names is empty")
 
 func ModelHandler(ctx context.Context, names ...string) (map[string]*types.LLMResult, error) {
 	if len(names) == 0 {

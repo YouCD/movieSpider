@@ -192,7 +192,6 @@ func RemoveDownloadHandler(service *MovieService) func(ctx context.Context, requ
 // PlayableTodayMovieTV 获取最近24小时内更新为可播放状态的电影或电视剧
 func PlayableTodayMovieTV(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
 		// 调用搜索服务
 		results, err := service.PlayableTodayMovieTV(ctx)
 		if err != nil {
@@ -218,6 +217,7 @@ func PlayableTodayMovieTV(service *MovieService) func(ctx context.Context, reque
 		return mcp.NewToolResultText(output), nil
 	}
 }
+
 func CheckMovieIsPlayable(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// 获取GID参数
@@ -238,6 +238,7 @@ func CheckMovieIsPlayable(service *MovieService) func(ctx context.Context, reque
 		return mcp.NewToolResultText("该电影今日不可播放,有可能输入的名称不正确"), nil
 	}
 }
+
 func CheckTVIsPlayable(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// 获取GID参数

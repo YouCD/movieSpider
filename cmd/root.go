@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"context"
-	"movieSpider/internal/config"
-	"movieSpider/internal/core"
-	"movieSpider/internal/mcpserver"
-	"movieSpider/internal/model"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"movieSpider/internal/config"
+	"movieSpider/internal/core"
+	"movieSpider/internal/mcpserver"
+	"movieSpider/internal/model"
 
 	"github.com/spf13/cobra"
 	"github.com/youcd/toolkit/log"

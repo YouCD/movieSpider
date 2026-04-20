@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"movieSpider/internal/model"
-	"movieSpider/internal/types"
 	"strings"
 	"text/template"
+
+	"movieSpider/internal/model"
+	"movieSpider/internal/types"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"

@@ -73,7 +73,6 @@ func (t *Transport) Start() {
 		IP:   t.laddr.IP.To4(),
 		Port: t.laddr.Port,
 	})
-
 	if err != nil {
 		log.WithCtx(context.Background()).Error("Could NOT bind the socket!", "error", err)
 	}

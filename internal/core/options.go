@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+
 	"movieSpider/internal/config"
 	"movieSpider/internal/download"
 	"movieSpider/internal/job"
@@ -34,7 +35,7 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	// TORLOCK
 	feedTorlockTV, feedTorlockMovie := createFeederWithURLs(config.Config.Feed.TORLOCK, feedspider.NewTorlock)
 	// 1337x
-	//feed1337xTV, feed1337xMovie := createFeederWithURLs(config.Config.Feed.Web1337x, feedspider.NewWeb1337x)
+	// feed1337xTV, feed1337xMovie := createFeederWithURLs(config.Config.Feed.Web1337x, feedspider.NewWeb1337x)
 
 	// therarbg
 	feedTheRarbg2TV, feedTheRarbg2Movie := createFeederWithURLs(config.Config.Feed.TheRarbg, feedspider.NewTheRarbg)
@@ -53,8 +54,8 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			feedEZTV,
 			feedTorlockMovie,
 			feedTorlockTV,
-			//feed1337xMovie,
-			//feed1337xTV,
+			// feed1337xMovie,
+			// feed1337xTV,
 			feedThePirateBay,
 			feedKnaben,
 			feedTheRarbg2TV,

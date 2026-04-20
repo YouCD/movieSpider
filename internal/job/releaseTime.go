@@ -3,10 +3,11 @@ package job
 import (
 	"context"
 	"encoding/json"
+	"os"
+
 	"movieSpider/internal/bus"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
-	"os"
 
 	"github.com/robfig/cron/v3"
 	"github.com/youcd/toolkit/log"
@@ -22,6 +23,7 @@ func NewReleaseTimeJob(scheduling string) *ReleaseTimeJob {
 	}
 	return &ReleaseTimeJob{scheduling: scheduling}
 }
+
 func (r *ReleaseTimeJob) Run(ctx context.Context) {
 	if r.scheduling == "" {
 		log.WithCtx(ctx).Error("ReleaseTimeJob: Scheduling is null")

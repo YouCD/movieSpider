@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"movieSpider/internal/types"
 	"net/url"
 	"strings"
 	"sync"
+
+	"movieSpider/internal/types"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/youcd/toolkit/log"

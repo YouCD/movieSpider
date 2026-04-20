@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"movieSpider/internal/types"
 	"net/url"
+
+	"movieSpider/internal/types"
 
 	"github.com/youcd/toolkit/log"
 
@@ -34,6 +35,7 @@ func NewIlcorsaronero(scheduling string, resourceType types.VideoType, siteURL s
 		typ:     resourceType,
 	}
 }
+
 func (u *Ilcorsaronero) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
 	log.WithCtx(ctx).Debugf("%s type: %v url: %s", u.web, u.typ, u.Url)
 	// body > main > div.container.md\:rounded-xl.md\:shadow.md\:border.bg-neutral-800.border-neutral-900.text-neutral-400 > div.overflow-x-auto > table > tbody > tr:nth-child(1)

@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"movieSpider/internal/model"
-	"movieSpider/internal/types"
 	"net/url"
 	"os"
 	"strings"
+
+	"movieSpider/internal/model"
+	"movieSpider/internal/types"
 
 	"github.com/mmcdole/gofeed"
 	"github.com/youcd/toolkit/log"

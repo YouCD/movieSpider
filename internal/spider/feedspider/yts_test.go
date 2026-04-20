@@ -2,16 +2,17 @@ package feedspider
 
 import (
 	"context"
-	"movieSpider/internal/model"
 	"testing"
+
+	"movieSpider/internal/model"
 
 	"github.com/youcd/toolkit/log"
 )
 
 func TestYts_Crawler(t *testing.T) {
-	//web1337x := NewWeb1337x("*/3 * * * *", types.VideoTypeTV, "https://www.1337xx.to/popular-tv")
-	//log.SetLogLevel("DEBUG")
-	//web1337x := NewWeb1337x("*/3 * * * *", types.VideoTypeMovie, "https://www.1337xx.to/popular-movies", true)
+	// web1337x := NewWeb1337x("*/3 * * * *", types.VideoTypeTV, "https://www.1337xx.to/popular-tv")
+	// log.SetLogLevel("DEBUG")
+	// web1337x := NewWeb1337x("*/3 * * * *", types.VideoTypeMovie, "https://www.1337xx.to/popular-movies", true)
 	yts := NewYts()
 	gotVideos, err := yts.Crawler(context.Background())
 	if err != nil {

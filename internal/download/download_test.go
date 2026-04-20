@@ -2,19 +2,20 @@ package download
 
 import (
 	"context"
+	"testing"
+
 	"github.com/youcd/toolkit/log"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
-	"testing"
 )
 
 func init() {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
 	model.NewMovieDB()
 }
-func Test_download_Run(t *testing.T) {
 
+func Test_download_Run(t *testing.T) {
 	d := &Download{
 		scheduling: "The.Peripheral",
 	}
@@ -22,7 +23,6 @@ func Test_download_Run(t *testing.T) {
 }
 
 func Test_download_DownloadByName(t *testing.T) {
-
 	d := &Download{
 		scheduling: "*/1 * * * *",
 	}
@@ -50,5 +50,4 @@ func Test_download_DownloadByName(t *testing.T) {
 	//		}
 	//	}
 	//}()
-
 }

@@ -3,6 +3,12 @@ package bot
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+	"sync"
+	"time"
+	"unicode/utf8"
+
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
@@ -10,11 +16,6 @@ import (
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/tools"
 	"movieSpider/internal/types"
-	"os"
-	"strings"
-	"sync"
-	"time"
-	"unicode/utf8"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"

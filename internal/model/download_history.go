@@ -3,9 +3,10 @@ package model
 import (
 	"errors"
 	"fmt"
-	"movieSpider/internal/types"
 	"strings"
 	"time"
+
+	"movieSpider/internal/types"
 
 	"gorm.io/gorm"
 )

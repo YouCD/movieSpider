@@ -6,14 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"movieSpider/internal/config"
-	"movieSpider/internal/model"
-	"movieSpider/internal/tools"
-	"movieSpider/internal/types"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"movieSpider/internal/config"
+	"movieSpider/internal/model"
+	"movieSpider/internal/tools"
+	"movieSpider/internal/types"
 
 	"github.com/spf13/cast"
 	"github.com/youcd/toolkit/log"
@@ -79,9 +80,7 @@ func (a *Aria2) DownloadByURL(url string) (gid string, err error) {
 	return a.aria2Client.AddURI([]string{url})
 }
 
-var (
-	ErrTellStatus = errors.New("TellStatus 超时")
-)
+var ErrTellStatus = errors.New("TellStatus 超时")
 
 func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 	a.mtx.Lock()
@@ -128,29 +127,6 @@ func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
 		}
 	}
 }
-
-/*
-// getAllActiveGID
-//
-//	@Description: 获取所有正在下载的任务的gid
-//	@receiver a
-//	@return []string
-//	@return error
-//
-//nolint:prealloc
-
-	func (a *Aria2) getAllActiveGID() ([]string, error) {
-		infos, err := a.List()
-		if err != nil {
-			return nil, err
-		}
-		var gid []string
-		for _, info := range infos {
-			gid = append(gid, info.Gid)
-		}
-		return gid, nil
-	}
-*/
 
 func (a *Aria2) DownloadByWithVideo(ctx context.Context, v *types.FeedVideo, url string) (gid string, err error) {
 	gid, err = a.DownloadByMagnet(url)
@@ -296,6 +272,7 @@ func (a *Aria2) AddDownloadTask(feedVideo *types.FeedVideo, gid string) {
 	defer a.mtx.Unlock()
 	a.downloadTask[gid] = feedVideo
 }
+
 func (a *Aria2) GetDownloadTask() map[string]*types.FeedVideo {
 	return a.downloadTask
 }

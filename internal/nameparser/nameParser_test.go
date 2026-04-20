@@ -3,15 +3,18 @@ package nameparser
 import (
 	"context"
 	"fmt"
-	"movieSpider/internal/config"
 	"testing"
+
+	"movieSpider/internal/config"
 )
 
 func init() {
 	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
 }
+
 func TestNameParserModelHandler(t *testing.T) {
-	a := []string{"Australian Survivor S13",
+	a := []string{
+		"Australian Survivor S13",
 		"Din.Don.9.Paesani.spaesati.2025.1080.mkv",
 		"E1-4 of 8 [2025, WEBRip-AVC]",
 		"Freakier Friday (2025) [1080p] [WEBRip] [x265] [10bit] [5.1]",

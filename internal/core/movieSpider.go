@@ -3,6 +3,10 @@ package core
 import (
 	"context"
 	"errors"
+	"os"
+	"strings"
+	"sync"
+
 	"movieSpider/internal/bot"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
@@ -11,9 +15,6 @@ import (
 	"movieSpider/internal/job"
 	"movieSpider/internal/spider"
 	"movieSpider/internal/spider/feedspider"
-	"os"
-	"strings"
-	"sync"
 
 	"github.com/robfig/cron/v3"
 	"github.com/youcd/toolkit/log"

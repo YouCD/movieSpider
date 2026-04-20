@@ -2,9 +2,10 @@ package download
 
 import (
 	"context"
+	"strings"
+
 	"movieSpider/internal/model"
 	"movieSpider/internal/types"
-	"strings"
 
 	"github.com/youcd/toolkit/log"
 )

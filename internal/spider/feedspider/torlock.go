@@ -7,10 +7,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"movieSpider/internal/magnetconvert"
-	"movieSpider/internal/types"
 	"strings"
 	"sync"
+
+	"movieSpider/internal/magnetconvert"
+	"movieSpider/internal/types"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"

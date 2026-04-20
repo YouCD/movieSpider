@@ -1,8 +1,9 @@
 package job
 
 import (
-	"movieSpider/internal/config"
 	"testing"
+
+	"movieSpider/internal/config"
 )
 
 func init() {

@@ -24,5 +24,4 @@ func TestIO2Magnet(t *testing.T) {
 
 	fmt.Println(m.InfoHash)
 	fmt.Println(m.Trackers)
-
 }

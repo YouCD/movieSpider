@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
+
 	"movieSpider/internal/httpclient"
 	"movieSpider/internal/types"
-	"net/http"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -32,17 +33,20 @@ func (b *BaseFeeder) HTTPClient() *http.Client {
 func (b *BaseFeeder) HTTPClientIPProxyPool(ctx context.Context) *http.Client {
 	return httpclient.NewProxyHTTPClient(ctx)
 }
+
 func (b *BaseFeeder) HTTPClientDynamic(ctx context.Context) *http.Client {
 	if b.UseIPProxy {
 		return b.HTTPClientIPProxyPool(ctx)
 	}
 	return b.HTTPClient()
 }
+
 func (b *BaseFeeder) FeedParser(ctx context.Context) *gofeed.Parser {
 	fp := gofeed.NewParser()
 	fp.Client = b.HTTPClientDynamic(ctx)
 	return fp
 }
+
 func (b *BaseFeeder) FeedParserUserAgent(ctx context.Context, userAgent string) *gofeed.Parser {
 	fp := gofeed.NewParser()
 	fp.Client = b.HTTPClientDynamic(ctx)

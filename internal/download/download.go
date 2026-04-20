@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"sync"
+
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/bus"
 	"movieSpider/internal/config"
 	"movieSpider/internal/model"
 	"movieSpider/internal/spider/searchspider"
 	"movieSpider/internal/types"
-	"os"
-	"sync"
 
 	"github.com/robfig/cron/v3"
 	"github.com/youcd/toolkit/log"
