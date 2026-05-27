@@ -48,22 +48,25 @@ func (f *Yts) Crawler(ctx context.Context) (videos []*types.FeedVideoBase, err e
 	}
 
 	var wg sync.WaitGroup
+	var mu sync.Mutex // 保护 videos 切片的并发访问
 	for _, video := range tempVideos {
 		wg.Add(1)
 		go func(video *types.FeedVideoBase) {
 			defer wg.Done()
 			do, err := f.HTTPRequest(ctx, video.Magnet)
 			if err != nil {
-				log.WithCtx(ctx).Panicw("Yts Magnet Request Error", "err", err)
+				log.WithCtx(ctx).Errorw("Yts Magnet Request Error", "err", err, "torrent_url", video.TorrentURL)
 				return
 			}
 			magnet, err := magnetconvert.IO2Magnet(bytes.NewReader(do))
 			if err != nil {
-				log.WithCtx(ctx).Panicw("Yts Magnet Convert Error", "err", err)
+				log.WithCtx(ctx).Errorw("Yts Magnet Convert Error", "err", err, "torrent_url", video.TorrentURL)
 				return
 			}
 			video.Magnet = magnet
+			mu.Lock()
 			videos = append(videos, video)
+			mu.Unlock()
 		}(video)
 	}
 	wg.Wait()

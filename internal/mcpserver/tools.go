@@ -17,17 +17,30 @@ func RegisterTools(s *server.MCPServer, movieService *MovieService) {
 	)
 	s.AddTool(searchMovieTool, SearchMovieHandler(movieService))
 
-	// 注册下载电影工具
-	downloadMovieTool := mcp.NewTool("download_movie",
-		mcp.WithDescription("下载电影资源，通过电影ID或名称获取种子链接并传给aria2下载器进行下载"),
-		mcp.WithNumber("movie_id",
-			mcp.Description("电影资源ID（可选，与movie_name二选一）"),
-		),
-		mcp.WithString("movie_name",
-			mcp.Description("电影名称（可选，与movie_id二选一）"),
+	// 注册搜索电视剧工具
+	searchTVTool := mcp.NewTool("search_tv",
+		mcp.WithDescription("搜索电视剧资源，返回电视剧的名称、ID和分辨率信息"),
+		mcp.WithString("tv_name",
+			mcp.Required(),
+			mcp.Description("要搜索的电视剧名称，如：'Breaking Bad',请提供英文名称"),
 		),
 	)
-	s.AddTool(downloadMovieTool, DownloadMovieHandler(movieService))
+	s.AddTool(searchTVTool, SearchTVHandler(movieService))
+
+	// 注册下载视频工具（支持电影和电视剧）
+	downloadVideoTool := mcp.NewTool("download_video",
+		mcp.WithDescription("下载电影或电视剧资源，支持通过ID、名称或磁力链接下载"),
+		mcp.WithNumber("video_id",
+			mcp.Description("视频资源ID（可选，与video_name或magnet三选一）"),
+		),
+		mcp.WithString("video_name",
+			mcp.Description("视频名称（可选，与video_id或magnet三选一）"),
+		),
+		mcp.WithString("magnet",
+			mcp.Description("磁力链接（可选，与video_id或video_name三选一）"),
+		),
+	)
+	s.AddTool(downloadVideoTool, DownloadVideoHandler(movieService))
 
 	// 注册获取所有下载任务进度工具
 	allDownloadProgressTool := mcp.NewTool("all_download_progress",

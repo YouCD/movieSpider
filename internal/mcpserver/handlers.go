@@ -48,22 +48,67 @@ func SearchMovieHandler(service *MovieService) func(ctx context.Context, request
 	}
 }
 
-// DownloadMovieHandler 下载电影工具处理函数
-func DownloadMovieHandler(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+// SearchTVHandler 搜索电视剧工具处理函数
+func SearchTVHandler(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		// 获取电视剧名称参数
+		tvName := request.GetString("tv_name", "")
+		if tvName == "" {
+			return mcp.NewToolResultError("请提供电视剧名称参数 tv_name"), nil
+		}
+
+		// 调用搜索服务
+		results, err := service.SearchTV(ctx, tvName)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("搜索失败: %v", err)), nil
+		}
+
+		if len(results) == 0 {
+			return mcp.NewToolResultText(fmt.Sprintf("未找到电视剧: %s", tvName)), nil
+		}
+
+		// 格式化输出结果
+		var output string
+		output = fmt.Sprintf("找到 %d 个搜索结果:\n\n", len(results))
+		for i, r := range results {
+			output += fmt.Sprintf("%d. ID: %d\n", i+1, r.ID)
+			output += fmt.Sprintf("   名称: %s\n", r.Name)
+			output += fmt.Sprintf("   种子名: %s\n", r.TorrentName)
+			output += fmt.Sprintf("   分辨率: %s\n", r.Resolution)
+			output += fmt.Sprintf("   类型: %s\n", r.Type)
+			output += fmt.Sprintf("   来源: %s\n\n", r.Web)
+		}
+
+		// 同时返回JSON格式数据
+		jsonData, _ := json.MarshalIndent(results, "", "  ")
+		output += "详细数据(JSON格式):\n" + string(jsonData)
+
+		return mcp.NewToolResultText(output), nil
+	}
+}
+
+// DownloadVideoHandler 下载视频工具处理函数（支持电影和电视剧）
+func DownloadVideoHandler(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		var result *DownloadResult
 		var err error
 
-		// 检查是否提供了movie_id参数
-		movieID := request.GetInt("movie_id", 0)
+		// 检查参数优先级：video_id > video_name > magnet
+		videoID := request.GetInt("video_id", 0)
+		videoName := request.GetString("video_name", "")
+		magnet := request.GetString("magnet", "")
 
-		if movieID > 0 {
-			result, err = service.DownloadMovieByID(ctx, int32(movieID))
-		} else if movieName := request.GetString("movie_name", ""); movieName != "" {
+		if videoID > 0 {
+			// 通过ID下载
+			result, err = service.DownloadVideoByID(ctx, int32(videoID))
+		} else if videoName != "" {
 			// 通过名称下载
-			result, err = service.DownloadMovieByName(ctx, movieName)
+			result, err = service.DownloadVideoByName(ctx, videoName)
+		} else if magnet != "" {
+			// 通过磁力链接下载
+			result, err = service.DownloadByMagnet(ctx, magnet)
 		} else {
-			return mcp.NewToolResultError("请提供 movie_id 或 movie_name 参数"), nil
+			return mcp.NewToolResultError("请提供 video_id、video_name 或 magnet 参数"), nil
 		}
 
 		if err != nil {
@@ -76,8 +121,10 @@ func DownloadMovieHandler(service *MovieService) func(ctx context.Context, reque
 
 		// 格式化输出结果
 		output := fmt.Sprintf("✅ %s\n\n", result.Message)
-		output += fmt.Sprintf("电影名称: %s\n", result.MovieName)
-		output += fmt.Sprintf("种子名: %s\n", result.TorrentName)
+		output += fmt.Sprintf("视频名称: %s\n", result.MovieName)
+		if result.TorrentName != "" {
+			output += fmt.Sprintf("种子名: %s\n", result.TorrentName)
+		}
 		output += fmt.Sprintf("下载任务GID: %s\n", result.GID)
 
 		// 同时返回JSON格式数据

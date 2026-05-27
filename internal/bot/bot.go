@@ -261,9 +261,7 @@ func (t *TGBot) datePublishedNotify() {
 
 // downloadCompleteNotify 下载完成通知
 func (t *TGBot) downloadCompleteNotify() {
-	downLoadChan := make(chan *types.DownloadNotifyVideo)
 	go func() {
-		defer close(downLoadChan)
 		aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 		if err != nil {
 			log.WithCtx(context.Background()).Error(err)
@@ -271,17 +269,11 @@ func (t *TGBot) downloadCompleteNotify() {
 		}
 		for {
 			time.Sleep(time.Second * 1)
-			t.mtx.Lock()
-			aria2Server.Subscribe(downLoadChan)
-
-			select {
-			case video, ok := <-downLoadChan:
-				if ok {
-					func() {
-						defer t.mtx.Unlock()
-						t.SendDatePublishedOrDownloadMsg(context.Background(), video, notifyTypeDownloadComplete)
-					}()
-				}
+			completedVideos := aria2Server.Subscribe()
+			for _, video := range completedVideos {
+				t.mtx.Lock()
+				t.SendDatePublishedOrDownloadMsg(context.Background(), video, notifyTypeDownloadComplete)
+				t.mtx.Unlock()
 			}
 		}
 	}()

@@ -277,29 +277,35 @@ func (a *Aria2) GetDownloadTask() map[string]*types.FeedVideo {
 	return a.downloadTask
 }
 
-func (a *Aria2) Subscribe(downLoadChan chan *types.DownloadNotifyVideo) {
-	go func() {
-		a.mtx.Lock()
-		for gid, feedVideo := range a.downloadTask {
-			info, err := a.aria2Client.TellStatus(gid, "files", "status")
-			if err != nil {
-				log.WithCtx(context.Background()).Error(err)
-				continue
-			}
-			// active  waiting   paused   error   complete   removed
-			if info.Status == "complete" {
-				file, size := getMaxSizeFile(info.Files)
-				downLoadChan <- &types.DownloadNotifyVideo{
-					FeedVideo: feedVideo,
-					File:      file,
-					Size:      tools.ByteCountBinary(int64(size)),
-					Gid:       gid,
-				}
-				delete(a.downloadTask, gid)
-			}
+// Subscribe
+//
+//	@Description: 检查下载任务中已完成的任务，返回完成的任务列表
+//	@receiver a
+//	@return []*types.DownloadNotifyVideo 已完成的下载通知列表
+func (a *Aria2) Subscribe() []*types.DownloadNotifyVideo {
+	a.mtx.Lock()
+	defer a.mtx.Unlock()
+
+	var completedVideos []*types.DownloadNotifyVideo
+	for gid, feedVideo := range a.downloadTask {
+		info, err := a.aria2Client.TellStatus(gid, "files", "status")
+		if err != nil {
+			log.WithCtx(context.Background()).Error(err)
+			continue
 		}
-		a.mtx.Unlock()
-	}()
+		// active  waiting   paused   error   complete   removed
+		if info.Status == "complete" {
+			file, size := getMaxSizeFile(info.Files)
+			completedVideos = append(completedVideos, &types.DownloadNotifyVideo{
+				FeedVideo: feedVideo,
+				File:      file,
+				Size:      tools.ByteCountBinary(int64(size)),
+				Gid:       gid,
+			})
+			delete(a.downloadTask, gid)
+		}
+	}
+	return completedVideos
 }
 
 // completedHandler

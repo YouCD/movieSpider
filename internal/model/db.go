@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	log1 "log"
 	"os"
 	"sync"
 	"time"
@@ -23,7 +22,6 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type MovieDB struct {
@@ -69,7 +67,7 @@ func initDatabase() error {
 		return fmt.Errorf("创建数据库失败: %w", err)
 	}
 
-	newLogger := createLogger()
+	newLogger := log.NewGormLogger(time.Second, config.Config.Global.LogLevel)
 
 	dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
 		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
@@ -89,23 +87,6 @@ func initDatabase() error {
 	db = gormDB
 
 	return nil
-}
-
-// createLogger 创建 GORM 日志记录器
-func createLogger() logger.Interface {
-	logLevel := logger.Silent
-	if config.Config.Global.LogLevel == "debug" {
-		logLevel = logger.Info
-	}
-
-	return logger.New(
-		log1.New(os.Stdout, "\r\n", log1.LstdFlags),
-		logger.Config{
-			SlowThreshold: time.Second,
-			LogLevel:      logLevel,
-			Colorful:      true,
-		},
-	)
 }
 
 // SaveFeedVideoFromChan 从通道中获取 feedVideo 并保存

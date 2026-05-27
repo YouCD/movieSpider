@@ -2,7 +2,9 @@ package bot
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"movieSpider/internal/aria2"
 	"movieSpider/internal/config"
@@ -31,9 +33,11 @@ func TestTGBot_SendDatePublishedMsg(t1 *testing.T) {
 	newAria2, _ := aria2.NewAria2(config.Config.Downloader.Aria2Label)
 
 	newAria2.AddDownloadTask(&types.FeedVideo{ImdbID: obj.ImdbID}, "6378562f5e923563")
-	downLoadChan := make(chan *types.DownloadNotifyVideo)
-	defer close(downLoadChan)
-	newAria2.Subscribe(downLoadChan)
-
-	select {}
+	for {
+		completedVideos := newAria2.Subscribe()
+		for _, video := range completedVideos {
+			fmt.Println("download complete:", video.Gid, video.File)
+		}
+		time.Sleep(time.Second * 1)
+	}
 }

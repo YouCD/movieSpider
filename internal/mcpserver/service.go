@@ -103,6 +103,41 @@ func (s *MovieService) SearchMovie(ctx context.Context, movieName string) ([]Mov
 	return results, nil
 }
 
+// SearchTV 搜索电视剧
+func (s *MovieService) SearchTV(ctx context.Context, tvName string) ([]MovieResult, error) {
+	log.WithCtx(ctx).Infof("开始搜索电视剧: %s", tvName)
+
+	// 从数据库获取搜索结果
+	videos, err := model.NewMovieDB().GetFeedVideoTVByNames(ctx, tvName)
+	if err != nil {
+		if err == model.ErrTVNotFound {
+			return nil, fmt.Errorf("未找到电视剧: %s", tvName)
+		}
+		return nil, fmt.Errorf("查询数据库失败: %w", err)
+	}
+	if len(videos) == 0 {
+		return nil, fmt.Errorf("未找到电视剧: %s", tvName)
+	}
+
+	// 转换结果
+	var results []MovieResult
+	for _, v := range videos {
+		resolution := parseResolution(v.TorrentName)
+		results = append(results, MovieResult{
+			ID:          v.ID,
+			Name:        v.Name,
+			TorrentName: v.TorrentName,
+			Resolution:  resolution,
+			Type:        v.Type,
+			Web:         v.Web,
+			Magnet:      v.Magnet,
+		})
+	}
+
+	log.WithCtx(ctx).Infof("搜索完成，找到 %d 个结果", len(results))
+	return results, nil
+}
+
 // DownloadResult 下载结果
 type DownloadResult struct {
 	Success     bool   `json:"success"`
@@ -158,6 +193,154 @@ func (s *MovieService) DownloadMovieByID(ctx context.Context, id int32) (*Downlo
 		GID:         gid,
 		MovieName:   video.Name,
 		TorrentName: video.TorrentName,
+	}, nil
+}
+
+// DownloadVideoByID 通过视频ID下载（支持电影和电视剧）
+func (s *MovieService) DownloadVideoByID(ctx context.Context, id int32) (*DownloadResult, error) {
+	log.WithCtx(ctx).Infof("开始下载视频，ID: %d", id)
+
+	// 获取aria2客户端
+	client, err := s.getAria2Client()
+	if err != nil {
+		return nil, err
+	}
+
+	// 从数据库获取视频信息
+	video, err := s.getVideoByID(id)
+	if err != nil {
+		return &DownloadResult{
+			Success: false,
+			Message: fmt.Sprintf("获取视频信息失败: %v", err),
+		}, nil
+	}
+
+	if video.Magnet == "" {
+		return &DownloadResult{
+			Success: false,
+			Message: "该视频没有磁力链接",
+		}, nil
+	}
+
+	// 开始下载
+	gid, err := client.DownloadByWithVideo(ctx, video, video.Magnet)
+	if err != nil {
+		return &DownloadResult{
+			Success: false,
+			Message: fmt.Sprintf("添加下载任务失败: %v", err),
+		}, nil
+	}
+
+	// 更新下载状态
+	if err = model.NewMovieDB().UpdateFeedVideoDownloadByID(video.ID, 1); err != nil {
+		log.WithCtx(ctx).Errorf("更新下载状态失败: %v", err)
+	}
+
+	return &DownloadResult{
+		Success:     true,
+		Message:     "下载任务已添加",
+		GID:         gid,
+		MovieName:   video.Name,
+		TorrentName: video.TorrentName,
+	}, nil
+}
+
+// DownloadVideoByName 通过视频名称下载（同时搜索电影和电视剧）
+func (s *MovieService) DownloadVideoByName(ctx context.Context, name string) (*DownloadResult, error) {
+	log.WithCtx(ctx).Infof("开始下载视频，名称: %s", name)
+
+	// 获取aria2客户端
+	client, err := s.getAria2Client()
+	if err != nil {
+		return nil, err
+	}
+
+	// 先搜索电影
+	videos, err := model.NewMovieDB().GetFeedVideoMovieByNames(ctx, name)
+	if err != nil && err != model.ErrMoviesNotFound {
+		return nil, fmt.Errorf("查询电影数据库失败: %w", err)
+	}
+
+	// 如果没有找到电影，搜索电视剧
+	if len(videos) == 0 {
+		videos, err = model.NewMovieDB().GetFeedVideoTVByNames(ctx, name)
+		if err != nil && err != model.ErrTVNotFound {
+			return nil, fmt.Errorf("查询电视剧数据库失败: %w", err)
+		}
+	}
+
+	if len(videos) == 0 {
+		return &DownloadResult{
+			Success: false,
+			Message: fmt.Sprintf("未找到视频: %s", name),
+		}, nil
+	}
+
+	// 选择第一个视频进行下载
+	video := videos[0]
+
+	if video.Magnet == "" {
+		return &DownloadResult{
+			Success: false,
+			Message: "该视频没有磁力链接",
+		}, nil
+	}
+
+	// 开始下载
+	gid, err := client.DownloadByWithVideo(ctx, video, video.Magnet)
+	if err != nil {
+		return &DownloadResult{
+			Success: false,
+			Message: fmt.Sprintf("添加下载任务失败: %v", err),
+		}, nil
+	}
+
+	// 更新下载状态
+	if err = model.NewMovieDB().UpdateFeedVideoDownloadByID(video.ID, 1); err != nil {
+		log.WithCtx(ctx).Errorf("更新下载状态失败: %v", err)
+	}
+
+	return &DownloadResult{
+		Success:     true,
+		Message:     "下载任务已添加",
+		GID:         gid,
+		MovieName:   video.Name,
+		TorrentName: video.TorrentName,
+	}, nil
+}
+
+// DownloadByMagnet 通过磁力链接下载
+func (s *MovieService) DownloadByMagnet(ctx context.Context, magnet string) (*DownloadResult, error) {
+	log.WithCtx(ctx).Infof("开始通过磁力链接下载")
+
+	// 获取aria2客户端
+	client, err := s.getAria2Client()
+	if err != nil {
+		return nil, err
+	}
+
+	// 创建一个虚拟的视频对象用于下载
+	video := &types.FeedVideo{
+		Name: "磁力链接下载",
+		FeedVideoBase: types.FeedVideoBase{
+			Magnet: magnet,
+		},
+	}
+
+	// 开始下载
+	gid, err := client.DownloadByWithVideo(ctx, video, magnet)
+	if err != nil {
+		return &DownloadResult{
+			Success: false,
+			Message: fmt.Sprintf("添加下载任务失败: %v", err),
+		}, nil
+	}
+
+	return &DownloadResult{
+		Success:   true,
+		Message:   "下载任务已添加",
+		GID:       gid,
+		MovieName: "磁力链接下载",
 	}, nil
 }
 

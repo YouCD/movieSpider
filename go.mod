@@ -6,6 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.11.0
 	github.com/anacrolix/missinggo/v2 v2.10.0
 	github.com/anacrolix/torrent v1.61.0
+	github.com/cyruzin/golang-tmdb v1.9.2
 	github.com/duke-git/lancet/v2 v2.3.9
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-playground/validator/v10 v10.30.1
@@ -23,7 +24,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/willf/bloom v2.0.3+incompatible
-	github.com/youcd/toolkit v0.0.0-20260226063315-43a142dd49c7
+	github.com/youcd/toolkit v0.0.0-20260412042025-d7154c68fe61
 	github.com/zyxar/argo v0.0.0-20210923033329-21abde88a063
 	go.uber.org/zap v1.27.0
 	gorm.io/driver/mysql v1.6.0
@@ -40,7 +41,6 @@ require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/bradfitz/iter v0.0.0-20191230175014-e8f45d346db8 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/cyruzin/golang-tmdb v1.9.2 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect

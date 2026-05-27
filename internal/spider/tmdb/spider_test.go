@@ -13,7 +13,7 @@ func TestNewTMDBSpider(t *testing.T) {
 		t.Errorf("创建TMDB爬虫失败: %s", err)
 		return
 	}
-	// spider.Run(context.Background())
+	spider.Run(context.Background())
 	// spider.checkWatchProviders(context.Background())
-	spider.crawl(context.Background())
+	// spider.crawl(context.Background())
 }

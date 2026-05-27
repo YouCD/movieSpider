@@ -86,25 +86,6 @@ func (s *TMDBSpider) crawlMovies(ctx context.Context) {
 	for _, movie := range response.Results {
 		s.processMovie(ctx, movie)
 	}
-	/*
-		for {
-				response, err := s.client.GetWatchlistMovies(ctx, page)
-				if err != nil {
-					log.WithCtx(ctx).Errorf("获取电影Watchlist失败: %s", err)
-					break
-				}
-
-				for _, movie := range response.Results {
-					s.processMovie(ctx, movie)
-				}
-
-				// 如果已经是最后一页，退出循环
-				if page >= response.TotalPages {
-					break
-				}
-				page++
-			}
-	*/
 }
 
 // crawlTV 爬取电视剧Watchlist
@@ -119,26 +100,6 @@ func (s *TMDBSpider) crawlTV(ctx context.Context) {
 	for _, tv := range response.Results {
 		s.processTV(ctx, tv)
 	}
-	/*
-		for {
-			response, err := s.client.GetWatchlistTV(ctx, page)
-			if err != nil {
-				log.WithCtx(ctx).Errorf("获取电视剧Watchlist失败: %s", err)
-				break
-			}
-
-			for _, tv := range response.Results {
-				s.processTV(ctx, tv)
-			}
-
-			// 如果已经是最后一页，退出循环
-			if page >= response.TotalPages {
-				break
-			}
-			page++
-		}
-
-	*/
 }
 
 // processMovie 处理电影数据
