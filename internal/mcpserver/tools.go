@@ -77,16 +77,33 @@ func RegisterTools(s *server.MCPServer, movieService *MovieService) {
 	)
 	s.AddTool(checkMovieIsPlayableTool, CheckMovieIsPlayable(movieService))
 
-	checkTvIsPlayableTool := mcp.NewTool("check_tv_is_playable",
-		mcp.WithDescription("检查电视剧是否可播放"),
+	// 注册获取TMDB收藏列表工具
+	getWatchlistTool := mcp.NewTool("get_tmdb_watchlist",
+		mcp.WithDescription("获取TMDB收藏列表（包括电影和电视剧）"),
+		mcp.WithString("type",
+			mcp.Description("列表类型：'movie'获取电影，'tv'获取电视剧，'all'或不填获取全部（默认all）"),
+		),
+		mcp.WithNumber("page",
+			mcp.Description("页码，默认为1"),
+		),
+	)
+	s.AddTool(getWatchlistTool, GetWatchlistHandler(movieService))
+
+	// 注册检查电视剧某季某集是否可播放工具
+	checkTVEpisodePlayableTool := mcp.NewTool("check_tv_episode_is_playable",
+		mcp.WithDescription("检查电视剧某季某集是否可播放"),
 		mcp.WithString("tv_name",
 			mcp.Required(),
 			mcp.Description("电视剧的名称"),
 		),
-		mcp.WithNumber("season_id",
+		mcp.WithNumber("season_number",
 			mcp.Required(),
-			mcp.Description("电视剧的第几季"),
+			mcp.Description("第几季"),
+		),
+		mcp.WithNumber("episode_number",
+			mcp.Required(),
+			mcp.Description("第几集"),
 		),
 	)
-	s.AddTool(checkTvIsPlayableTool, CheckTVIsPlayable(movieService))
+	s.AddTool(checkTVEpisodePlayableTool, CheckTVEpisodeIsPlayableHandler(movieService))
 }

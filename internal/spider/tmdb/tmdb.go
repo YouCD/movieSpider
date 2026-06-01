@@ -569,3 +569,32 @@ func (c *Client) GetTVSeasonDetails(ctx context.Context, tvID int, seasonID int)
 
 	return &result, nil
 }
+
+// GetTVEpisodeWatchProviders 获取电视剧某季某集的观看提供商
+//
+// https://developer.themoviedb.org/reference/tv-episode-watch-providers
+func (c *Client) GetTVEpisodeWatchProviders(ctx context.Context, tvID int, seasonNumber int, episodeNumber int) (*WatchProvidersResponse, error) {
+	tmdbURL := fmt.Sprintf(
+		"%s/tv/%d/season/%d/episode/%d/watch/providers",
+		c.client.GetBaseURL(),
+		tvID,
+		seasonNumber,
+		episodeNumber,
+	)
+
+	var result tmdb.WatchProviderResults
+	if err := c.get(ctx, tmdbURL, &result); err != nil {
+		return nil, fmt.Errorf("获取电视剧集观看提供商失败: %w", err)
+	}
+
+	response := &WatchProvidersResponse{
+		ID:      int(result.ID),
+		Results: make(map[string]WatchProviderResult),
+	}
+
+	for country, provider := range result.Results {
+		response.Results[country] = convertWatchProviderResult(provider)
+	}
+
+	return response, nil
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -578,27 +579,159 @@ func (s *MovieService) CheckMovieIsPlayable(ctx context.Context, movieName strin
 	return false, nil
 }
 
-// CheckTVIsPlayable 检查电视剧是否可播放
-func (s *MovieService) CheckTVIsPlayable(ctx context.Context, tvName string, season int) (bool, error) {
-	log.WithCtx(ctx).Infof("开始检查:%s", tvName)
-	movies, err := s.tmdbClient.GetSearchTVShow(ctx, tvName)
-	if err != nil {
-		return false, fmt.Errorf("搜索电视剧失败: %w", err)
-	}
-	if len(movies) == 0 {
-		return false, fmt.Errorf("未找到电视剧: %s", tvName)
-	}
-	providers, err := s.tmdbClient.GetTVSeasonWatchProviders(ctx, int(movies[0].ID), season, nil)
-	if err != nil {
-		return false, fmt.Errorf("获取电视剧播放提供者失败: %w", err)
+// SeasonInfo 季信息
+type SeasonInfo struct {
+	SeasonNumber int     `json:"season_number"`
+	Name         string  `json:"name"`
+	AirDate      string  `json:"air_date,omitempty"`
+	EpisodeCount int     `json:"episode_count"`
+	Overview     string  `json:"overview,omitempty"`
+	VoteAverage  float64 `json:"vote_average"`
+}
+
+// WatchlistItem 收藏列表条目
+type WatchlistItem struct {
+	ID           int          `json:"id"`
+	Title        string       `json:"title"`
+	ReleaseDate  string       `json:"release_date,omitempty"`
+	FirstAirDate string       `json:"first_air_date,omitempty"`
+	Overview     string       `json:"overview"`
+	VoteAverage  float64      `json:"vote_average"`
+	Type         string       `json:"type"` // movie 或 tv
+	SeasonInfo   []SeasonInfo `json:"seasonInfo,omitempty"`
+}
+
+// GetWatchlistMovies 获取TMDB收藏的电影列表
+func (s *MovieService) GetWatchlistMovies(ctx context.Context, page int) ([]WatchlistItem, int, int, error) {
+	log.WithCtx(ctx).Infof("开始获取TMDB收藏电影列表，页码: %d", page)
+
+	if page <= 0 {
+		page = 1
 	}
 
-	if tmdb.HasWatchProviders(providers) {
-		log.WithCtx(ctx).Infof("电视剧: %s 第%d季 可播放", tvName, season)
-		return true, nil
+	response, err := s.tmdbClient.GetWatchlistMovies(ctx, page)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("获取收藏电影列表失败: %w", err)
 	}
 
-	return false, nil
+	var results []WatchlistItem
+	for _, movie := range response.Results {
+		results = append(results, WatchlistItem{
+			ID:          movie.ID,
+			Title:       movie.Title,
+			ReleaseDate: movie.ReleaseDate,
+			Overview:    movie.Overview,
+			VoteAverage: movie.VoteAverage,
+			Type:        "movie",
+		})
+	}
+
+	log.WithCtx(ctx).Infof("获取收藏电影列表完成，共 %d 个结果，总页数: %d", len(results), response.TotalPages)
+	return results, response.TotalPages, response.TotalResults, nil
+}
+
+// GetWatchlistTV 获取TMDB收藏的电视剧列表
+func (s *MovieService) GetWatchlistTV(ctx context.Context, page int) ([]WatchlistItem, int, int, error) {
+	log.WithCtx(ctx).Infof("开始获取TMDB收藏电视剧列表，页码: %d", page)
+
+	if page <= 0 {
+		page = 1
+	}
+
+	response, err := s.tmdbClient.GetWatchlistTV(ctx, page)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("获取收藏电视剧列表失败: %w", err)
+	}
+
+	var results []WatchlistItem
+	for _, tv := range response.Results {
+		item := WatchlistItem{
+			ID:           tv.ID,
+			Title:        tv.Name,
+			FirstAirDate: tv.FirstAirDate,
+			Overview:     tv.Overview,
+			VoteAverage:  tv.VoteAverage,
+			Type:         "tv",
+		}
+
+		// 获取电视剧详情以获取季信息
+		details, err := s.tmdbClient.GetTVDetails(ctx, tv.ID)
+		if err != nil {
+			log.WithCtx(ctx).Warnf("获取电视剧 %d 详情失败: %v", tv.ID, err)
+		} else if details != nil {
+			for _, season := range details.Seasons {
+				item.SeasonInfo = append(item.SeasonInfo, SeasonInfo{
+					SeasonNumber: season.SeasonNumber,
+					Name:         season.Name,
+					AirDate:      season.AirDate,
+					EpisodeCount: season.EpisodeCount,
+					Overview:     season.Overview,
+					VoteAverage:  season.VoteAverage,
+				})
+			}
+		}
+
+		results = append(results, item)
+	}
+
+	log.WithCtx(ctx).Infof("获取收藏电视剧列表完成，共 %d 个结果，总页数: %d", len(results), response.TotalPages)
+	return results, response.TotalPages, response.TotalResults, nil
+}
+
+// EpisodeWatchInfo 单集观看信息
+type EpisodeWatchInfo struct {
+	TVName        string `json:"tv_name"`
+	SeasonNumber  int    `json:"season_number"`
+	EpisodeNumber int    `json:"episode_number"`
+	IsPlayable    bool   `json:"is_playable"`
+	Providers     string `json:"providers,omitempty"`
+}
+
+// CheckTVEpisodeIsPlayable 检查电视剧某季某集是否可播放
+func (s *MovieService) CheckTVEpisodeIsPlayable(ctx context.Context, tvName string, season int, episode int) (*EpisodeWatchInfo, error) {
+	log.WithCtx(ctx).Infof("开始检查: %s S%02dE%02d", tvName, season, episode)
+
+	// 搜索电视剧
+	shows, err := s.tmdbClient.GetSearchTVShow(ctx, tvName)
+	if err != nil {
+		return nil, fmt.Errorf("搜索电视剧失败: %w", err)
+	}
+	if len(shows) == 0 {
+		return nil, fmt.Errorf("未找到电视剧: %s", tvName)
+	}
+
+	tvID := int(shows[0].ID)
+
+	// 获取该集的观看提供商
+	providers, err := s.tmdbClient.GetTVEpisodeWatchProviders(ctx, tvID, season, episode)
+	if err != nil {
+		return nil, fmt.Errorf("获取电视剧集观看提供商失败: %w", err)
+	}
+
+	info := &EpisodeWatchInfo{
+		TVName:        shows[0].Name,
+		SeasonNumber:  season,
+		EpisodeNumber: episode,
+		IsPlayable:    tmdb.HasWatchProviders(providers),
+	}
+
+	// 提取提供商名称
+	if info.IsPlayable {
+		var providerNames []string
+		for country, result := range providers.Results {
+			if result.Flatrate != nil {
+				for _, p := range *result.Flatrate {
+					providerNames = append(providerNames, fmt.Sprintf("%s(%s)", p.ProviderName, country))
+				}
+			}
+		}
+		if len(providerNames) > 0 {
+			info.Providers = strings.Join(providerNames, ", ")
+		}
+	}
+
+	log.WithCtx(ctx).Infof("检查完成: %s S%02dE%02d 可播放: %v", tvName, season, episode, info.IsPlayable)
+	return info, nil
 }
 
 // resolutionReg 分辨率正则表达式

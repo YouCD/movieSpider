@@ -206,7 +206,7 @@ func TestClient_GetSearchTVShow(t *testing.T) {
 
 	ctx := context.Background()
 
-	show, err := client.GetSearchTVShow(ctx, "One Piece")
+	show, err := client.GetSearchTVShow(ctx, "The Boys")
 	if err != nil {
 		t.Fatalf("搜索电视剧失败: %v", err)
 	}
@@ -236,9 +236,29 @@ func TestClient_GetTVSeasonDetails(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	season, err := client.GetTVSeasonDetails(ctx, 111110, 2)
+	season, err := client.GetTVSeasonDetails(ctx, 76479, 2)
 	if err != nil {
 		t.Fatalf("获取电视剧季详情失败: %v", err)
 	}
-	t.Logf("电视剧季详情: %+v", season)
+	for _, episode := range season.Episodes {
+		t.Logf("剧集: %+v", episode)
+	}
+	//t.Logf("电视剧季详情: %+v", season)
+}
+
+func TestClient_GetTVEpisodeWatchProviders(t *testing.T) {
+	client, err := NewClient(0, apiToken)
+	if err != nil {
+		t.Fatalf("创建 TMDB 客户端失败: %v", err)
+	}
+
+	ctx := context.Background()
+	providers, err := client.GetTVEpisodeWatchProviders(ctx, 76479, 5, 8)
+	if err != nil {
+		t.Fatalf("获取电视剧剧集的观看提供商失败: %v", err)
+	}
+	for s, result := range providers.Results {
+		t.Logf("国家/地区: %s, 链接: %v", s, result)
+	}
+	//t.Logf("电视剧剧集的观看提供商: %+v", providers)
 }

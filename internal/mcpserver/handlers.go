@@ -286,27 +286,149 @@ func CheckMovieIsPlayable(service *MovieService) func(ctx context.Context, reque
 	}
 }
 
-func CheckTVIsPlayable(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+// GetWatchlistHandler 获取TMDB收藏列表工具处理函数
+func GetWatchlistHandler(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		// 获取GID参数
+		// 获取类型参数
+		listType := request.GetString("type", "all")
+		page := request.GetInt("page", 1)
+		if page <= 0 {
+			page = 1
+		}
+
+		// 根据类型获取收藏列表
+		allItems, totalPages, totalResults, err := fetchWatchlistByType(ctx, service, listType, page)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		if len(allItems) == 0 {
+			return mcp.NewToolResultText("收藏列表为空"), nil
+		}
+
+		// 格式化输出结果
+		output := formatWatchlistOutput(allItems, page, totalPages, totalResults)
+
+		// 同时返回JSON格式数据
+		jsonData, _ := json.MarshalIndent(allItems, "", "  ")
+		output += "详细数据(JSON格式):\n" + string(jsonData)
+
+		return mcp.NewToolResultText(output), nil
+	}
+}
+
+// fetchWatchlistByType 根据类型获取收藏列表
+func fetchWatchlistByType(ctx context.Context, service *MovieService, listType string, page int) ([]WatchlistItem, int, int, error) {
+	switch listType {
+	case "movie":
+		items, tp, tr, err := service.GetWatchlistMovies(ctx, page)
+		if err != nil {
+			return nil, 0, 0, fmt.Errorf("获取收藏电影列表失败: %w", err)
+		}
+		return items, tp, tr, nil
+	case "tv":
+		items, tp, tr, err := service.GetWatchlistTV(ctx, page)
+		if err != nil {
+			return nil, 0, 0, fmt.Errorf("获取收藏电视剧列表失败: %w", err)
+		}
+		return items, tp, tr, nil
+	default:
+		return fetchAllWatchlist(ctx, service, page)
+	}
+}
+
+// fetchAllWatchlist 获取所有收藏列表（电影和电视剧）
+func fetchAllWatchlist(ctx context.Context, service *MovieService, page int) ([]WatchlistItem, int, int, error) {
+	// 获取电影
+	movies, mp, mr, err := service.GetWatchlistMovies(ctx, page)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("获取收藏电影列表失败: %w", err)
+	}
+	// 获取电视剧
+	tvs, tp, tr, err := service.GetWatchlistTV(ctx, page)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("获取收藏电视剧列表失败: %w", err)
+	}
+	allItems := make([]WatchlistItem, 0, len(movies)+len(tvs))
+	allItems = append(allItems, movies...)
+	allItems = append(allItems, tvs...)
+	return allItems, mp + tp, mr + tr, nil
+}
+
+// formatWatchlistOutput 格式化收藏列表输出
+func formatWatchlistOutput(items []WatchlistItem, page, totalPages, totalResults int) string {
+	var output string
+	output = fmt.Sprintf("TMDB 收藏列表 (第 %d 页，共 %d 页，%d 个结果):\n\n", page, totalPages, totalResults)
+	for i, item := range items {
+		output += fmt.Sprintf("%d. [%s] ID: %d\n", i+1, item.Type, item.ID)
+		output += fmt.Sprintf("   名称: %s\n", item.Title)
+		if item.ReleaseDate != "" {
+			output += fmt.Sprintf("   上映日期: %s\n", item.ReleaseDate)
+		}
+		if item.FirstAirDate != "" {
+			output += fmt.Sprintf("   首播日期: %s\n", item.FirstAirDate)
+		}
+		output += fmt.Sprintf("   评分: %.1f\n", item.VoteAverage)
+		if len(item.Overview) > 100 {
+			output += fmt.Sprintf("   简介: %s...\n", item.Overview[:100])
+		} else if item.Overview != "" {
+			output += fmt.Sprintf("   简介: %s\n", item.Overview)
+		}
+		// 显示季信息
+		if len(item.SeasonInfo) > 0 {
+			output += "   季信息:\n"
+			for _, season := range item.SeasonInfo {
+				output += fmt.Sprintf("     - 第%d季: %s (%d集, 评分: %.1f)\n",
+					season.SeasonNumber, season.Name, season.EpisodeCount, season.VoteAverage)
+				if season.AirDate != "" {
+					output += fmt.Sprintf("       首播: %s\n", season.AirDate)
+				}
+			}
+		}
+		output += "\n"
+	}
+	return output
+}
+
+// CheckTVEpisodeIsPlayableHandler 检查电视剧某季某集是否可播放
+func CheckTVEpisodeIsPlayableHandler(service *MovieService) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		tvName := request.GetString("tv_name", "")
 		if tvName == "" {
 			return mcp.NewToolResultError("请提供 tv_name 参数"), nil
 		}
-		season := request.GetInt("season_id", 0)
+		season := request.GetInt("season_number", 0)
 		if season <= 0 {
-			return mcp.NewToolResultError("请提供正确的 season_id 参数"), nil
+			return mcp.NewToolResultError("请提供正确的 season_number 参数"), nil
 		}
-		// 调用搜索服务
-		ok, err := service.CheckTVIsPlayable(ctx, tvName, season)
+		episode := request.GetInt("episode_number", 0)
+		if episode <= 0 {
+			return mcp.NewToolResultError("请提供正确的 episode_number 参数"), nil
+		}
+
+		// 调用服务
+		info, err := service.CheckTVEpisodeIsPlayable(ctx, tvName, season, episode)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("搜索失败: %v", err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("检查失败: %v", err)), nil
 		}
 
-		if ok {
-			return mcp.NewToolResultText("该电视剧今日可播放"), nil
+		// 格式化输出
+		var output string
+		output += fmt.Sprintf("电视剧: %s\n", info.TVName)
+		output += fmt.Sprintf("集数: S%02dE%02d\n", info.SeasonNumber, info.EpisodeNumber)
+		if info.IsPlayable {
+			output += "状态: 可播放\n"
+			if info.Providers != "" {
+				output += fmt.Sprintf("提供者: %s\n", info.Providers)
+			}
+		} else {
+			output += "状态: 不可播放\n"
 		}
 
-		return mcp.NewToolResultText("该电视剧今日不可播放,有可能输入的名称不正确"), nil
+		// 同时返回JSON格式数据
+		jsonData, _ := json.MarshalIndent(info, "", "  ")
+		output += "\n详细数据(JSON格式):\n" + string(jsonData)
+
+		return mcp.NewToolResultText(output), nil
 	}
 }
