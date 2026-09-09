@@ -1,4 +1,4 @@
-FROM golang:1.24.0-alpine AS builder
+FROM golang:1.27.1-alpine AS builder
 WORKDIR /movieSpider
 ENV GOPROXY=https://goproxy.cn,direct CGO_ENABLED=0 \
     GOPATH=/root/gopath \
@@ -6,7 +6,8 @@ ENV GOPROXY=https://goproxy.cn,direct CGO_ENABLED=0 \
     GO111MODULE='on' \
     GIT_TERMINAL_PROMPT=1
 COPY . .
-RUN CGO_ENABLED=0 go build -o movieSpider
+RUN apk add --no-cache git && \
+    CGO_ENABLED=0 go build -o movieSpider
 
 FROM  hairyhenderson/upx AS upx
 WORKDIR /movieSpider

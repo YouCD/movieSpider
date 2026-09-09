@@ -50,7 +50,8 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 
 	feedYts := feedspider.NewYts()
 	return optionFunc(func(ms *MovieSpider) {
-		ms.feeds = append(ms.feeds,
+		ms.feeds = append(
+			ms.feeds,
 			feedEZTV,
 			feedTorlockMovie,
 			feedTorlockTV,

@@ -2,6 +2,7 @@ package mcpserver
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -35,7 +36,8 @@ func Start(ctx context.Context, config *McpConfig) error {
 
 	// 启动服务器
 	log.WithCtx(ctx).Info("Movie Spider MCP Server 正在启动...")
-	stream := server.NewStreamableHTTPServer(s, server.WithLogger(log.GetLogger()))
+	slogLogger := slog.New(&log.ZapSlogAdapter{Logger: log.GetLogger()})
+	stream := server.NewStreamableHTTPServer(s, server.WithStreamableHTTPLogger(slogLogger))
 	mux := http.NewServeMux()
 	mux.Handle("/mcp", tokenAuth(stream, config.ApiKey))
 	httpSrv := &http.Server{

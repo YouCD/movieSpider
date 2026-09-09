@@ -64,7 +64,7 @@ func reportAria2TaskStatistics() {
 	}
 
 	downloadTable := tablewriter.NewWriter(os.Stdout)
-	downloadTable.SetHeader([]string{"GID", "大小", "已完成", "文件名"})
+	downloadTable.Header([]string{"GID", "大小", "已完成", "文件名"})
 	for _, file := range files {
 		downloadTable.Append([]string{file.GID, file.Size, file.Completed, file.FileName})
 	}
@@ -81,7 +81,7 @@ func reportFeedVideoStatistics() {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Web", "Count"})
+	table.Header([]string{"Web", "Count"})
 	var Total int
 	for _, reportCount := range count {
 		Total += reportCount.Count
@@ -91,7 +91,7 @@ func reportFeedVideoStatistics() {
 		log.WithCtx(context.Background()).Info("无下载资源")
 		return
 	}
-	table.SetFooter([]string{"总数", strconv.Itoa(Total)})
+	table.Footer([]string{"总数", strconv.Itoa(Total)})
 	log.WithCtx(context.Background()).Info("\n\n下载统计: ")
 	table.Render()
 
@@ -109,7 +109,7 @@ func reportFeedVideoStatistics() {
 	})
 
 	table = tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Web", "Count"})
+	table.Header([]string{"Web", "Count"})
 	for _, reportCount := range count {
 		Total += reportCount.Count
 		table.Append([]string{reportCount.Web, strconv.Itoa(reportCount.Count)})
@@ -135,7 +135,7 @@ func reportAria2DownloadQueue() {
 		return
 	}
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Gid", "Names", "Type"})
+	table.Header([]string{"Gid", "Names", "Type"})
 	for k, v := range task {
 		table.Append([]string{k, v.Name, v.Type})
 	}

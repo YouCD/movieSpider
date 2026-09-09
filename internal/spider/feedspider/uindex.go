@@ -45,12 +45,14 @@ func (u *Uindex) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getMovies goquery,err: %w", err)
 	}
-
-	selector := "#content > table > tbody > tr"
+	selector := "#content > div > div.top-table-container > table > tbody > tr"
 	doc.Find(selector).Each(func(_ int, selection *goquery.Selection) {
 		var video types.FeedVideoBase
-		video.TorrentName = selection.Find("td>a:nth-child(2)").Text()
+		// #content > div > div.top-table-container > table > tbody > tr:nth-child(1) > td.sr-col-name > a.sr-torrent-link
+		video.TorrentName = selection.Find("td.sr-col-name > a.sr-torrent-link").Text()
+
 		video.TorrentURL = fmt.Sprintf("%s/%s", u.webHost, selection.Find("td>a:nth-child(2)").AttrOr("href", ""))
+
 		video.Type = u.typ.String()
 		video.Web = u.web
 		videosArr = append(videosArr, &video)
@@ -59,5 +61,5 @@ func (u *Uindex) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
 }
 
 func (u *Uindex) fetchMagnetDownLoad(ctx context.Context, videos []*types.FeedVideoBase) []*types.FeedVideoBase {
-	return fetchMagnetDownLoad(ctx, u.BaseFeeder, "#downloadbox > h2 > a", videos)
+	return fetchMagnetDownLoad(ctx, u.BaseFeeder, "#content > div.dt-download-box > a", videos)
 }

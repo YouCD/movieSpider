@@ -129,7 +129,7 @@ func FilterVideosByResolution(movieOrTV types.VideoType, videos ...*types.FeedVi
 		// 8. 遍历 needDownloadFeedVideoMap
 		for _, feedVideos := range needDownloadFeedVideoMap {
 			// 9. 如果这一集tv 有多个视频
-			if (len(feedVideos)) >= 2 {
+			if len(feedVideos) >= 2 {
 				// 10. 利用 handlerTv 处理这一集tv
 				need, Record := HandlerMovie(feedVideos...)
 				needDownloadFeedVideo = append(needDownloadFeedVideo, need...)
