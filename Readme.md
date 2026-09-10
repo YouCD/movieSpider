@@ -20,7 +20,7 @@
 * [TheRARBG](https://therarbg.com/)
 * ~~[EXT](https://extto.com/)~~ 效果不理想
 * [uindex](https://uindex.org/)
-* [Ilcorsaronero](https://ilcorsaronero.link/)
+* ~~[Ilcorsaronero](https://ilcorsaronero.link/)~~
 * [Yts](https://yts.bz)
 
 ## 使用TG

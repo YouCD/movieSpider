@@ -32,7 +32,6 @@ func (f *Yts) Crawler(ctx context.Context) (videos []*types.FeedVideoBase, err e
 	if err != nil {
 		return nil, ErrFeedParseURL
 	}
-	log.WithCtx(ctx).Debugf("%s Data: %s", f.web, fd.String())
 	var tempVideos []*types.FeedVideoBase
 	for _, v := range fd.Items {
 		fVideo := new(types.FeedVideoBase)

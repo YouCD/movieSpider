@@ -42,8 +42,6 @@ func (t *Torlock) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
 		return nil, fmt.Errorf("err:%s, err:%w", err, ErrFeedParseURL)
 	}
 
-	log.WithCtx(ctx).Debugf("%s type: %v Data: %s", t.web, t.typ, fd.String())
-
 	videos := t.parseFeedItems(fd.Items)
 	log.WithCtx(ctx).Infof("%s parsed feed items: %d", t.typ.String(), len(videos))
 
