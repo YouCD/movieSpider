@@ -167,11 +167,14 @@ func HandlerMovie(videos ...*types.FeedVideo) (needDownloadFeedVideo []*types.Fe
 			needRecordFeedVideo = append(needRecordFeedVideo, Videos1080P...)
 		}
 	}
-	if len(Videos1080P) >= 2 {
-		needDownloadFeedVideo = append(needDownloadFeedVideo, Videos1080P[0:2]...)
-		needRecordFeedVideo = append(needRecordFeedVideo, Videos1080P[2:]...)
-	} else {
-		needDownloadFeedVideo = append(needDownloadFeedVideo, Videos1080P...)
+	// 只有没有 2160P 资源时, 才下载 1080P (else if 避免与 2160P 重复下载)
+	if len(Videos2160P) == 0 {
+		if len(Videos1080P) >= 2 {
+			needDownloadFeedVideo = append(needDownloadFeedVideo, Videos1080P[0:2]...)
+			needRecordFeedVideo = append(needRecordFeedVideo, Videos1080P[2:]...)
+		} else {
+			needDownloadFeedVideo = append(needDownloadFeedVideo, Videos1080P...)
+		}
 	}
 	return
 }

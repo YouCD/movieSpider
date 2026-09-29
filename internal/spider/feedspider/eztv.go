@@ -20,9 +20,9 @@ func NewEztv() *Eztv {
 	return &Eztv{BaseFeeder{
 		web: "eztv",
 		BaseFeed: types.BaseFeed{
-			Scheduling: config.Config.Feed.EZTV.Scheduling,
-			Url:        config.Config.Feed.EZTV.Url,
-			UseIPProxy: config.Config.Feed.EZTV.UseIPProxy,
+			Scheduling: config.Config().Feed.EZTV.Scheduling,
+			Url:        config.Config().Feed.EZTV.Url,
+			UseIPProxy: config.Config().Feed.EZTV.UseIPProxy,
 		},
 	}}
 }

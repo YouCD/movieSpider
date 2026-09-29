@@ -26,14 +26,12 @@ func NewTheRarbg(scheduling string, resourceType types.VideoType, siteURL string
 		panic(err)
 	}
 	return &TheRarbg{
-		BaseFeeder: BaseFeeder{
-			BaseFeed: types.BaseFeed{
-				Scheduling: scheduling,
-				Url:        siteURL,
-				UseIPProxy: useIPProxy,
-			},
-			web: "the_rarbg",
+		BaseFeed: types.BaseFeed{
+			Scheduling: scheduling,
+			Url:        siteURL,
+			UseIPProxy: useIPProxy,
 		},
+		web:     "the_rarbg",
 		typ:     resourceType,
 		webHost: fmt.Sprintf("%s://%s", parse.Scheme, parse.Host),
 	}
@@ -62,8 +60,11 @@ func (r *TheRarbg) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) 
 		}
 	})
 
-	var videos []*types.FeedVideoBase
-	var wg sync.WaitGroup
+	var (
+		videos []*types.FeedVideoBase
+		wg     sync.WaitGroup
+		mu     sync.Mutex
+	)
 	log.WithCtx(ctx).Debugf("%s type: %v urls: %d", r.web, r.typ, len(urls))
 	for _, urlItem := range urls {
 		wg.Add(1)
@@ -75,6 +76,7 @@ func (r *TheRarbg) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) 
 				return
 			}
 
+			mu.Lock()
 			videos = append(videos, &types.FeedVideoBase{
 				TorrentName: name,
 				TorrentURL:  urlItem,
@@ -82,6 +84,7 @@ func (r *TheRarbg) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) 
 				Type:        r.typ.String(),
 				Web:         r.web,
 			})
+			mu.Unlock()
 		}(urlItem)
 	}
 	wg.Wait()

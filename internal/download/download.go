@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"sync"
 
 	"movieSpider/internal/aria2"
@@ -33,6 +32,10 @@ func (d *Download) DownloadByName(ctx context.Context, name, resolution string) 
 	go func() {
 		defer wg.Done()
 		feedBt4g := searchspider.NewFeedBt4g(name, d.ResolutionStr2Int(resolution))
+		if feedBt4g == nil {
+			log.WithCtx(ctx).Error("创建 BT4g 爬虫失败")
+			return
+		}
 		_, err := feedBt4g.Search(ctx)
 		if err != nil {
 			log.WithCtx(ctx).Error(err)
@@ -46,12 +49,21 @@ func (d *Download) DownloadByName(ctx context.Context, name, resolution string) 
 		log.WithCtx(ctx).Error(err)
 	}
 
+	// 过滤掉已下载过（相同或更高分辨率）的资源，避免重复下载
+	var filtered []*types.FeedVideo
+	for _, v := range videos {
+		if model.NewMovieDB().ShouldDownload(v).ShouldDownload {
+			filtered = append(filtered, v)
+		}
+	}
+	videos = filtered
+
 	if len(videos) == 0 {
 		return "所有资源已下载过,或没有可下载资源."
 	}
 
 	// 推送磁力连接至 aria2
-	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	newAria2, err := aria2.NewAria2(config.Config().Downloader.Aria2Label)
 	if err != nil {
 		log.WithCtx(ctx).Error(err)
 		return "aria2 初始化失败"
@@ -81,7 +93,7 @@ func (d *Download) DownloadByName(ctx context.Context, name, resolution string) 
 func (d *Download) Run(ctx context.Context) {
 	if d.scheduling == "" {
 		log.WithCtx(ctx).Error("Downloader: Scheduling is null")
-		os.Exit(1)
+		return
 	}
 	log.WithCtx(ctx).Infof("Downloader: Scheduling is: [%s]", d.scheduling)
 	c := cron.New()
@@ -90,7 +102,7 @@ func (d *Download) Run(ctx context.Context) {
 	})
 	if err != nil {
 		log.WithCtx(ctx).Error("Downloader: AddFunc is null")
-		os.Exit(1)
+		return
 	}
 	c.Start()
 	<-ctx.Done()
@@ -196,7 +208,7 @@ func (d *Download) aria2Download(ctx context.Context, videos ...*types.FeedVideo
 	if len(videos) < 1 {
 		return ErrVideoIsNil
 	}
-	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	newAria2, err := aria2.NewAria2(config.Config().Downloader.Aria2Label)
 	if err != nil {
 		return fmt.Errorf("aria2 初始化失败,err: %w", err)
 	}
@@ -212,12 +224,15 @@ func (d *Download) aria2Download(ctx context.Context, videos ...*types.FeedVideo
 		}
 
 		// 如果开启了tg推送则推送
-		if config.Config.TG != nil {
+		if config.Config().TG != nil {
 			go func(video *types.FeedVideo, gid string) {
-				bus.DownloadNotifyChan <- &types.DownloadNotifyVideo{
+				select {
+				case bus.DownloadNotifyChan <- &types.DownloadNotifyVideo{
 					FeedVideo: video,
 					File:      video.TorrentName,
 					Gid:       gid,
+				}:
+				case <-ctx.Done():
 				}
 			}(v, gid)
 		}

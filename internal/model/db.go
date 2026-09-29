@@ -52,7 +52,7 @@ func NewMovieDB() *MovieDB {
 
 // initDatabase 初始化数据库连接
 func initDatabase() error {
-	cfg := config.Config.MySQL
+	cfg := config.Config().MySQL
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8&parseTime=True&loc=Local",
 		cfg.User, cfg.Password, cfg.Host, cfg.Port)
 
@@ -67,7 +67,7 @@ func initDatabase() error {
 		return fmt.Errorf("创建数据库失败: %w", err)
 	}
 
-	newLogger := log.NewGormLogger(time.Second, config.Config.Global.LogLevel)
+	newLogger := log.NewGormLogger(time.Second, config.Config().Global.LogLevel)
 
 	dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
 		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
@@ -157,9 +157,9 @@ func (m *MovieDB) processFeedVideoChannel(ctx context.Context) {
 			}
 
 		case <-ctx.Done():
-			// 处理剩余的缓冲区数据
+			// 处理剩余的缓冲区数据 (ctx 已取消, 使用后台上下文)
 			if len(buffer) > 0 {
-				m.processFeedVideos(ctx, buffer...)
+				m.processFeedVideos(context.Background(), buffer...)
 			}
 			return
 		}
@@ -167,11 +167,6 @@ func (m *MovieDB) processFeedVideoChannel(ctx context.Context) {
 }
 
 func (m *MovieDB) processFeedVideos(ctx context.Context, items ...*types.FeedVideo) {
-	for _, item := range items {
-		// 先将所有项目加入缓存，防止重复处理
-		m.cache.Set(item.TorrentName, true, 24*time.Hour)
-	}
-
 	// 对于成功过滤的项目，调用nameparser.ModelHandler进行处理
 	torrentNamesToParse := make([]string, 0, len(items))
 	feedVideoMap := make(map[string]*types.FeedVideo, len(items))
@@ -192,6 +187,7 @@ func (m *MovieDB) processFeedVideos(ctx context.Context, items ...*types.FeedVid
 	}
 
 	// 处理解析结果并保存到数据库
+	// 注意: 只在解析成功时才写入缓存, 未解析成功的种子下一轮 feed 会重试
 	for torrentName, result := range results {
 		feedVideo := feedVideoMap[torrentName]
 		if feedVideo == nil {
@@ -216,6 +212,8 @@ func (m *MovieDB) processFeedVideos(ctx context.Context, items ...*types.FeedVid
 			continue
 		}
 
+		// 保存成功后加入缓存，防止重复处理
+		m.cache.Set(torrentName, true, 24*time.Hour)
 		msg := formatSaveMessage(feedVideo)
 		log.WithCtx(ctx).Info(msg)
 	}
@@ -235,7 +233,7 @@ func (m *MovieDB) GetDB() *gorm.DB {
 
 func FilterVideo(feedVideoBase *types.FeedVideoBase) (*types.FeedVideo, error) {
 	// 排除低码率的视频
-	if ok := tools.ExcludeVideo(feedVideoBase.TorrentName, config.Config.ExcludeWords); ok {
+	if ok := tools.ExcludeVideo(feedVideoBase.TorrentName, config.Config().ExcludeWords); ok {
 		//nolint:err113
 		return nil, fmt.Errorf("excludeWords, web:%s,TorrentName:%v", feedVideoBase.Web, feedVideoBase.TorrentName)
 	}

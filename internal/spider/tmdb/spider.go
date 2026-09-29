@@ -75,30 +75,54 @@ func (s *TMDBSpider) crawl(ctx context.Context) {
 	log.WithCtx(ctx).Info("TMDB Watchlist爬取完成")
 }
 
-// crawlMovies 爬取电影Watchlist
+const maxWatchlistPages = 50 // 防止异常分页导致无限循环
+
+// crawlMovies 爬取电影Watchlist (全部页)
 func (s *TMDBSpider) crawlMovies(ctx context.Context) {
 	page := 1
-	response, err := s.client.GetWatchlistMovies(ctx, page)
-	if err != nil {
-		log.WithCtx(ctx).Errorf("获取电影Watchlist失败: %s", err)
-		return
-	}
-	for _, movie := range response.Results {
-		s.processMovie(ctx, movie)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		response, err := s.client.GetWatchlistMovies(ctx, page)
+		if err != nil {
+			log.WithCtx(ctx).Errorf("获取电影Watchlist失败: page: %d, err: %s", page, err)
+			return
+		}
+		for _, movie := range response.Results {
+			s.processMovie(ctx, movie)
+		}
+		if page >= response.TotalPages || page >= maxWatchlistPages {
+			return
+		}
+		page++
 	}
 }
 
-// crawlTV 爬取电视剧Watchlist
+// crawlTV 爬取电视剧Watchlist (全部页)
 func (s *TMDBSpider) crawlTV(ctx context.Context) {
 	page := 1
-	response, err := s.client.GetWatchlistTV(ctx, page)
-	if err != nil {
-		log.WithCtx(ctx).Errorf("获取电视剧Watchlist失败: %s", err)
-		return
-	}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		response, err := s.client.GetWatchlistTV(ctx, page)
+		if err != nil {
+			log.WithCtx(ctx).Errorf("获取电视剧Watchlist失败: page: %d, err: %s", page, err)
+			return
+		}
 
-	for _, tv := range response.Results {
-		s.processTV(ctx, tv)
+		for _, tv := range response.Results {
+			s.processTV(ctx, tv)
+		}
+		if page >= response.TotalPages || page >= maxWatchlistPages {
+			return
+		}
+		page++
 	}
 }
 

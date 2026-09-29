@@ -42,7 +42,7 @@ type Aria2 struct {
 func NewAria2(label string) (*Aria2, error) {
 	var e error
 	once.Do(func() {
-		for _, v := range config.Config.Aria2cList {
+		for _, v := range config.Config().Aria2cList {
 			URL := v.URL + "/jsonrpc"
 			if strings.HasSuffix(v.URL, "jsonrpc") {
 				URL = v.URL
@@ -55,7 +55,7 @@ func NewAria2(label string) (*Aria2, error) {
 					e = err
 					return
 				}
-				marshal, _ := json.Marshal(config.Config.Aria2cList)
+				marshal, _ := json.Marshal(config.Config().Aria2cList)
 				log.WithCtx(context.Background()).Debug(string(marshal))
 				aria2Client = &Aria2{aria2Client: client, downloadTask: make(map[string]*types.FeedVideo)}
 			}
@@ -63,6 +63,9 @@ func NewAria2(label string) (*Aria2, error) {
 	})
 	if e != nil {
 		return nil, e
+	}
+	if aria2Client == nil {
+		return nil, fmt.Errorf("未找到 label 为 %s 的 aria2 配置", label)
 	}
 	return aria2Client, nil
 }
@@ -82,10 +85,9 @@ func (a *Aria2) DownloadByURL(url string) (gid string, err error) {
 
 var ErrTellStatus = errors.New("TellStatus 超时")
 
+// DownloadByMagnet 添加磁力链接并等待元数据下载完成
+// 注意: 轮询期间不能持有 a.mtx, 否则会阻塞 Subscribe 等其他操作
 func (a *Aria2) DownloadByMagnet(magnet string) (gid string, err error) {
-	a.mtx.Lock()
-	defer a.mtx.Unlock()
-
 	// 添加磁链
 	MateGid, err := a.aria2Client.AddURI([]string{magnet})
 	if err != nil {
@@ -294,7 +296,8 @@ func (a *Aria2) Subscribe() []*types.DownloadNotifyVideo {
 			continue
 		}
 		// active  waiting   paused   error   complete   removed
-		if info.Status == "complete" {
+		switch info.Status {
+		case "complete":
 			file, size := getMaxSizeFile(info.Files)
 			completedVideos = append(completedVideos, &types.DownloadNotifyVideo{
 				FeedVideo: feedVideo,
@@ -302,6 +305,10 @@ func (a *Aria2) Subscribe() []*types.DownloadNotifyVideo {
 				Size:      tools.ByteCountBinary(int64(size)),
 				Gid:       gid,
 			})
+			delete(a.downloadTask, gid)
+		case "error", "removed":
+			// 任务已失败或被移除, 清理记录避免无限轮询
+			log.WithCtx(context.Background()).Warnf("aria2 任务状态: %s, gid: %s, 从下载任务中移除", info.Status, gid)
 			delete(a.downloadTask, gid)
 		}
 	}

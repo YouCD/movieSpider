@@ -21,7 +21,7 @@ import (
 // MovieService 提供电影搜索和下载服务
 type MovieService struct {
 	aria2Client *aria2.Aria2
-	once        sync.Once
+	mu          sync.Mutex
 	apiKey      string
 	tmdbClient  *tmdb.Client
 }
@@ -42,13 +42,16 @@ func NewMovieService(cfg *MovieServiceConfig) (*MovieService, error) {
 }
 
 // getAria2Client 获取aria2客户端（懒加载）
+// 初始化失败时不缓存, 允许下次调用重试
 func (s *MovieService) getAria2Client() (*aria2.Aria2, error) {
-	var err error
-	s.once.Do(func() {
-		s.aria2Client, err = aria2.NewAria2(config.Config.Downloader.Aria2Label)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("aria2客户端初始化失败: %w", err)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.aria2Client == nil {
+		client, err := aria2.NewAria2(config.Config().Downloader.Aria2Label)
+		if err != nil {
+			return nil, fmt.Errorf("aria2客户端初始化失败: %w", err)
+		}
+		s.aria2Client = client
 	}
 	return s.aria2Client, nil
 }

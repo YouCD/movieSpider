@@ -32,7 +32,7 @@ func Test_download_DownloadByName(t *testing.T) {
 		log.WithCtx(context.Background()).Error(err)
 	}
 
-	//newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	//newAria2, err := aria2.NewAria2(config.Config().Downloader.Aria2Label)
 	//if err != nil {
 	//	t.Error(err)
 	//}

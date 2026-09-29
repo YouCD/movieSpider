@@ -50,7 +50,7 @@ func (u *Uindex) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
 		var video types.FeedVideoBase
 		// #content > div > div.top-table-container > table > tbody > tr:nth-child(1) > td.sr-col-name > a.sr-torrent-link
 		video.TorrentName = selection.Find("td.sr-col-name > a.sr-torrent-link").Text()
-
+		// #click > div > a.txlight
 		video.TorrentURL = fmt.Sprintf("%s/%s", u.webHost, selection.Find("td>a:nth-child(2)").AttrOr("href", ""))
 
 		video.Type = u.typ.String()

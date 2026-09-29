@@ -33,10 +33,10 @@ func NewReport(scheduling string) *Report {
 //
 //	@Description: 运行
 //	@receiver r
-func (r *Report) Run() {
+func (r *Report) Run(ctx context.Context) {
 	if r.scheduling == "" {
 		log.WithCtx(context.Background()).Error("Report: Scheduling is null")
-		os.Exit(1)
+		return
 	}
 	log.WithCtx(context.Background()).Infof("Report: Scheduling is: [%s]", r.scheduling)
 	c := cron.New()
@@ -49,11 +49,14 @@ func (r *Report) Run() {
 		reportAria2DownloadQueue()
 	})
 	c.Start()
+	<-ctx.Done()
+	c.Stop()
+	log.WithCtx(context.Background()).Info("Report: Stopped")
 }
 
 func reportAria2TaskStatistics() {
 	// 下载情况统计
-	aria2Client, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	aria2Client, err := aria2.NewAria2(config.Config().Downloader.Aria2Label)
 	if err != nil {
 		log.WithCtx(context.Background()).Error("Report: err", err)
 		return
@@ -110,17 +113,24 @@ func reportFeedVideoStatistics() {
 
 	table = tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"Web", "Count"})
+	// 今日统计使用独立变量, 避免累加到总库量 Total 上
+	var todayTotal int
 	for _, reportCount := range count {
-		Total += reportCount.Count
+		todayTotal += reportCount.Count
 		table.Append([]string{reportCount.Web, strconv.Itoa(reportCount.Count)})
 	}
+	if todayTotal == 0 {
+		log.WithCtx(context.Background()).Info("今日无新增资源")
+		return
+	}
+	table.Footer([]string{"总数", strconv.Itoa(todayTotal)})
 	log.WithCtx(context.Background()).Info("\n\n今日下载统计: ")
 	table.Render()
 }
 
 // aria2 下载队列
 func reportAria2DownloadQueue() {
-	newAria2, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	newAria2, err := aria2.NewAria2(config.Config().Downloader.Aria2Label)
 	if err != nil {
 		log.WithCtx(context.Background()).Error("Report: err", err)
 		return

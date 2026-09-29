@@ -37,7 +37,12 @@ Feed:
       ResourceType: tv
       Url: "https://www.torlock.com/television/rss.xml"
       UseIPProxy: true
-
+  Tgx:
+    - Scheduling: "*/2 * * * *"
+      Url: "https://torrentgalaxy.info/get-posts/category:TV:order:-se/"
+      ResourceType: tv
+    - Scheduling: "*/2 * * * *"
+      Url: "https://torrentgalaxy.info/get-posts/category:Movies:order:-se/"
   ThePirateBay:
     Scheduling: "*/3 * * * *"
     Url: "https://thepiratebay.party/rss//top100/200"

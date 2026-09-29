@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"errors"
-	"os"
 	"strings"
 	"sync"
 
@@ -32,24 +31,24 @@ type MovieSpider struct {
 	cronJobs       []*cron.Cron
 }
 
-//nolint:gochecknoglobals
-var ms = new(MovieSpider)
-
 // NewMovieSpider 初始化movieSpider
 func NewMovieSpider(options ...Option) *MovieSpider {
+	m := new(MovieSpider)
 	for _, option := range options {
-		option.apply(ms)
+		option.apply(m)
 	}
-	return ms
+	return m
 }
 
 func (m *MovieSpider) Start(ctx context.Context) {
-	if config.Config.TG != nil {
-		ms.bot = bot.NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
-		go ms.bot.StartBot(ctx)
+	if config.Config().TG != nil {
+		m.bot = bot.NewTgBot(config.Config().TG.BotToken, config.Config().TG.TgIDs)
+		if m.bot != nil {
+			go m.bot.StartBot(ctx)
+		}
 	}
 	if m.DHTThread > 0 {
-		go dhtc_client.Boot(m.DHTThread)
+		go dhtc_client.Boot(m.DHTThread, ctx)
 	}
 
 	m.startFeed(ctx)
@@ -74,8 +73,8 @@ func (m *MovieSpider) startFeed(ctx context.Context) {
 			defer m.wg.Done()
 
 			if feeder.Scheduling() == "" {
-				log.WithCtx(ctx).Errorf("%s Scheduling is null", feeder.WebName())
-				os.Exit(1)
+				log.WithCtx(ctx).Errorf("%s Scheduling is null, 跳过该feeder", feeder.WebName())
+				return
 			}
 			log.WithCtx(ctx).Infof("%s Scheduling is: [%s]", feeder.WebName(), feeder.Scheduling())
 
@@ -108,11 +107,15 @@ func (m *MovieSpider) processFeed(ctx context.Context, feeder feedspider.Feeder)
 	}
 	log.WithCtx(ctx).Infof("web: %s, cont: %d", feeder.WebName(), len(videos))
 	for _, video := range videos {
-		if video.Magnet == "" {
+		if video == nil || video.Magnet == "" {
 			log.WithCtx(ctx).Warnf("web: %s, url: %s, Magnet is empty", feeder.WebName(), feeder.URL())
 			continue
 		}
-		bus.FeedVideoChan <- video
+		select {
+		case bus.FeedVideoChan <- video:
+		case <-ctx.Done():
+			return
+		}
 	}
 }
 

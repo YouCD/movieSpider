@@ -11,7 +11,7 @@
 * ~~[glodls](https://gtorrents.com)~~
 * [knaben](https://rss.knaben.eu)
 * ~~[rarbg](http://rarbg.to/)~~
-* ~~[TGx](https://tgx.rs)~~
+* [TGx](https://torrentgalaxy.info/)
 * [torlock](https://www.torlock.com)
 * ~~[magnetdl](https://www.magnetdl.com)~~
 * [ThePirateBay](https://thepiratebay.org/search.php?q=top100:200)

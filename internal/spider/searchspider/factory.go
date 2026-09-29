@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
 
 	"movieSpider/internal/types"
 
@@ -20,7 +19,7 @@ func (f *FactoryBt4g) CreateFeeder(args ...interface{}) *BT4g {
 	parse, err := url.Parse(urlBt4g)
 	if err != nil {
 		log.WithCtx(context.Background()).Error(err)
-		os.Exit(1)
+		return nil
 	}
 	bURL := fmt.Sprintf("%s://%s/search/%s/bysize/1?page=rss", parse.Scheme, parse.Host, name)
 	return &BT4g{url: bURL, resolution: resolution, web: "BT4g"}

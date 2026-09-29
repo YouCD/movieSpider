@@ -19,9 +19,9 @@ func NewThePirateBay() *ThePirateBay {
 		BaseFeeder{
 			web: "ThePirateBay",
 			BaseFeed: types.BaseFeed{
-				Url:        config.Config.Feed.ThePirateBay.Url,
-				Scheduling: config.Config.Feed.ThePirateBay.Scheduling,
-				UseIPProxy: config.Config.Feed.ThePirateBay.UseIPProxy,
+				Url:        config.Config().Feed.ThePirateBay.Url,
+				Scheduling: config.Config().Feed.ThePirateBay.Scheduling,
+				UseIPProxy: config.Config().Feed.ThePirateBay.UseIPProxy,
 			},
 		},
 	}

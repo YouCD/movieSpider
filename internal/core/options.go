@@ -33,17 +33,17 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 	feedKnaben := feedspider.NewFeedKnaben()
 
 	// TORLOCK
-	feedTorlockTV, feedTorlockMovie := createFeederWithURLs(config.Config.Feed.TORLOCK, feedspider.NewTorlock)
-	// 1337x
-	// feed1337xTV, feed1337xMovie := createFeederWithURLs(config.Config.Feed.Web1337x, feedspider.NewWeb1337x)
+	feedTorlockTV, feedTorlockMovie := createFeederWithURLs(config.Config().Feed.TORLOCK, feedspider.NewTorlock)
+	// tgx
+	feedTgxTV, feedTgxMovie := createFeederWithURLs(config.Config().Feed.Tgx, feedspider.NewTgxWeb)
 
 	// therarbg
-	feedTheRarbg2TV, feedTheRarbg2Movie := createFeederWithURLs(config.Config.Feed.TheRarbg, feedspider.NewTheRarbg)
+	feedTheRarbg2TV, feedTheRarbg2Movie := createFeederWithURLs(config.Config().Feed.TheRarbg, feedspider.NewTheRarbg)
 
 	feedThePirateBay := feedspider.NewThePirateBay()
 
 	// Uindex
-	uindexTv, uindexMovie := createFeederWithURLs(config.Config.Feed.Uindex, feedspider.NewUindex)
+	uindexTv, uindexMovie := createFeederWithURLs(config.Config().Feed.Uindex, feedspider.NewUindex)
 
 	feedYts := feedspider.NewYts()
 	return optionFunc(func(ms *MovieSpider) {
@@ -52,8 +52,8 @@ func WithFeeds(feeds ...feedspider.Feeder) Option {
 			feedEZTV,
 			feedTorlockMovie,
 			feedTorlockTV,
-			// feed1337xMovie,
-			// feed1337xTV,
+			feedTgxTV,
+			feedTgxMovie,
 			feedThePirateBay,
 			feedKnaben,
 			feedTheRarbg2TV,
@@ -89,24 +89,24 @@ func WithConfigFile(configFile string) Option {
 }
 
 // WithReport 初始化 report
-func WithReport() Option {
+func WithReport(ctx context.Context) Option {
 	return optionFunc(func(ms *MovieSpider) {
 		ms.report = job.NewReport("*/1 * * * *")
-		go ms.report.Run()
+		go ms.report.Run(ctx)
 	})
 }
 
 // WithDownload 初始化下载器
 func WithDownload(ctx context.Context) Option {
 	return optionFunc(func(ms *MovieSpider) {
-		ms.download = download.NewDownloader(config.Config.Downloader.Scheduling)
+		ms.download = download.NewDownloader(config.Config().Downloader.Scheduling)
 		go ms.download.Run(ctx)
 	})
 }
 
 // WithReleaseTimeJob 初始化下载器
 func WithReleaseTimeJob(ctx context.Context) Option {
-	if config.Config.TG == nil {
+	if config.Config().TG == nil {
 		return optionFunc(func(_ *MovieSpider) {
 			log.WithCtx(context.Background()).Warn("未开启TG通知，无法运行 电影上线 通知job")
 		})
@@ -119,8 +119,8 @@ func WithReleaseTimeJob(ctx context.Context) Option {
 
 func WithDHT() Option {
 	return optionFunc(func(ms *MovieSpider) {
-		if config.Config.Global.DHTThread > 0 {
-			ms.DHTThread = config.Config.Global.DHTThread
+		if config.Config().Global.DHTThread > 0 {
+			ms.DHTThread = config.Config().Global.DHTThread
 		}
 	})
 }

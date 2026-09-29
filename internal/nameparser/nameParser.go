@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"movieSpider/internal/config"
@@ -122,7 +123,7 @@ Tracker.2024.S02E07.1080p.HEVC.x265-MeGusta
 Fallout.S02.COMPLETE.2160p.AMZN.WEB-DL.DV.HDR10+.MULTi.DDP5.1.Atmos.H265.MP4-BTM
 无效种子名称无关键信息
 <输出>
-[{"id":0,"typeStr":"tv","newName":"Fallout","year":0,"season":2,"episode":0,“complete”:true,"resolution":2160}]
+[{"id":0,"typeStr":"tv","newName":"Fallout","year":0,"season":2,"episode":0,"complete":true,"resolution":2160}]
 ---
 
 **只输出解析后的JSON数组，不要包含任何额外文字或解释。**
@@ -130,25 +131,42 @@ Fallout.S02.COMPLETE.2160p.AMZN.WEB-DL.DV.HDR10+.MULTi.DDP5.1.Atmos.H265.MP4-BTM
 
 var ErrNamesIsEmpty = fmt.Errorf("names is empty")
 
+type headerTransport struct {
+	base    http.RoundTripper
+	headers map[string]string
+}
+
+func (h *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	for k, v := range h.headers {
+		req.Header.Set(k, v)
+	}
+	return h.base.RoundTrip(req)
+}
 func ModelHandler(ctx context.Context, names ...string) (map[string]*types.LLMResult, error) {
 	if len(names) == 0 {
 		return nil, ErrNamesIsEmpty //nolint:err113
 	}
-	conf := openai.DefaultAnthropicConfig(config.Config.LLM.ApiKey, config.Config.LLM.BaseURL)
+	conf := openai.DefaultAnthropicConfig(config.Config().LLM.ApiKey, config.Config().LLM.BaseURL)
 	conf.APIType = openai.APITypeOpenAI
+
+	conf.HTTPClient = &http.Client{
+		Transport: &headerTransport{
+			base: http.DefaultTransport,
+			headers: map[string]string{
+				"User-Agent": "MovieSpider",
+			},
+		},
+	}
 
 	client := openai.NewClientWithConfig(conf)
 
 	resp, err := client.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: config.Config.LLM.Model,
+			Model: config.Config().LLM.Model,
 			Messages: []openai.ChatCompletionMessage{
 				{Role: "system", Content: prompt},
 				{Role: "user", Content: strings.Join(names, "\n")},
-			},
-			ResponseFormat: &openai.ChatCompletionResponseFormat{
-				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
 			},
 		},
 	)
@@ -168,14 +186,18 @@ func ModelHandler(ctx context.Context, names ...string) (map[string]*types.LLMRe
 	}
 	log.WithCtx(ctx).Warnw("content", "parser content", Content, "name", strings.Join(names, ";"))
 
+	// 按序号映射结果: 即使模型返回的数量与输入不一致,
+	// 也尽量保留能对齐的结果, 避免整批丢弃
 	resultMap := make(map[string]*types.LLMResult)
-	if len(names) == len(result) {
-		for index, llmResult := range result {
-			if llmResult.NewName == "" {
-				continue
-			}
-			resultMap[names[index]] = llmResult
+	n := len(names)
+	if len(result) < n {
+		n = len(result)
+	}
+	for index := 0; index < n; index++ {
+		if result[index] == nil || result[index].NewName == "" {
+			continue
 		}
+		resultMap[names[index]] = result[index]
 	}
 	return resultMap, nil
 }

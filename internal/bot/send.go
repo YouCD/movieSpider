@@ -97,13 +97,24 @@ var notificationTemplates = map[notifyType]string{
 
 // SendDatePublishedOrDownloadMsg 发送电影上映消息或下载通知
 func (t *TGBot) SendDatePublishedOrDownloadMsg(ctx context.Context, v *types.DownloadNotifyVideo, notify notifyType) {
-	video, err := model.NewMovieDB().FetchOneTMDBVideoByImdbID(ctx, v.FeedVideo.ImdbID)
-	if err != nil {
-		log.WithCtx(ctx).Error(err)
+	// 上映通知携带 TMDBVideo, 下载通知携带 FeedVideo, 两者可能只有一个非空
+	var video *types.TMDBVideo
+	if v.TMDBVideo != nil {
+		video = v.TMDBVideo
+	} else if v.FeedVideo != nil {
+		var err error
+		video, err = model.NewMovieDB().FetchOneTMDBVideoByImdbID(ctx, v.FeedVideo.ImdbID)
+		if err != nil {
+			log.WithCtx(ctx).Error(err)
+			return
+		}
+	} else {
+		log.WithCtx(ctx).Error("SendDatePublishedOrDownloadMsg: FeedVideo 和 TMDBVideo 均为空")
 		return
 	}
 
 	// 处理原始信息
+	var err error
 	var rowData types.RowData
 	if err = json.Unmarshal([]byte(video.RowData), &rowData); err != nil {
 		log.WithCtx(ctx).Error(err)
@@ -112,8 +123,8 @@ func (t *TGBot) SendDatePublishedOrDownloadMsg(ctx context.Context, v *types.Dow
 
 	// 处理电影名
 	var names []string
-	if err = json.Unmarshal([]byte(video.Names), &names); err != nil {
-		log.WithCtx(ctx).Error(err)
+	if err = json.Unmarshal([]byte(video.Names), &names); err != nil || len(names) == 0 {
+		log.WithCtx(ctx).Errorf("处理电影名失败: %s, err: %v", video.Names, err)
 		return
 	}
 

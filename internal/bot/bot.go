@@ -3,7 +3,6 @@ package bot
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -25,7 +24,7 @@ import (
 //nolint:gochecknoglobals,unused
 var (
 	tgBotClient *TGBot
-	once        sync.Once
+	tgBotMtx    sync.Mutex
 )
 
 const (
@@ -42,27 +41,35 @@ type TGBot struct {
 }
 
 // NewTgBot 创建一个TGBot实例
+// 创建失败时返回 nil, 调用方需要判空
 func NewTgBot(botToken string, tgIDs []int) *TGBot {
-	once.Do(func() {
-		ctx := context.Background()
-		opts := []bot.Option{}
+	if tgBotClient != nil {
+		return tgBotClient
+	}
+	tgBotMtx.Lock()
+	defer tgBotMtx.Unlock()
+	if tgBotClient != nil {
+		return tgBotClient
+	}
 
-		if config.Config.Global.ProxyURL != "" {
-			log.WithCtx(ctx).Info("ProxyURL ", config.Config.Global.ProxyURL)
-			client := httpclient.NewProxyHTTPClient(ctx)
-			opts = append(opts, bot.WithHTTPClient(time.Second*60, client))
-		}
+	ctx := context.Background()
+	opts := []bot.Option{}
 
-		b, err := bot.New(config.Config.TG.BotToken, opts...)
-		if err != nil {
-			log.WithCtx(ctx).Error(err)
-			os.Exit(-1)
-		}
+	if config.Config().Global.ProxyURL != "" {
+		log.WithCtx(ctx).Info("ProxyURL ", config.Config().Global.ProxyURL)
+		client := httpclient.NewProxyHTTPClient(ctx)
+		opts = append(opts, bot.WithHTTPClient(time.Second*60, client))
+	}
 
-		tgBotClient = &TGBot{
-			botToken: botToken, IDs: tgIDs, bot: b,
-		}
-	})
+	b, err := bot.New(botToken, opts...)
+	if err != nil {
+		log.WithCtx(ctx).Errorf("创建 TG bot 失败: %v", err)
+		return nil
+	}
+
+	tgBotClient = &TGBot{
+		botToken: botToken, IDs: tgIDs, bot: b,
+	}
 	return tgBotClient
 }
 
@@ -79,11 +86,11 @@ const (
 //nolint:gocognit
 func (t *TGBot) StartBot(ctx context.Context) {
 	// 发送通知 下载 通知
-	t.downloadNotify()
+	t.downloadNotify(ctx)
 	// 发送通知 上映 通知
-	t.datePublishedNotify()
+	t.datePublishedNotify(ctx)
 	// 发送通知 下载完毕 通知
-	t.downloadCompleteNotify()
+	t.downloadCompleteNotify(ctx)
 
 	// 获取 bot 信息
 	me, err := t.bot.GetMe(ctx)
@@ -113,7 +120,7 @@ func (t *TGBot) handleReportDownloadHandler(ctx context.Context, b *bot.Bot, upd
 		return
 	}
 
-	aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	aria2Server, err := aria2.NewAria2(config.Config().Downloader.Aria2Label)
 	if err != nil {
 		log.WithCtx(ctx).Error(err)
 		t.sendReplyMessage(update.Message.Chat.ID, update.Message.ID, "aria2下载器服务异常")
@@ -167,7 +174,7 @@ func (t *TGBot) handleMovieDownloadHandler(ctx context.Context, b *bot.Bot, upda
 		return
 	}
 
-	downloader := download.NewDownloader(config.Config.Downloader.Scheduling)
+	downloader := download.NewDownloader(config.Config().Downloader.Scheduling)
 	downloadMsg := downloader.DownloadByName(ctx, pars[0], pars[1])
 	t.sendReplyMessage(update.Message.Chat.ID, update.Message.ID, downloadMsg)
 }
@@ -222,7 +229,7 @@ func inArray(val int, array []int) bool {
 
 // checkUser 检查用户是否有权限
 func (t *TGBot) checkUser(chatID int64, update *models.Update) bool {
-	if !inArray(int(chatID), config.Config.TG.TgIDs) {
+	if !inArray(int(chatID), config.Config().TG.TgIDs) {
 		t.sendReplyMessage(chatID, update.Message.ID, "您没有权限")
 		return false
 	}
@@ -230,13 +237,16 @@ func (t *TGBot) checkUser(chatID int64, update *models.Update) bool {
 }
 
 // downloadNotify 下载通知
-func (t *TGBot) downloadNotify() {
+func (t *TGBot) downloadNotify(ctx context.Context) {
 	go func() {
 		for {
-			video, ok := <-bus.DownloadNotifyChan
-			if ok {
-				t.SendDatePublishedOrDownloadMsg(context.Background(), video, notifyTypeDownload)
-			} else {
+			select {
+			case video, ok := <-bus.DownloadNotifyChan:
+				if !ok {
+					return
+				}
+				t.SendDatePublishedOrDownloadMsg(ctx, video, notifyTypeDownload)
+			case <-ctx.Done():
 				return
 			}
 		}
@@ -244,15 +254,18 @@ func (t *TGBot) downloadNotify() {
 }
 
 // datePublishedNotify 上映通知
-func (t *TGBot) datePublishedNotify() {
+func (t *TGBot) datePublishedNotify(ctx context.Context) {
 	go func() {
 		for {
-			v, ok := <-bus.DatePublishedChan
-			if ok {
-				t.SendDatePublishedOrDownloadMsg(context.Background(), &types.DownloadNotifyVideo{
+			select {
+			case v, ok := <-bus.DatePublishedChan:
+				if !ok {
+					return
+				}
+				t.SendDatePublishedOrDownloadMsg(ctx, &types.DownloadNotifyVideo{
 					TMDBVideo: v,
 				}, notifyTypeDatePublished)
-			} else {
+			case <-ctx.Done():
 				return
 			}
 		}
@@ -260,20 +273,26 @@ func (t *TGBot) datePublishedNotify() {
 }
 
 // downloadCompleteNotify 下载完成通知
-func (t *TGBot) downloadCompleteNotify() {
+func (t *TGBot) downloadCompleteNotify(ctx context.Context) {
 	go func() {
-		aria2Server, err := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+		aria2Server, err := aria2.NewAria2(config.Config().Downloader.Aria2Label)
 		if err != nil {
 			log.WithCtx(context.Background()).Error(err)
 			return
 		}
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
 		for {
-			time.Sleep(time.Second * 1)
-			completedVideos := aria2Server.Subscribe()
-			for _, video := range completedVideos {
-				t.mtx.Lock()
-				t.SendDatePublishedOrDownloadMsg(context.Background(), video, notifyTypeDownloadComplete)
-				t.mtx.Unlock()
+			select {
+			case <-ticker.C:
+				completedVideos := aria2Server.Subscribe()
+				for _, video := range completedVideos {
+					t.mtx.Lock()
+					t.SendDatePublishedOrDownloadMsg(ctx, video, notifyTypeDownloadComplete)
+					t.mtx.Unlock()
+				}
+			case <-ctx.Done():
+				return
 			}
 		}
 	}()

@@ -20,9 +20,9 @@ func NewYts() *Yts {
 	return &Yts{BaseFeeder{
 		web: "Yts",
 		BaseFeed: types.BaseFeed{
-			Scheduling: config.Config.Feed.Yts.Scheduling,
-			Url:        config.Config.Feed.Yts.Url,
-			UseIPProxy: config.Config.Feed.Yts.UseIPProxy,
+			Scheduling: config.Config().Feed.Yts.Scheduling,
+			Url:        config.Config().Feed.Yts.Url,
+			UseIPProxy: config.Config().Feed.Yts.UseIPProxy,
 		},
 	}}
 }
@@ -48,10 +48,13 @@ func (f *Yts) Crawler(ctx context.Context) (videos []*types.FeedVideoBase, err e
 
 	var wg sync.WaitGroup
 	var mu sync.Mutex // 保护 videos 切片的并发访问
+	sem := make(chan struct{}, 5) // 限制并发请求数, 避免对 yts CDN 造成过大压力
 	for _, video := range tempVideos {
 		wg.Add(1)
 		go func(video *types.FeedVideoBase) {
 			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
 			do, err := f.HTTPRequest(ctx, video.Magnet)
 			if err != nil {
 				log.WithCtx(ctx).Errorw("Yts Magnet Request Error", "err", err, "torrent_url", video.TorrentURL)

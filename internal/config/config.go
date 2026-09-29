@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync/atomic"
 
 	"movieSpider/internal/types"
 
@@ -70,14 +71,12 @@ type config struct {
 	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
 	Feed         struct {
 		EZTV    *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
-		GLODLS  *types.BaseFeed `json:"GLODLS" yaml:"GLODLS" validate:"required"`
 		TORLOCK []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
-		// Web1337x      []*BaseRT       `json:"Web1337x" yaml:"Web1337x" validate:"required"`
+		Tgx     []*BaseRT       `json:"Tgx" yaml:"Tgx" validate:"required"`
 		ThePirateBay  *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
 		Knaben        *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
 		TheRarbg      []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
 		Uindex        []*BaseRT       `json:"Uindex" yaml:"Uindex" validate:"required"`
-		Ilcorsaronero []*BaseRT       `json:"Ilcorsaronero" yaml:"Ilcorsaronero" validate:"required"`
 		Yts           *types.BaseFeed `json:"Yts" yaml:"Yts" validate:"required"`
 	} `json:"Feed" yaml:"Feed" validate:"required"`
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
@@ -97,11 +96,17 @@ type config struct {
 
 //nolint:gochecknoglobals
 var (
-	Config *config
-	v      = viper.New()
+	// configPtr 原子指针，保证配置热更新时其他 goroutine 的读取是安全的
+	configPtr atomic.Pointer[config]
+	v         = viper.New()
 	// validate 单例，避免重复创建
 	validate = validator.New()
 )
+
+// Config 返回当前配置（线程安全）
+func Config() *config {
+	return configPtr.Load()
+}
 
 func InitConfig(configFile string) {
 	v.SetConfigType("yaml")
@@ -113,7 +118,8 @@ func InitConfig(configFile string) {
 		os.Exit(1)
 	}
 
-	if err := v.Unmarshal(&Config); err != nil {
+	cfg := new(config)
+	if err := v.Unmarshal(cfg); err != nil {
 		fmt.Printf("读取配置错误: %v\n", err)
 		os.Exit(1)
 	}
@@ -121,15 +127,17 @@ func InitConfig(configFile string) {
 	v.WatchConfig()
 	v.OnConfigChange(handleConfigChange)
 
-	if err := initLogger(Config); err != nil {
+	if err := initLogger(cfg); err != nil {
 		fmt.Printf("初始化日志失败: %v\n", err)
 		os.Exit(1)
 	}
 
-	if err := ValidateConfig(Config); err != nil {
+	if err := ValidateConfig(cfg); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	configPtr.Store(cfg)
 }
 
 // handleConfigChange 处理配置文件变更
@@ -147,12 +155,12 @@ func handleConfigChange(e fsnotify.Event) {
 		return
 	}
 
-	Config = c
-	if err := initLogger(Config); err != nil {
+	if err := initLogger(c); err != nil {
 		log.WithCtx(context.Background()).Errorf("初始化日志失败: %s", err)
 		return
 	}
-	log.WithCtx(context.Background()).Debug("日志级别： ", Config.Global.LogLevel)
+	configPtr.Store(c)
+	log.WithCtx(context.Background()).Debug("日志级别： ", c.Global.LogLevel)
 }
 
 // initLogger 初始化日志配置

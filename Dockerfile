@@ -14,7 +14,7 @@ WORKDIR /movieSpider
 COPY --from=builder /movieSpider/movieSpider .
 RUN upx movieSpider
 
-FROM frolvlad/alpine-glibc
+FROM alpine
 WORKDIR /app
 ENV PATH=/app:$PATH TZ=Asia/Shanghai
 RUN apk add -U tzdata --no-cache &&\

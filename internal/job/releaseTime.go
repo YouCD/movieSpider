@@ -3,7 +3,6 @@ package job
 import (
 	"context"
 	"encoding/json"
-	"os"
 
 	"movieSpider/internal/bus"
 	"movieSpider/internal/model"
@@ -27,7 +26,7 @@ func NewReleaseTimeJob(scheduling string) *ReleaseTimeJob {
 func (r *ReleaseTimeJob) Run(ctx context.Context) {
 	if r.scheduling == "" {
 		log.WithCtx(ctx).Error("ReleaseTimeJob: Scheduling is null")
-		os.Exit(1)
+		return
 	}
 	log.WithCtx(ctx).Infof("ReleaseTimeJob: Scheduling is: [%s]", r.scheduling)
 	c := cron.New()
@@ -41,16 +40,25 @@ func (r *ReleaseTimeJob) Run(ctx context.Context) {
 		for _, video := range videos {
 			if video.IsDatePublished() {
 				go func(v *types.TMDBVideo) {
-					bus.DatePublishedChan <- v
+					select {
+					case bus.DatePublishedChan <- v:
+					case <-ctx.Done():
+					}
 				}(video)
 				var names []string
 				err := json.Unmarshal([]byte(video.Names), &names)
+				nameStr := "unknown"
 				if err != nil {
 					log.WithCtx(ctx).Error(err)
+				} else if len(names) > 0 {
+					nameStr = names[0]
 				}
-				log.WithCtx(ctx).Infof("Video: %s , DatePublished: %v", names[0], video.DatePublished)
+				log.WithCtx(ctx).Infof("Video: %s , DatePublished: %v", nameStr, video.DatePublished)
 			}
 		}
 	})
 	c.Start()
+	<-ctx.Done()
+	c.Stop()
+	log.WithCtx(ctx).Info("ReleaseTimeJob: Stopped")
 }

@@ -14,7 +14,7 @@ func init() {
 }
 
 func Test_aria2_DownloadList(t *testing.T) {
-	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
+	newAria2, err := NewAria2(config.Config().Downloader.Aria2Label)
 	if err != nil {
 		t.Error(err)
 	}
@@ -66,7 +66,7 @@ func Test_aria2_DownloadList(t *testing.T) {
 }
 
 func Test_aria2_CompletedFiles(t *testing.T) {
-	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
+	newAria2, err := NewAria2(config.Config().Downloader.Aria2Label)
 	if err != nil {
 		t.Error(err)
 	}
@@ -83,7 +83,7 @@ func Test_aria2_CompletedFiles(t *testing.T) {
 func Test_aria2_getAllActiveGID(t *testing.T) {
 	// 03b5a009333b8158 种子
 	// 90d7c6958629d5a0 磁力
-	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
+	newAria2, err := NewAria2(config.Config().Downloader.Aria2Label)
 	if err != nil {
 		t.Error(err)
 	}
@@ -101,7 +101,7 @@ func Test_aria2_DownloadByMagnet(t *testing.T) {
 	urls := []string{
 		`magnet:?xt=urn:btih:AEBCD2368F6E5C992B1332B9164AE53B6AF85553&dn=The.Flash.2014.S09E01.1080p.WEB.H264-GGWP%5BTGx%5D&tr=udp://open.stealth.si:80/announce&tr=udp://tracker.tiny-vps.com:6969/announce&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://tracker.torrent.eu.org:451/announce&tr=udp://explodie.org:6969/announce&tr=udp://tracker.cyberia.is:6969/announce&tr=udp://ipv4.tracker.harry.lu:80/announce&tr=udp://p4p.arenabg.com:1337/announce&tr=udp://tracker.birkenwald.de:6969/announce&tr=udp://tracker.moeking.me:6969/announce&tr=udp://opentor.org:2710/announce&tr=udp://tracker.dler.org:6969/announce&tr=udp://9.rarbg.me:2970/announce&tr=https://tracker.foreverpirates.co:443/announce&tr=http://vps02.net.orel.ru:80/announce`,
 	}
-	newAria2, err := NewAria2(config.Config.Downloader.Aria2Label)
+	newAria2, err := NewAria2(config.Config().Downloader.Aria2Label)
 	if err != nil {
 		t.Error(err)
 		return

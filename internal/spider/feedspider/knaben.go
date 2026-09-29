@@ -79,9 +79,9 @@ func NewFeedKnaben() *Knaben {
 	return &Knaben{
 		BaseFeeder: BaseFeeder{
 			BaseFeed: types.BaseFeed{
-				Scheduling: config.Config.Feed.Knaben.Scheduling,
-				Url:        config.Config.Feed.Knaben.Url,
-				UseIPProxy: config.Config.Feed.Knaben.UseIPProxy,
+				Scheduling: config.Config().Feed.Knaben.Scheduling,
+				Url:        config.Config().Feed.Knaben.Url,
+				UseIPProxy: config.Config().Feed.Knaben.UseIPProxy,
 			},
 			web: "knaben",
 		},

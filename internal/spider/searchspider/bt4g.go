@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
 	"movieSpider/internal/model"
@@ -27,11 +26,12 @@ type BT4g struct {
 	web        string
 }
 
+// NewFeedBt4g 创建 BT4g 爬虫, 失败时返回 nil
 func NewFeedBt4g(name string, resolution types.Resolution) *BT4g {
 	parse, err := url.Parse(urlBt4g)
 	if err != nil {
 		log.WithCtx(context.Background()).Error(err)
-		os.Exit(1)
+		return nil
 	}
 
 	bURL := fmt.Sprintf("%s://%s/search/%s/bysize/1?page=rss", parse.Scheme, parse.Host, name)

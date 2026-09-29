@@ -46,7 +46,7 @@ func (m *MovieDB) GetFeedVideoByName(name string) (*types.FeedVideo, error) {
 //	@return err
 func (m *MovieDB) GetFeedVideoTVByNames(ctx context.Context, names ...string) ([]*types.FeedVideo, error) {
 	log.WithCtx(ctx).Debugf("开始第一次查找tv数据: %s.", names)
-	firstQuery := `name like ? and magnet!="" and  type="tv" and download=0;`
+	firstQuery := `name like ? and magnet!="" and  type="tv" and download=0`
 	argsFunc := func(name string) string {
 		return fmt.Sprintf("%%%s%%", name)
 	}
@@ -100,10 +100,13 @@ func (m *MovieDB) findTV(ctx context.Context, names []string, query string, args
 			continue
 		}
 		log.WithCtx(ctx).Debugf("findTV 获取数据: %s.", n)
-		result := m.db.Model(&types.FeedVideo{}).WithContext(ctx).Where(query, argsFunc(n)).Find(&firstVideos)
+		// 每个名字单独查询, 结果累积 (避免后面的查询覆盖前面的结果)
+		var batch []*types.FeedVideo
+		result := m.db.Model(&types.FeedVideo{}).WithContext(ctx).Where(query, argsFunc(n)).Find(&batch)
 		if result.Error != nil {
 			return nil, fmt.Errorf("查找失败, err:%w", result.Error)
 		}
+		firstVideos = append(firstVideos, batch...)
 	}
 	return firstVideos, nil
 }
@@ -140,7 +143,8 @@ func (m *MovieDB) CountFeedVideo() (counts []*types.ReportCount, err error) {
 
 func (m *MovieDB) GetFeedVideoMovieByNames(ctx context.Context, names ...string) ([]*types.FeedVideo, error) {
 	log.WithCtx(ctx).Debugf("开始第一次查找Movie数据: %s.", names)
-	firstQuery := `name = ? and magnet!="" and type="movie"`
+	// download != 1 排除已下载的资源, 避免重复下载
+	firstQuery := `name = ? and magnet!="" and type="movie" and download != 1`
 	videos, err := m.findMovie(ctx, names, firstQuery)
 	if err != nil {
 		return videos, err
@@ -178,10 +182,13 @@ func (m *MovieDB) findMovie(ctx context.Context, names []string, query string) (
 	var movies []*types.FeedVideo
 	for _, n := range names {
 		//  只查找 没有下载过 && 类型为movie数据   and download=0
-		result := m.db.Model(&types.FeedVideo{}).WithContext(ctx).Where(query, n).Find(&movies)
+		//  每个名字单独查询, 结果累积 (避免后面的查询覆盖前面的结果)
+		var batch []*types.FeedVideo
+		result := m.db.Model(&types.FeedVideo{}).WithContext(ctx).Where(query, n).Find(&batch)
 		if result.Error != nil {
 			return nil, fmt.Errorf("查找失败, err:%w", result.Error)
 		}
+		movies = append(movies, batch...)
 	}
 	if len(movies) > 0 {
 		return movies, nil

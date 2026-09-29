@@ -18,7 +18,7 @@ func init() {
 }
 
 func TestTGBot_SendDatePublishedMsg(t1 *testing.T) {
-	t := NewTgBot(config.Config.TG.BotToken, config.Config.TG.TgIDs)
+	t := NewTgBot(config.Config().TG.BotToken, config.Config().TG.TgIDs)
 	go t.StartBot(context.Background())
 	obj := &types.TMDBVideo{
 		ID:            99119,
@@ -30,7 +30,7 @@ func TestTGBot_SendDatePublishedMsg(t1 *testing.T) {
 		Playable:      "三21问问是岁",
 		DatePublished: "2023-06-13",
 	}
-	newAria2, _ := aria2.NewAria2(config.Config.Downloader.Aria2Label)
+	newAria2, _ := aria2.NewAria2(config.Config().Downloader.Aria2Label)
 
 	newAria2.AddDownloadTask(&types.FeedVideo{ImdbID: obj.ImdbID}, "6378562f5e923563")
 	for {

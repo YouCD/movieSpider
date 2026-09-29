@@ -13,7 +13,7 @@ import (
 func Test_torlock_Crawler(t *testing.T) {
 	var err error
 	var videos []*types.FeedVideoBase
-	for _, r := range config.Config.Feed.TORLOCK {
+	for _, r := range config.Config().Feed.TORLOCK {
 		if r != nil {
 			if r.ResourceType == types.VideoTypeTV {
 				feedTorlockTV := NewTorlock(r.Scheduling, r.ResourceType, r.Url, r.UseIPProxy)

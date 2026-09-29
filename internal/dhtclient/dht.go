@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
-	"os"
 	"time"
 	"unicode"
 
@@ -15,18 +14,15 @@ import (
 	"github.com/youcd/toolkit/log"
 )
 
-func Boot(thread int) {
+func Boot(thread int, ctx context.Context) {
 	log.WithCtx(context.Background()).Info("Start DHT Network")
 	for i := 0; i < thread; i++ {
-		go crawl()
+		go crawl(ctx)
 	}
-	//}
-	//select {}
 }
 
-func crawl() {
+func crawl(ctx context.Context) {
 	indexerAddrs := []string{"0.0.0.0:0"}
-	interruptChan := make(chan os.Signal, 1)
 
 	trawlingManager := NewManager([]string{
 		"router.bittorrent.com:6881", "router.utorrent.com:6881",
@@ -34,8 +30,12 @@ func crawl() {
 	}, indexerAddrs, 1, 1000)
 	metadataSink := NewSink(5*time.Second, 256)
 
-	for stopped := false; !stopped; {
+	defer trawlingManager.Terminate()
+	for {
 		select {
+		case <-ctx.Done():
+			log.WithCtx(context.Background()).Info("DHT crawl stopped")
+			return
 		case result := <-trawlingManager.Output():
 			// hash := result.InfoHash()
 			// fmt.Println("", hash)
@@ -68,7 +68,8 @@ func crawl() {
 			if hasHan {
 				continue
 			}
-			bus.FeedVideoChan <- &types.FeedVideoBase{
+			select {
+			case bus.FeedVideoChan <- &types.FeedVideoBase{
 				TorrentName: md.Name,
 				TorrentURL:  "",
 				Magnet:      fmt.Sprintf("magnet:?xt=urn:btih:%s", hex.EncodeToString(md.InfoHash)),
@@ -76,10 +77,11 @@ func crawl() {
 				RowData:     sql.NullString{},
 				Year:        "",
 				Web:         "DHT",
+			}:
+			case <-ctx.Done():
+				log.WithCtx(context.Background()).Info("DHT crawl stopped")
+				return
 			}
-		case <-interruptChan:
-			trawlingManager.Terminate()
-			stopped = true
 		}
 	}
 }

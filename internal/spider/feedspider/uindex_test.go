@@ -10,7 +10,7 @@ import (
 )
 
 func TestUindex_Crawler(t *testing.T) {
-	for _, uindex := range config.Config.Feed.Uindex {
+	for _, uindex := range config.Config().Feed.Uindex {
 		u := NewUindex(uindex.Scheduling, uindex.ResourceType, uindex.Url, uindex.UseIPProxy)
 		got, err := u.Crawler(context.Background())
 		if err != nil {
