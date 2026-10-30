@@ -124,7 +124,7 @@ func (m *MovieDB) ShouldDownload(v *types.FeedVideo) ShouldDownloadResult {
 	if downloadHistory.Resolution == 0 {
 		return ShouldDownloadResult{
 			ShouldDownload: false,
-			Reason:         fmt.Sprintf("种子名: %s, 分辨率为0, err: %w", v.TorrentName, ErrFeedVideoResolutionTooLow),
+			Reason:         fmt.Sprintf("种子名: %s, 分辨率为0, err: %v", v.TorrentName, ErrFeedVideoResolutionTooLow),
 		}
 	}
 

@@ -1,6 +1,7 @@
 package aria2
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func init() {
-	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
+	config.InitConfig("../../config.local.yaml")
 }
 
 func Test_aria2_DownloadList(t *testing.T) {
@@ -76,7 +77,7 @@ func Test_aria2_CompletedFiles(t *testing.T) {
 		msg += fmt.Sprintf("\nGID:%s, 大小:%s, 已完成:%s, 文件名:%s", file.GID, file.Size, file.Completed, file.FileName)
 	}
 
-	log.Infof("Report: 下载统计: %s", msg)
+	log.WithCtx(context.Background()).Infof("Report: 下载统计: %s", msg)
 	// fmt.Println(bs)
 }
 

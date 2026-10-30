@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
+	config.InitConfig("../../config.local.yaml")
 	model.NewMovieDB()
 }
 
@@ -19,7 +19,7 @@ func Test_download_Run(t *testing.T) {
 	d := &Download{
 		scheduling: "The.Peripheral",
 	}
-	d.Run()
+	d.Run(context.Background())
 }
 
 func Test_download_DownloadByName(t *testing.T) {
@@ -27,7 +27,7 @@ func Test_download_DownloadByName(t *testing.T) {
 		scheduling: "*/1 * * * *",
 	}
 	log.SetLogLevel("Debug")
-	err := d.download(types.VideoTypeTV, model.NewMovieDB().GetFeedVideoTVByNames)
+	err := d.download(context.Background(), types.VideoTypeTV, model.NewMovieDB().GetFeedVideoTVByNames)
 	if err != nil {
 		log.WithCtx(context.Background()).Error(err)
 	}

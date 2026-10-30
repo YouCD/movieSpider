@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
+	config.InitConfig("../../config.local.yaml")
 }
 
 func TestNewMovieDB(t *testing.T) {
@@ -59,7 +59,7 @@ func Test_movieDB_CreatTMDBVideo(t *testing.T) {
 }
 
 func Test_movieDB_CreatFeedVideo(t *testing.T) {
-	err := NewMovieDB().CreatFeedVideo(&types.FeedVideo{
+	err := NewMovieDB().CreatFeedVideo(context.Background(), &types.FeedVideo{
 		ID:        888888,
 		Name:      "888888",
 		Download:  0,
@@ -72,7 +72,7 @@ func Test_movieDB_CreatFeedVideo(t *testing.T) {
 
 func Test_movieDB_FetchTMDBVideoByType(t *testing.T) {
 	tt := types.VideoTypeTV
-	list, err := NewMovieDB().FetchTMDBVideoByType(tt)
+	list, err := NewMovieDB().FetchTMDBVideoByType(context.Background(), tt)
 	if err != nil {
 		t.Error(err)
 	}
@@ -91,7 +91,7 @@ func Test_movieDB_FetchOneTMDBVideoByImdbID(t *testing.T) {
 }
 
 func Test_movieDB_FetchTVMagnetByName(t *testing.T) {
-	videos, err := NewMovieDB().GetFeedVideoTVByNames([]string{"Ahsoka"}...)
+	videos, err := NewMovieDB().GetFeedVideoTVByNames(context.Background(), []string{"Ahsoka"}...)
 	if err != nil {
 		t.Error(err)
 	}
@@ -112,7 +112,7 @@ func Test_movieDB_FindLikeTVFromFeedVideo(t *testing.T) {
 }
 
 func Test_movieDB_RandomOneTMDBVideo(t *testing.T) {
-	video, err := NewMovieDB().RandomOneTMDBVideo()
+	video, err := NewMovieDB().RandomOneTMDBVideo(context.Background())
 	if err != nil {
 		t.Error(err)
 	}

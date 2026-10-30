@@ -224,7 +224,6 @@ func (s *TMDBSpider) processTV(ctx context.Context, tv types.WatchlistTVItem) {
 		}
 	}
 	seasonsInfo, _ := json.Marshal(seasons)
-	s.client.GetTVSeasonDetails(ctx, tv.ID, 1)
 
 	// 创建TMDBVideo
 	video := &types.TMDBVideo{
@@ -270,7 +269,7 @@ func (s *TMDBSpider) checkWatchProviders(ctx context.Context) {
 	for _, provider := range providers {
 		log.WithCtx(ctx).Infof("更新 %s 的播放状态为可播放", provider.Names)
 	}
-	log.WithCtx(ctx).Info("检查检查视频的观看提供商完成")
+	log.WithCtx(ctx).Info("检查视频的观看提供商完成")
 }
 
 // checkVideoWatchProviders 检查单个视频的观看提供商

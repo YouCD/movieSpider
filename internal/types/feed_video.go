@@ -9,7 +9,7 @@ import (
 //nolint:tagliatelle
 type BaseFeed struct {
 	Scheduling string `json:"Scheduling" yaml:"Scheduling" validate:"cron" `
-	Url        string `son:"URL" yaml:"URL" validate:"http_url" `
+	Url        string `json:"Url" yaml:"Url" validate:"http_url" `
 	UseIPProxy bool   `json:"UseIPProxy,omitempty" yaml:"UseIPProxy,omitempty"`
 }
 

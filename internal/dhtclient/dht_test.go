@@ -1,6 +1,7 @@
 package dhtclient
 
 import (
+	"context"
 	"testing"
 
 	"movieSpider/internal/config"
@@ -8,11 +9,12 @@ import (
 )
 
 func init() {
-	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
+	config.InitConfig("../../config.local.yaml")
 	// model.NewMovieDB().SaveFeedVideoFromChan()
 }
 
 func TestBoot(t *testing.T) {
-	model.NewMovieDB().SaveFeedVideoFromChan()
-	Boot(2)
+	ctx := context.Background()
+	model.NewMovieDB().SaveFeedVideoFromChan(ctx)
+	Boot(2, ctx)
 }

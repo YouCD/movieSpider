@@ -49,16 +49,16 @@ var rootCmd = &cobra.Command{
 		)
 
 		movieSpider.Start(ctx)
-		mcpCfg := &mcpserver.McpConfig{
-			MovieConfig: &mcpserver.MovieServiceConfig{
-				AccountID:   config.Config().TMDB.AccountID,
-				BearerToken: config.Config().TMDB.BearerToken,
-			},
-			Host:   config.Config().MCP.HostPort,
-			ApiKey: config.Config().MCP.ApiKey,
-		}
 		// 启动 MCP server
-		if config.Config().MCP != nil {
+		if mcp := config.Config().MCP; mcp != nil {
+			mcpCfg := &mcpserver.McpConfig{
+				MovieConfig: &mcpserver.MovieServiceConfig{
+					AccountID:   config.Config().TMDB.AccountID,
+					BearerToken: config.Config().TMDB.BearerToken,
+				},
+				Host:   mcp.HostPort,
+				ApiKey: mcp.ApiKey,
+			}
 			go func() {
 				err := mcpserver.Start(ctx, mcpCfg)
 				if err != nil {

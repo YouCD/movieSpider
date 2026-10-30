@@ -23,8 +23,8 @@ import (
 
 //nolint:gochecknoglobals
 var (
-	aria2Client *Aria2
-	once        sync.Once
+	aria2Mtx     sync.Mutex
+	aria2Clients = map[string]*Aria2{} // 按 label 缓存, 避免单例绑死第一个 label
 )
 
 type Aria2 struct {
@@ -40,34 +40,31 @@ type Aria2 struct {
 //	@return *Aria2
 //	@return error
 func NewAria2(label string) (*Aria2, error) {
-	var e error
-	once.Do(func() {
-		for _, v := range config.Config().Aria2cList {
-			URL := v.URL + "/jsonrpc"
-			if strings.HasSuffix(v.URL, "jsonrpc") {
-				URL = v.URL
-			}
-
-			if v.Label == label {
-				client, err := rpc.New(context.Background(), URL, v.Token, 0, nil)
-				if err != nil {
-					log.WithCtx(context.Background()).Error(err)
-					e = err
-					return
-				}
-				marshal, _ := json.Marshal(config.Config().Aria2cList)
-				log.WithCtx(context.Background()).Debug(string(marshal))
-				aria2Client = &Aria2{aria2Client: client, downloadTask: make(map[string]*types.FeedVideo)}
-			}
+	aria2Mtx.Lock()
+	defer aria2Mtx.Unlock()
+	if c, ok := aria2Clients[label]; ok {
+		return c, nil
+	}
+	for _, v := range config.Config().Aria2cList {
+		if v.Label != label {
+			continue
 		}
-	})
-	if e != nil {
-		return nil, e
+		URL := v.URL + "/jsonrpc"
+		if strings.HasSuffix(v.URL, "jsonrpc") {
+			URL = v.URL
+		}
+		client, err := rpc.New(context.Background(), URL, v.Token, 0, nil)
+		if err != nil {
+			log.WithCtx(context.Background()).Error(err)
+			return nil, err
+		}
+		marshal, _ := json.Marshal(config.Config().Aria2cList)
+		log.WithCtx(context.Background()).Debug(string(marshal))
+		c := &Aria2{aria2Client: client, downloadTask: make(map[string]*types.FeedVideo)}
+		aria2Clients[label] = c
+		return c, nil
 	}
-	if aria2Client == nil {
-		return nil, fmt.Errorf("未找到 label 为 %s 的 aria2 配置", label)
-	}
-	return aria2Client, nil
+	return nil, fmt.Errorf("未找到 label 为 %s 的 aria2 配置", label)
 }
 
 // DownloadByURL
@@ -275,8 +272,15 @@ func (a *Aria2) AddDownloadTask(feedVideo *types.FeedVideo, gid string) {
 	a.downloadTask[gid] = feedVideo
 }
 
+// GetDownloadTask 返回下载任务的快照副本（调用方可安全迭代）
 func (a *Aria2) GetDownloadTask() map[string]*types.FeedVideo {
-	return a.downloadTask
+	a.mtx.Lock()
+	defer a.mtx.Unlock()
+	tasks := make(map[string]*types.FeedVideo, len(a.downloadTask))
+	for k, v := range a.downloadTask {
+		tasks[k] = v
+	}
+	return tasks
 }
 
 // Subscribe
@@ -284,13 +288,25 @@ func (a *Aria2) GetDownloadTask() map[string]*types.FeedVideo {
 //	@Description: 检查下载任务中已完成的任务，返回完成的任务列表
 //	@receiver a
 //	@return []*types.DownloadNotifyVideo 已完成的下载通知列表
+//	注意: TellStatus 是网络调用, 不能持有 a.mtx 执行, 否则会阻塞 AddDownloadTask
 func (a *Aria2) Subscribe() []*types.DownloadNotifyVideo {
+	type taskPair struct {
+		gid   string
+		video *types.FeedVideo
+	}
+
+	// 锁内只做快照, 锁外做网络查询
 	a.mtx.Lock()
-	defer a.mtx.Unlock()
+	pairs := make([]taskPair, 0, len(a.downloadTask))
+	for gid, feedVideo := range a.downloadTask {
+		pairs = append(pairs, taskPair{gid: gid, video: feedVideo})
+	}
+	a.mtx.Unlock()
 
 	var completedVideos []*types.DownloadNotifyVideo
-	for gid, feedVideo := range a.downloadTask {
-		info, err := a.aria2Client.TellStatus(gid, "files", "status")
+	var finishedGIDs []string
+	for _, p := range pairs {
+		info, err := a.aria2Client.TellStatus(p.gid, "files", "status")
 		if err != nil {
 			log.WithCtx(context.Background()).Error(err)
 			continue
@@ -300,17 +316,25 @@ func (a *Aria2) Subscribe() []*types.DownloadNotifyVideo {
 		case "complete":
 			file, size := getMaxSizeFile(info.Files)
 			completedVideos = append(completedVideos, &types.DownloadNotifyVideo{
-				FeedVideo: feedVideo,
+				FeedVideo: p.video,
 				File:      file,
 				Size:      tools.ByteCountBinary(int64(size)),
-				Gid:       gid,
+				Gid:       p.gid,
 			})
-			delete(a.downloadTask, gid)
+			finishedGIDs = append(finishedGIDs, p.gid)
 		case "error", "removed":
 			// 任务已失败或被移除, 清理记录避免无限轮询
-			log.WithCtx(context.Background()).Warnf("aria2 任务状态: %s, gid: %s, 从下载任务中移除", info.Status, gid)
+			log.WithCtx(context.Background()).Warnf("aria2 任务状态: %s, gid: %s, 从下载任务中移除", info.Status, p.gid)
+			finishedGIDs = append(finishedGIDs, p.gid)
+		}
+	}
+
+	if len(finishedGIDs) > 0 {
+		a.mtx.Lock()
+		for _, gid := range finishedGIDs {
 			delete(a.downloadTask, gid)
 		}
+		a.mtx.Unlock()
 	}
 	return completedVideos
 }

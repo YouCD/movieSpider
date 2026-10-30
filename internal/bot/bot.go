@@ -114,6 +114,10 @@ func (t *TGBot) handleReportDownloadHandler(ctx context.Context, b *bot.Bot, upd
 	if update.Message == nil {
 		return
 	}
+	if update.Message.From == nil {
+		log.WithCtx(ctx).Warnf("消息无发送者信息, chatID: %d, 拒绝执行", update.Message.Chat.ID)
+		return
+	}
 
 	if !t.checkUser(update.Message.Chat.ID, update) {
 		log.WithCtx(ctx).Warnf("用户 %s(%d) 没有权限执行命令", update.Message.From.Username, update.Message.From.ID)
@@ -142,6 +146,10 @@ func (t *TGBot) handleReportFeedVideosHandler(ctx context.Context, b *bot.Bot, u
 	if update.Message == nil {
 		return
 	}
+	if update.Message.From == nil {
+		log.WithCtx(ctx).Warnf("消息无发送者信息, chatID: %d, 拒绝执行", update.Message.Chat.ID)
+		return
+	}
 
 	if !t.checkUser(update.Message.Chat.ID, update) {
 		log.WithCtx(ctx).Warnf("用户 %s(%d) 没有权限执行命令", update.Message.From.Username, update.Message.From.ID)
@@ -154,6 +162,10 @@ func (t *TGBot) handleReportFeedVideosHandler(ctx context.Context, b *bot.Bot, u
 // handleMovieDownloadHandler 处理电影下载命令
 func (t *TGBot) handleMovieDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.Message == nil {
+		return
+	}
+	if update.Message.From == nil {
+		log.WithCtx(ctx).Warnf("消息无发送者信息, chatID: %d, 拒绝执行", update.Message.Chat.ID)
 		return
 	}
 

@@ -140,10 +140,6 @@ func reportAria2DownloadQueue() {
 		log.WithCtx(context.Background()).Info("Report: aria2 下载队列为空")
 		return
 	}
-	if len(task) == 0 {
-		log.WithCtx(context.Background()).Info("Report: aria2 队列为空")
-		return
-	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"Gid", "Names", "Type"})
 	for k, v := range task {

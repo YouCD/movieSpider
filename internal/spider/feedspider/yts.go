@@ -47,7 +47,7 @@ func (f *Yts) Crawler(ctx context.Context) (videos []*types.FeedVideoBase, err e
 	}
 
 	var wg sync.WaitGroup
-	var mu sync.Mutex // 保护 videos 切片的并发访问
+	var mu sync.Mutex             // 保护 videos 切片的并发访问
 	sem := make(chan struct{}, 5) // 限制并发请求数, 避免对 yts CDN 造成过大压力
 	for _, video := range tempVideos {
 		wg.Add(1)

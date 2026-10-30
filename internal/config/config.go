@@ -13,6 +13,7 @@ import (
 	"github.com/natefinch/lumberjack"
 	"github.com/spf13/viper"
 	"github.com/youcd/toolkit/log"
+	"gopkg.in/yaml.v3"
 )
 
 //nolint:tagliatelle
@@ -33,14 +34,14 @@ type global struct {
 
 //nolint:tagliatelle
 type aria2 struct {
-	URL   string `json:"URL" yaml:"URL" validate:"required,http_url"`
+	URL   string `json:"URL" yaml:"Url" validate:"required,http_url"`
 	Token string `json:"Token" yaml:"Token" validate:"required"`
 	Label string `json:"Label" yaml:"Label" validate:"required"`
 }
 
 type llm struct {
 	ApiKey  string `json:"ApiKey,omitempty" yaml:"ApiKey" validate:"required"`
-	BaseURL string `json:"BaseURL,omitempty" yaml:"BaseURL" validate:"required,http_url"`
+	BaseURL string `json:"BaseURL,omitempty" yaml:"BaseUrl" validate:"required,http_url"`
 	Model   string `json:"Model,omitempty" yaml:"Model" validate:"required"`
 }
 
@@ -61,7 +62,7 @@ type mysql struct {
 
 //nolint:tagliatelle
 type BaseRT struct {
-	types.BaseFeed `mapstructure:",squash"`
+	types.BaseFeed `mapstructure:",squash" yaml:",inline"`
 	ResourceType   types.VideoType `json:"ResourceType" yaml:"ResourceType" validate:"required,oneof=movie tv"`
 }
 
@@ -70,14 +71,14 @@ type config struct {
 	MySQL        *mysql   `json:"MySQL" yaml:"MySQL" validate:"required"`
 	ExcludeWords []string `json:"ExcludeWords" yaml:"ExcludeWords" validate:"required"`
 	Feed         struct {
-		EZTV    *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
-		TORLOCK []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
-		Tgx     []*BaseRT       `json:"Tgx" yaml:"Tgx" validate:"required"`
-		ThePirateBay  *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
-		Knaben        *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
-		TheRarbg      []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
-		Uindex        []*BaseRT       `json:"Uindex" yaml:"Uindex" validate:"required"`
-		Yts           *types.BaseFeed `json:"Yts" yaml:"Yts" validate:"required"`
+		EZTV         *types.BaseFeed `json:"EZTV" yaml:"EZTV" validate:"required"`
+		TORLOCK      []*BaseRT       `json:"TORLOCK" yaml:"TORLOCK" validate:"required"`
+		Tgx          []*BaseRT       `json:"Tgx" yaml:"Tgx" validate:"required"`
+		ThePirateBay *types.BaseFeed `json:"ThePirateBay" yaml:"ThePirateBay" validate:"required"`
+		Knaben       *types.BaseFeed `json:"Knaben" yaml:"Knaben" validate:"required"`
+		TheRarbg     []*BaseRT       `json:"TheRarbg" yaml:"TheRarbg" validate:"required"`
+		Uindex       []*BaseRT       `json:"Uindex" yaml:"Uindex" validate:"required"`
+		Yts          *types.BaseFeed `json:"Yts" yaml:"Yts" validate:"required"`
 	} `json:"Feed" yaml:"Feed" validate:"required"`
 	Global     *global     `json:"Global" yaml:"Global" validate:"required"`
 	Downloader *downloader `json:"Downloader" yaml:"Downloader" validate:"required"`
@@ -104,8 +105,13 @@ var (
 )
 
 // Config 返回当前配置（线程安全）
+// 在 InitConfig 之前调用会 panic, 避免深层解引用 nil 难以排查
 func Config() *config {
-	return configPtr.Load()
+	cfg := configPtr.Load()
+	if cfg == nil {
+		panic("config 未初始化, 请先调用 InitConfig")
+	}
+	return cfg
 }
 
 func InitConfig(configFile string) {
@@ -119,7 +125,13 @@ func InitConfig(configFile string) {
 	}
 
 	cfg := new(config)
-	if err := v.Unmarshal(cfg); err != nil {
+	// 直接用 yaml 库解析文件, 避免 viper 缓存合并导致已删除的 key 残留旧值
+	data, err := os.ReadFile(configFile)
+	if err != nil {
+		fmt.Printf("配置文件错误: %v\n", err)
+		os.Exit(1)
+	}
+	if err := yaml.Unmarshal(data, cfg); err != nil {
 		fmt.Printf("读取配置错误: %v\n", err)
 		os.Exit(1)
 	}
@@ -144,8 +156,13 @@ func InitConfig(configFile string) {
 func handleConfigChange(e fsnotify.Event) {
 	log.WithCtx(context.Background()).Infof("Config file changed: %s\n", e.Name)
 	c := new(config)
-	// 解析配置文件，反序列化
-	if err := v.Unmarshal(c); err != nil {
+	// 重新读取文件并用 yaml 库解析, 避免 viper 缓存合并导致已删除的 key 残留旧值
+	data, err := os.ReadFile(e.Name)
+	if err != nil {
+		log.WithCtx(context.Background()).Errorf("读取配置文件失败: %s", err)
+		return
+	}
+	if err := yaml.Unmarshal(data, c); err != nil {
 		log.WithCtx(context.Background()).Errorf("Unmarshal yaml failed: %s", err)
 		return
 	}

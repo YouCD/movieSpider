@@ -66,6 +66,11 @@ func (t *TgxWeb) Crawler(ctx context.Context) ([]*types.FeedVideoBase, error) {
 		wg.Add(1)
 		go func(v *types.FeedVideoBase) {
 			defer wg.Done()
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 			resp, err := t.HTTPRequest(ctx, v.TorrentURL)
 			if err != nil {
 				log.WithCtx(ctx).Warnf("tgx: %s", err)

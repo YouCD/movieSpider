@@ -24,8 +24,9 @@ func TestFeedVideo_FormatTvByName(t *testing.T) {
 }
 
 func TestFeedVideo_FormatName(t *testing.T) {
-	f := &FeedVideo{
-		Name: "【高清剧集网发布.www.PTHDTV.com】梦中的那片海[第17-20集][国语配音+中文字幕].Where.Dreams.Begin",
+	// FormatName 已迁移到 TMDBVideo 上
+	d := &TMDBVideo{
+		Type: "tv",
 	}
-	fmt.Println(f.FormatName(f.Name))
+	fmt.Println(d.FormatName(`梦中的那片海 S01 第17-20集 国语配音+中文字幕.Where.Dreams.Begin`))
 }

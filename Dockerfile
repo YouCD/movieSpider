@@ -6,8 +6,7 @@ ENV GOPROXY=https://goproxy.cn,direct CGO_ENABLED=0 \
     GO111MODULE='on' \
     GIT_TERMINAL_PROMPT=1
 COPY . .
-RUN apk add --no-cache git && \
-    CGO_ENABLED=0 go build -o movieSpider
+RUN GO_ENABLED=0 go build -o movieSpider
 
 FROM  hairyhenderson/upx AS upx
 WORKDIR /movieSpider

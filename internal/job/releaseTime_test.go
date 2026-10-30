@@ -1,6 +1,7 @@
 package job
 
 import (
+	"context"
 	"testing"
 
 	"movieSpider/internal/config"
@@ -8,7 +9,7 @@ import (
 )
 
 func init() {
-	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
+	config.InitConfig("../../config.local.yaml")
 	model.NewMovieDB()
 }
 
@@ -16,6 +17,6 @@ func TestDatePublished_Run(t *testing.T) {
 	r := &ReleaseTimeJob{
 		scheduling: "tt.fields.scheduling",
 	}
-	r.Run()
+	r.Run(context.Background())
 	select {}
 }

@@ -8,11 +8,20 @@ import (
 )
 
 func init() {
-	config.InitConfig("/home/ycd/self_data/source_code/go-source/tools-cmd/movieSpider/config.local.yaml")
+	config.InitConfig("../../config.local.yaml")
 }
 
 func TestMovieService_PlayableTodayMovieTV(t *testing.T) {
-	tv, err := NewMovieService().PlayableTodayMovieTV(context.Background())
+	cfg := &MovieServiceConfig{
+		AccountID:   config.Config().TMDB.AccountID,
+		BearerToken: config.Config().TMDB.BearerToken,
+	}
+	svc, err := NewMovieService(cfg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	tv, err := svc.PlayableTodayMovieTV(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
